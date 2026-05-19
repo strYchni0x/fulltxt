@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FULLTXT</string>
+    <string name="search_placeholder">Dateien durchsuchen…</string>
+    <string name="nav_search">Suche</string>
+    <string name="nav_indexing">Indexierung</string>
+    <string name="nav_settings">Einstellungen</string>
+    <string name="indexing_progress">Indexierung läuft…</string>
+    <string name="no_results">Keine Ergebnisse</string>
+</resources>
