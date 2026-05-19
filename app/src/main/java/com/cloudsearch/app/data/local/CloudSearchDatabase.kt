@@ -9,7 +9,7 @@ import me.fulltxt.app.data.local.entity.FileMetadataEntity
 @Database(
     entities = [FileMetadataEntity::class, FileContentEntity::class],
     version = 1,
-    exportSchema = true
+    exportSchema = false
 )
 abstract class FulltxtDatabase : RoomDatabase() {
     abstract fun fileIndexDao(): FileIndexDao

@@ -27,12 +27,7 @@ interface FileIndexDao {
     @Query("SELECT * FROM file_metadata WHERE fileId = :fileId")
     suspend fun getMetadata(fileId: String): FileMetadataEntity?
 
-    @Query("""
-        SELECT m.* FROM file_metadata m
-        INNER JOIN file_content_fts fts ON m.fileId = fts.fileId
-        WHERE file_content_fts MATCH :query
-        ORDER BY rank
-    """)
+    @Query("SELECT * FROM file_metadata WHERE fileId IN (SELECT fileId FROM file_content_fts WHERE file_content_fts MATCH :query)")
     fun search(query: String): Flow<List<FileMetadataEntity>>
 
     @Query("SELECT * FROM file_metadata WHERE cloudProvider = :provider AND accountId = :accountId")
