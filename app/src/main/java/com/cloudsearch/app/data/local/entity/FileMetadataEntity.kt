@@ -16,5 +16,6 @@ data class FileMetadataEntity(
     val mimeType: String,
     val changeToken: String?,
     val checksum: String?,
-    val indexedAt: Long
+    val indexedAt: Long,
+    val webUrl: String? = null
 )

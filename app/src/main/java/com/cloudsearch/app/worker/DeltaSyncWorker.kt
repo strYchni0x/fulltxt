@@ -23,23 +23,57 @@ class DeltaSyncWorker @AssistedInject constructor(
     companion object {
         const val KEY_ACCOUNT_ID = "account_id"
         const val KEY_PROVIDER = "provider"
-        const val KEY_CHANGE_TOKEN = "change_token"
+        const val PROGRESS_CURRENT = "progress_current"
+        const val PROGRESS_TOTAL = "progress_total"
+        const val PROGRESS_ERRORS = "progress_errors"
     }
 
     override suspend fun doWork(): Result {
         val accountId = inputData.getString(KEY_ACCOUNT_ID) ?: return Result.failure()
         val provider = inputData.getString(KEY_PROVIDER) ?: return Result.failure()
-        val changeToken = inputData.getString(KEY_CHANGE_TOKEN)
+
+        val connector = when (provider) {
+            "GOOGLE_DRIVE" -> googleDriveConnector
+            "ONE_DRIVE" -> oneDriveConnector
+            else -> return Result.failure()
+        }
 
         return try {
-            val connector = when (provider) {
-                "GOOGLE_DRIVE" -> googleDriveConnector
-                "ONE_DRIVE" -> oneDriveConnector
-                else -> return Result.failure()
+            val storedToken = indexRepository.getChangeToken(accountId)
+            val (changedFiles, newToken) = connector.getChanges(accountId, storedToken)
+
+            if (storedToken == null) {
+                // First delta-sync run after initial indexing:
+                // getChanges(null) returns all files — we already have them indexed.
+                // Just save the token so the next run only fetches actual changes.
+                if (newToken.isNotEmpty()) indexRepository.saveChangeToken(accountId, newToken)
+                return Result.success()
             }
-            val (changedFiles, newToken) = connector.getChanges(accountId, changeToken)
-            changedFiles.forEach { indexRepository.indexFile(it, connector) }
-            Result.success(workDataOf(KEY_CHANGE_TOKEN to newToken))
+
+            val total = changedFiles.size
+            var current = 0
+            var errors = 0
+
+            setProgressAsync(workDataOf(
+                PROGRESS_CURRENT to 0,
+                PROGRESS_TOTAL to total,
+                PROGRESS_ERRORS to 0
+            ))
+
+            for (file in changedFiles) {
+                runCatching { indexRepository.indexFile(file, connector) }
+                    .onFailure { errors++ }
+                current++
+                setProgressAsync(workDataOf(
+                    PROGRESS_CURRENT to current,
+                    PROGRESS_TOTAL to total,
+                    PROGRESS_ERRORS to errors
+                ))
+            }
+
+            if (newToken.isNotEmpty()) indexRepository.saveChangeToken(accountId, newToken)
+
+            if (errors > 0 && current == errors) Result.failure() else Result.success()
         } catch (e: Exception) {
             if (runAttemptCount < 3) Result.retry() else Result.failure()
         }

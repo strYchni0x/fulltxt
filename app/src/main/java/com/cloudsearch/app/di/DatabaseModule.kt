@@ -3,6 +3,7 @@ package me.fulltxt.app.di
 import android.content.Context
 import androidx.room.Room
 import me.fulltxt.app.data.local.FulltxtDatabase
+import me.fulltxt.app.data.local.MIGRATION_1_2
 import me.fulltxt.app.data.local.dao.FileIndexDao
 import dagger.Module
 import dagger.Provides
@@ -19,6 +20,7 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): FulltxtDatabase =
         Room.databaseBuilder(context, FulltxtDatabase::class.java, "fulltxt.db")
+            .addMigrations(MIGRATION_1_2)
             .build()
 
     @Provides

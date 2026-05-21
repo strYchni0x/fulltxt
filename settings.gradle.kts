@@ -17,8 +17,8 @@ dependencyResolutionManagement {
 rootProject.name = "FULLTXT"
 include(":app")
 
-// Redirect build output outside OneDrive to prevent sync-related file locks
-val buildBase = File("C:/build/fulltxt")
+// Redirect build output to D: (same drive as source) to prevent OneDrive sync locks
+val buildBase = File("D:/build/fulltxt")
 gradle.allprojects {
     layout.buildDirectory.set(buildBase.resolve(project.name))
 }

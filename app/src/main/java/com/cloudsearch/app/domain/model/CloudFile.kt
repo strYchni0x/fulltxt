@@ -10,7 +10,8 @@ data class CloudFile(
     val createdAt: Long,
     val modifiedAt: Long,
     val mimeType: String,
-    val changeToken: String?
+    val changeToken: String?,
+    val webUrl: String? = null
 )
 
 enum class CloudProvider {
