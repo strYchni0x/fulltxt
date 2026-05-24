@@ -11,10 +11,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -25,6 +29,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -35,9 +40,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import me.fulltxt.app.domain.model.CloudAccount
@@ -52,11 +63,62 @@ fun SettingsScreen(
     val accounts by viewModel.accounts.collectAsState()
     val connectingProvider by viewModel.connectingProvider.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    var showNextcloudDialog   by rememberSaveable { mutableStateOf(false) }
+    var showOwnCloudDialog    by rememberSaveable { mutableStateOf(false) }
+    var showMagentaDialog     by rememberSaveable { mutableStateOf(false) }
+    var showStratoDialog      by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.errorMessage.collect { message ->
             snackbarHostState.showSnackbar(message)
         }
+    }
+
+    if (showNextcloudDialog) {
+        NextcloudConnectDialog(
+            isConnecting = connectingProvider == CloudProvider.NEXTCLOUD,
+            onDismiss    = { showNextcloudDialog = false },
+            onConfirm    = { url, user, pass ->
+                showNextcloudDialog = false
+                viewModel.connectNextcloud(url, user, pass)
+            }
+        )
+    }
+
+    if (showOwnCloudDialog) {
+        OwnCloudConnectDialog(
+            isConnecting = connectingProvider == CloudProvider.OWNCLOUD,
+            onDismiss    = { showOwnCloudDialog = false },
+            onConfirm    = { url, user, pass ->
+                showOwnCloudDialog = false
+                viewModel.connectOwnCloud(url, user, pass)
+            }
+        )
+    }
+
+    if (showMagentaDialog) {
+        WebDavConnectDialog(
+            title          = "MagentaCloud verbinden",
+            hint           = "Verwende ein App-Passwort (MagentaCloud → Einstellungen → Sicherheit).",
+            prefillUrl     = "https://magentacloud.de",
+            isConnecting   = connectingProvider == CloudProvider.MAGENTA_CLOUD,
+            onDismiss      = { showMagentaDialog = false },
+            onConfirm      = { url, user, pass ->
+                showMagentaDialog = false
+                viewModel.connectMagentaCloud(url, user, pass)
+            }
+        )
+    }
+
+    if (showStratoDialog) {
+        StratoConnectDialog(
+            isConnecting = connectingProvider == CloudProvider.STRATO_HIDRIVE,
+            onDismiss    = { showStratoDialog = false },
+            onConfirm    = { user, pass ->
+                showStratoDialog = false
+                viewModel.connectStrato(user, pass)
+            }
+        )
     }
 
     val connectedProviders = accounts.map { it.account.provider }.toSet()
@@ -122,6 +184,56 @@ fun SettingsScreen(
                         label = "OneDrive verbinden",
                         isConnecting = connectingProvider == CloudProvider.ONE_DRIVE,
                         onClick = { viewModel.connectAccount(CloudProvider.ONE_DRIVE) }
+                    )
+                }
+            }
+
+            if (CloudProvider.NEXTCLOUD !in connectedProviders) {
+                item {
+                    ConnectButton(
+                        label = "Nextcloud verbinden",
+                        isConnecting = connectingProvider == CloudProvider.NEXTCLOUD,
+                        onClick = { showNextcloudDialog = true }
+                    )
+                }
+            }
+
+            if (CloudProvider.OWNCLOUD !in connectedProviders) {
+                item {
+                    ConnectButton(
+                        label = "ownCloud verbinden",
+                        isConnecting = connectingProvider == CloudProvider.OWNCLOUD,
+                        onClick = { showOwnCloudDialog = true }
+                    )
+                }
+            }
+
+            if (CloudProvider.MAGENTA_CLOUD !in connectedProviders) {
+                item {
+                    ConnectButton(
+                        label = "MagentaCloud verbinden",
+                        isConnecting = connectingProvider == CloudProvider.MAGENTA_CLOUD,
+                        onClick = { showMagentaDialog = true }
+                    )
+                }
+            }
+
+            if (CloudProvider.STRATO_HIDRIVE !in connectedProviders) {
+                item {
+                    ConnectButton(
+                        label = "Strato HiDrive verbinden",
+                        isConnecting = connectingProvider == CloudProvider.STRATO_HIDRIVE,
+                        onClick = { showStratoDialog = true }
+                    )
+                }
+            }
+
+            if (CloudProvider.DROPBOX !in connectedProviders) {
+                item {
+                    ConnectButton(
+                        label = "Dropbox verbinden",
+                        isConnecting = connectingProvider == CloudProvider.DROPBOX,
+                        onClick = { viewModel.connectAccount(CloudProvider.DROPBOX) }
                     )
                 }
             }
@@ -240,7 +352,314 @@ private fun ConnectButton(
     }
 }
 
+/**
+ * Generischer WebDAV-Verbindungsdialog (Server-URL + Benutzername + App-Passwort).
+ * Wird für MagentaCloud und ähnliche Nextcloud-basierte Dienste mit bekannter Standard-URL genutzt.
+ */
+@Composable
+private fun WebDavConnectDialog(
+    title: String,
+    hint: String,
+    prefillUrl: String = "https://",
+    isConnecting: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (serverUrl: String, username: String, appPassword: String) -> Unit
+) {
+    var serverUrl       by rememberSaveable(prefillUrl) { mutableStateOf(prefillUrl) }
+    var username        by rememberSaveable { mutableStateOf("") }
+    var appPassword     by rememberSaveable { mutableStateOf("") }
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
+
+    val canConfirm = serverUrl.length > 8 && username.isNotBlank() && appPassword.isNotBlank()
+
+    AlertDialog(
+        onDismissRequest = { if (!isConnecting) onDismiss() },
+        title = { Text(title) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(hint,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                OutlinedTextField(
+                    value = serverUrl, onValueChange = { serverUrl = it },
+                    label = { Text("Server-URL") }, singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = username, onValueChange = { username = it },
+                    label = { Text("Benutzername") }, singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = appPassword, onValueChange = { appPassword = it },
+                    label = { Text("App-Passwort") }, singleLine = true,
+                    visualTransformation = if (passwordVisible) VisualTransformation.None
+                                          else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    trailingIcon = {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = null
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onConfirm(serverUrl.trim(), username.trim(), appPassword) },
+                   enabled = canConfirm && !isConnecting) {
+                if (isConnecting) {
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                    Spacer(Modifier.width(8.dp))
+                }
+                Text(if (isConnecting) "Verbinde…" else "Verbinden")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !isConnecting) { Text("Abbrechen") }
+        }
+    )
+}
+
+/**
+ * Strato-spezifischer Dialog: Server-URL ist fix (webdav.hidrive.strato.com),
+ * daher werden nur Benutzername und Passwort abgefragt.
+ */
+@Composable
+private fun StratoConnectDialog(
+    isConnecting: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (username: String, password: String) -> Unit
+) {
+    var username        by rememberSaveable { mutableStateOf("") }
+    var password        by rememberSaveable { mutableStateOf("") }
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
+
+    val canConfirm = username.isNotBlank() && password.isNotBlank()
+
+    AlertDialog(
+        onDismissRequest = { if (!isConnecting) onDismiss() },
+        title = { Text("Strato HiDrive verbinden") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Server: webdav.hidrive.strato.com",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                OutlinedTextField(
+                    value = username, onValueChange = { username = it },
+                    label = { Text("Strato-Benutzername") }, singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = password, onValueChange = { password = it },
+                    label = { Text("Passwort") }, singleLine = true,
+                    visualTransformation = if (passwordVisible) VisualTransformation.None
+                                          else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    trailingIcon = {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = null
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onConfirm(username.trim(), password) },
+                   enabled = canConfirm && !isConnecting) {
+                if (isConnecting) {
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                    Spacer(Modifier.width(8.dp))
+                }
+                Text(if (isConnecting) "Verbinde…" else "Verbinden")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !isConnecting) { Text("Abbrechen") }
+        }
+    )
+}
+
+@Composable
+private fun OwnCloudConnectDialog(
+    isConnecting: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (serverUrl: String, username: String, appPassword: String) -> Unit
+) {
+    var serverUrl       by rememberSaveable { mutableStateOf("https://") }
+    var username        by rememberSaveable { mutableStateOf("") }
+    var appPassword     by rememberSaveable { mutableStateOf("") }
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
+
+    val canConfirm = serverUrl.length > 8 && username.isNotBlank() && appPassword.isNotBlank()
+
+    AlertDialog(
+        onDismissRequest = { if (!isConnecting) onDismiss() },
+        title = { Text("ownCloud verbinden") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    "Verwende ein App-Passwort (ownCloud → Einstellungen → Sicherheit).",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                OutlinedTextField(
+                    value = serverUrl,
+                    onValueChange = { serverUrl = it },
+                    label = { Text("Server-URL") },
+                    placeholder = { Text("https://cloud.example.com") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = username,
+                    onValueChange = { username = it },
+                    label = { Text("Benutzername") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = appPassword,
+                    onValueChange = { appPassword = it },
+                    label = { Text("App-Passwort") },
+                    singleLine = true,
+                    visualTransformation = if (passwordVisible) VisualTransformation.None
+                                          else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    trailingIcon = {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                if (passwordVisible) Icons.Default.VisibilityOff
+                                else Icons.Default.Visibility,
+                                contentDescription = if (passwordVisible) "Passwort verbergen"
+                                                     else "Passwort anzeigen"
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(serverUrl.trim(), username.trim(), appPassword) },
+                enabled = canConfirm && !isConnecting
+            ) {
+                if (isConnecting) {
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Verbinde…")
+                } else {
+                    Text("Verbinden")
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !isConnecting) {
+                Text("Abbrechen")
+            }
+        }
+    )
+}
+
+@Composable
+private fun NextcloudConnectDialog(
+    isConnecting: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (serverUrl: String, username: String, appPassword: String) -> Unit
+) {
+    var serverUrl   by rememberSaveable { mutableStateOf("https://") }
+    var username    by rememberSaveable { mutableStateOf("") }
+    var appPassword by rememberSaveable { mutableStateOf("") }
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
+
+    val canConfirm = serverUrl.length > 8 && username.isNotBlank() && appPassword.isNotBlank()
+
+    AlertDialog(
+        onDismissRequest = { if (!isConnecting) onDismiss() },
+        title = { Text("Nextcloud verbinden") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    "Bitte verwende ein App-Passwort (Nextcloud → Einstellungen → Sicherheit).",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                OutlinedTextField(
+                    value = serverUrl,
+                    onValueChange = { serverUrl = it },
+                    label = { Text("Server-URL") },
+                    placeholder = { Text("https://cloud.example.com") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = username,
+                    onValueChange = { username = it },
+                    label = { Text("Benutzername") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = appPassword,
+                    onValueChange = { appPassword = it },
+                    label = { Text("App-Passwort") },
+                    singleLine = true,
+                    visualTransformation = if (passwordVisible) VisualTransformation.None
+                                          else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    trailingIcon = {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                if (passwordVisible) Icons.Default.VisibilityOff
+                                else Icons.Default.Visibility,
+                                contentDescription = if (passwordVisible) "Passwort verbergen"
+                                                     else "Passwort anzeigen"
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(serverUrl.trim(), username.trim(), appPassword) },
+                enabled = canConfirm && !isConnecting
+            ) {
+                if (isConnecting) {
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Verbinde…")
+                } else {
+                    Text("Verbinden")
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !isConnecting) {
+                Text("Abbrechen")
+            }
+        }
+    )
+}
+
 private val CloudProvider.displayName get() = when (this) {
     CloudProvider.GOOGLE_DRIVE -> "Google Drive"
-    CloudProvider.ONE_DRIVE -> "Microsoft OneDrive"
+    CloudProvider.ONE_DRIVE    -> "Microsoft OneDrive"
+    CloudProvider.NEXTCLOUD    -> "Nextcloud"
+    CloudProvider.OWNCLOUD       -> "ownCloud"
+    CloudProvider.DROPBOX        -> "Dropbox"
+    CloudProvider.MAGENTA_CLOUD  -> "MagentaCloud"
+    CloudProvider.STRATO_HIDRIVE -> "Strato HiDrive"
 }

@@ -37,10 +37,13 @@ Eine Android-App, die es ermöglicht, Dateien in verknüpften Cloud-Accounts zu 
 |---|---|---|
 | Google Drive | Google Drive API v3 | OAuth 2.0 |
 | Microsoft OneDrive | Microsoft Graph API | OAuth 2.0 (MSAL) |
+| Nextcloud | WebDAV (PROPFIND/GET) | Basic Auth / App-Passwort |
+| ownCloud | WebDAV (PROPFIND/GET) | Basic Auth / App-Passwort |
+| MagentaCloud (Telekom) | WebDAV – Nextcloud-Backend | Basic Auth / App-Passwort |
+| Strato HiDrive | WebDAV (PROPFIND/GET) | Basic Auth |
+| Dropbox | Dropbox API v2 | OAuth 2.0 + PKCE |
 
 ### Geplant (Post-MVP)
-- Nextcloud (WebDAV + Nextcloud API)
-- Strato HiDrive (REST API / WebDAV)
 - Weitere WebDAV-kompatible Dienste
 
 ---
@@ -183,6 +186,11 @@ Die App hält die Rate Limits der jeweiligen Cloud-Anbieter **strikt ein**, auch
 ### Version 1.0 (MVP)
 - [x] Google Drive Integration
 - [x] OneDrive Integration
+- [x] Nextcloud Integration (WebDAV + App-Passwort)
+- [x] ownCloud Integration (WebDAV + App-Passwort)
+- [x] MagentaCloud Integration (Nextcloud-Backend, WebDAV)
+- [x] Strato HiDrive Integration (WebDAV)
+- [x] Dropbox Integration (API v2 + OAuth 2.0 PKCE)
 - [x] Lokale SQLite FTS5 Indexierung
 - [x] Volltext + Metadaten im Index
 - [x] Temporäres Herunterladen, sofortiges Löschen

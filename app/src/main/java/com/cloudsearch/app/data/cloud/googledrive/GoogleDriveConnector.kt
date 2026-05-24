@@ -17,7 +17,7 @@ class GoogleDriveConnector @Inject constructor(
 ) : CloudConnector {
 
     companion object {
-        private const val APP_NAME = "FULLTXT"
+        private const val APP_NAME = "FullTXT"
         private const val FILE_FIELDS = "id,name,mimeType,size,createdTime,modifiedTime,parents,md5Checksum,webViewLink"
         private const val PAGE_SIZE = 100
         private val SUPPORTED_MIME_TYPES = setOf(

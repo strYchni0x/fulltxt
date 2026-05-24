@@ -5,8 +5,13 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import me.fulltxt.app.data.cloud.dropbox.DropboxConnector
 import me.fulltxt.app.data.cloud.googledrive.GoogleDriveConnector
+import me.fulltxt.app.data.cloud.magenta.MagentaCloudConnector
+import me.fulltxt.app.data.cloud.nextcloud.NextcloudConnector
 import me.fulltxt.app.data.cloud.onedrive.OneDriveConnector
+import me.fulltxt.app.data.cloud.owncloud.OwnCloudConnector
+import me.fulltxt.app.data.cloud.strato.StratoConnector
 import me.fulltxt.app.data.repository.IndexRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -17,7 +22,12 @@ class IndexingWorker @AssistedInject constructor(
     @Assisted params: WorkerParameters,
     private val indexRepository: IndexRepository,
     private val googleDriveConnector: GoogleDriveConnector,
-    private val oneDriveConnector: OneDriveConnector
+    private val oneDriveConnector: OneDriveConnector,
+    private val nextcloudConnector: NextcloudConnector,
+    private val ownCloudConnector: OwnCloudConnector,
+    private val dropboxConnector: DropboxConnector,
+    private val magentaCloudConnector: MagentaCloudConnector,
+    private val stratoConnector: StratoConnector
 ) : CoroutineWorker(appContext, params) {
 
     companion object {
@@ -33,9 +43,14 @@ class IndexingWorker @AssistedInject constructor(
         val provider = inputData.getString(KEY_PROVIDER) ?: return Result.failure()
 
         val connector = when (provider) {
-            "GOOGLE_DRIVE" -> googleDriveConnector
-            "ONE_DRIVE" -> oneDriveConnector
-            else -> return Result.failure()
+            "GOOGLE_DRIVE"   -> googleDriveConnector
+            "ONE_DRIVE"      -> oneDriveConnector
+            "NEXTCLOUD"      -> nextcloudConnector
+            "OWNCLOUD"       -> ownCloudConnector
+            "DROPBOX"        -> dropboxConnector
+            "MAGENTA_CLOUD"  -> magentaCloudConnector
+            "STRATO_HIDRIVE" -> stratoConnector
+            else             -> return Result.failure()
         }
 
         return try {

@@ -16,5 +16,10 @@ data class CloudFile(
 
 enum class CloudProvider {
     GOOGLE_DRIVE,
-    ONE_DRIVE
+    ONE_DRIVE,
+    NEXTCLOUD,
+    OWNCLOUD,
+    DROPBOX,
+    MAGENTA_CLOUD,
+    STRATO_HIDRIVE
 }

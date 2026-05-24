@@ -19,13 +19,28 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import me.fulltxt.app.data.cloud.googledrive.GoogleAuthManager
 import me.fulltxt.app.data.cloud.googledrive.GoogleDriveConnector
+import me.fulltxt.app.data.cloud.dropbox.DropboxAuthManager
+import me.fulltxt.app.data.cloud.dropbox.DropboxConnector
+import me.fulltxt.app.data.cloud.magenta.MagentaCloudAuthManager
+import me.fulltxt.app.data.cloud.magenta.MagentaCloudConnector
+import me.fulltxt.app.data.cloud.magenta.MagentaCloudCredentials
+import me.fulltxt.app.data.cloud.nextcloud.NextcloudAuthManager
+import me.fulltxt.app.data.cloud.nextcloud.NextcloudConnector
+import me.fulltxt.app.data.cloud.nextcloud.NextcloudCredentials
 import me.fulltxt.app.data.cloud.onedrive.MsalAuthManager
 import me.fulltxt.app.data.cloud.onedrive.OneDriveConnector
+import me.fulltxt.app.data.cloud.owncloud.OwnCloudAuthManager
+import me.fulltxt.app.data.cloud.owncloud.OwnCloudConnector
+import me.fulltxt.app.data.cloud.owncloud.OwnCloudCredentials
+import me.fulltxt.app.data.cloud.strato.StratoAuthManager
+import me.fulltxt.app.data.cloud.strato.StratoConnector
+import me.fulltxt.app.data.cloud.strato.StratoCredentials
 import me.fulltxt.app.data.repository.IndexRepository
 import me.fulltxt.app.domain.model.CloudAccount
 import me.fulltxt.app.domain.model.CloudProvider
 import me.fulltxt.app.domain.usecase.IndexFilesUseCase
 import me.fulltxt.app.worker.IndexingWorker
+import java.net.URI
 import javax.inject.Inject
 
 data class AccountUiState(
@@ -47,8 +62,18 @@ class SettingsViewModel @Inject constructor(
     private val indexRepository: IndexRepository,
     private val googleDriveConnector: GoogleDriveConnector,
     private val oneDriveConnector: OneDriveConnector,
+    private val nextcloudConnector: NextcloudConnector,
+    private val ownCloudConnector: OwnCloudConnector,
+    private val dropboxConnector: DropboxConnector,
+    private val magentaCloudConnector: MagentaCloudConnector,
+    private val stratoConnector: StratoConnector,
     private val googleAuthManager: GoogleAuthManager,
     private val msalAuthManager: MsalAuthManager,
+    private val nextcloudAuthManager: NextcloudAuthManager,
+    private val ownCloudAuthManager: OwnCloudAuthManager,
+    private val dropboxAuthManager: DropboxAuthManager,
+    private val magentaCloudAuthManager: MagentaCloudAuthManager,
+    private val stratoAuthManager: StratoAuthManager,
     private val indexFilesUseCase: IndexFilesUseCase
 ) : ViewModel() {
 
@@ -139,6 +164,23 @@ class SettingsViewModel @Inject constructor(
                             )
                         }
                     }
+                    // Nextcloud/ownCloud use dedicated connect functions with credential dialogs.
+                    CloudProvider.NEXTCLOUD -> null
+                    CloudProvider.OWNCLOUD       -> null
+                    CloudProvider.MAGENTA_CLOUD  -> null
+                    CloudProvider.STRATO_HIDRIVE -> null
+                    // Dropbox uses a browser OAuth flow triggered via connectDropbox().
+                    CloudProvider.DROPBOX -> {
+                        dropboxConnector.authenticate("")
+                        dropboxAuthManager.lastSignedInAccount?.let { d ->
+                            CloudAccount(
+                                accountId   = d.accountId,
+                                provider    = CloudProvider.DROPBOX,
+                                displayName = d.displayName,
+                                email       = d.email
+                            )
+                        }
+                    }
                 }
 
                 if (account != null) {
@@ -156,6 +198,161 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    /** Validates ownCloud credentials and persists the account. */
+    fun connectOwnCloud(serverUrl: String, username: String, appPassword: String) {
+        viewModelScope.launch {
+            _connectingProvider.value = CloudProvider.OWNCLOUD
+            try {
+                val normalizedUrl = serverUrl.trim().trimEnd('/')
+                val host = runCatching { URI(normalizedUrl).host }.getOrElse { normalizedUrl }
+                val accountId = "$username@$host"
+
+                ownCloudAuthManager.saveCredentials(
+                    accountId,
+                    OwnCloudCredentials(normalizedUrl, username, appPassword)
+                )
+                try {
+                    ownCloudConnector.authenticate(accountId)
+                } catch (e: Exception) {
+                    ownCloudAuthManager.removeCredentials(accountId)
+                    throw e
+                }
+
+                val account = CloudAccount(
+                    accountId   = accountId,
+                    provider    = CloudProvider.OWNCLOUD,
+                    displayName = username,
+                    email       = "$username@$host"
+                )
+                indexRepository.saveAccount(account)
+                _accounts.update { it + AccountUiState(account = account) }
+                observeWork(accountId)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _errorMessage.emit("ownCloud-Verbindung fehlgeschlagen: ${e.localizedMessage ?: e.javaClass.simpleName}")
+            } finally {
+                _connectingProvider.value = null
+            }
+        }
+    }
+
+    /** Validates MagentaCloud credentials and persists the account. */
+    fun connectMagentaCloud(serverUrl: String, username: String, appPassword: String) {
+        viewModelScope.launch {
+            _connectingProvider.value = CloudProvider.MAGENTA_CLOUD
+            try {
+                val normalizedUrl = serverUrl.trim().trimEnd('/')
+                val host = runCatching { URI(normalizedUrl).host }.getOrElse { normalizedUrl }
+                val accountId = "$username@$host"
+
+                magentaCloudAuthManager.saveCredentials(
+                    accountId,
+                    MagentaCloudCredentials(normalizedUrl, username, appPassword)
+                )
+                try {
+                    magentaCloudConnector.authenticate(accountId)
+                } catch (e: Exception) {
+                    magentaCloudAuthManager.removeCredentials(accountId)
+                    throw e
+                }
+
+                val account = CloudAccount(
+                    accountId   = accountId,
+                    provider    = CloudProvider.MAGENTA_CLOUD,
+                    displayName = username,
+                    email       = "$username@$host"
+                )
+                indexRepository.saveAccount(account)
+                _accounts.update { it + AccountUiState(account = account) }
+                observeWork(accountId)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _errorMessage.emit("MagentaCloud-Verbindung fehlgeschlagen: ${e.localizedMessage ?: e.javaClass.simpleName}")
+            } finally {
+                _connectingProvider.value = null
+            }
+        }
+    }
+
+    /** Validates Strato HiDrive credentials and persists the account. */
+    fun connectStrato(username: String, password: String) {
+        viewModelScope.launch {
+            _connectingProvider.value = CloudProvider.STRATO_HIDRIVE
+            try {
+                val accountId = "$username@hidrive.strato.com"
+
+                stratoAuthManager.saveCredentials(accountId, StratoCredentials(username, password))
+                try {
+                    stratoConnector.authenticate(accountId)
+                } catch (e: Exception) {
+                    stratoAuthManager.removeCredentials(accountId)
+                    throw e
+                }
+
+                val account = CloudAccount(
+                    accountId   = accountId,
+                    provider    = CloudProvider.STRATO_HIDRIVE,
+                    displayName = username,
+                    email       = "$username@hidrive.strato.com"
+                )
+                indexRepository.saveAccount(account)
+                _accounts.update { it + AccountUiState(account = account) }
+                observeWork(accountId)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _errorMessage.emit("Strato HiDrive-Verbindung fehlgeschlagen: ${e.localizedMessage ?: e.javaClass.simpleName}")
+            } finally {
+                _connectingProvider.value = null
+            }
+        }
+    }
+
+    /**
+     * Validates Nextcloud credentials via a test PROPFIND, then persists the account.
+     * Called from the settings dialog after the user enters server URL, username and app password.
+     */
+    fun connectNextcloud(serverUrl: String, username: String, appPassword: String) {
+        viewModelScope.launch {
+            _connectingProvider.value = CloudProvider.NEXTCLOUD
+            try {
+                val normalizedUrl = serverUrl.trim().trimEnd('/')
+                // Derive a stable, human-readable account ID
+                val host = runCatching { URI(normalizedUrl).host }.getOrElse { normalizedUrl }
+                val accountId = "$username@$host"
+
+                val credentials = NextcloudCredentials(normalizedUrl, username, appPassword)
+                nextcloudAuthManager.saveCredentials(accountId, credentials)
+
+                // Validate by doing a test PROPFIND (throws on auth failure / unreachable)
+                try {
+                    nextcloudConnector.authenticate(accountId)
+                } catch (e: Exception) {
+                    nextcloudAuthManager.removeCredentials(accountId)
+                    throw e
+                }
+
+                val account = CloudAccount(
+                    accountId   = accountId,
+                    provider    = CloudProvider.NEXTCLOUD,
+                    displayName = username,
+                    email       = "$username@$host"
+                )
+                indexRepository.saveAccount(account)
+                _accounts.update { it + AccountUiState(account = account) }
+                observeWork(accountId)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _errorMessage.emit("Nextcloud-Verbindung fehlgeschlagen: ${e.localizedMessage ?: e.javaClass.simpleName}")
+            } finally {
+                _connectingProvider.value = null
+            }
+        }
+    }
+
     fun startIndexing(account: CloudAccount) {
         indexFilesUseCase.scheduleInitialIndexing(account.accountId, account.provider)
     }
@@ -165,7 +362,12 @@ class SettingsViewModel @Inject constructor(
             val state = _accounts.value.find { it.account.accountId == accountId } ?: return@launch
             when (state.account.provider) {
                 CloudProvider.GOOGLE_DRIVE -> googleDriveConnector.signOut(accountId)
-                CloudProvider.ONE_DRIVE -> oneDriveConnector.signOut(accountId)
+                CloudProvider.ONE_DRIVE    -> oneDriveConnector.signOut(accountId)
+                CloudProvider.NEXTCLOUD    -> nextcloudConnector.signOut(accountId)
+                CloudProvider.OWNCLOUD       -> ownCloudConnector.signOut(accountId)
+                CloudProvider.DROPBOX        -> dropboxConnector.signOut(accountId)
+                CloudProvider.MAGENTA_CLOUD  -> magentaCloudConnector.signOut(accountId)
+                CloudProvider.STRATO_HIDRIVE -> stratoConnector.signOut(accountId)
             }
             indexRepository.deleteAllByAccount(accountId)
             indexRepository.removeAccount(accountId)
