@@ -1,5 +1,6 @@
 package me.fulltxt.app.data.cloud.dropbox
 
+import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.fulltxt.app.data.cloud.CloudConnector
@@ -7,6 +8,7 @@ import me.fulltxt.app.domain.model.CloudFile
 import me.fulltxt.app.domain.model.CloudProvider
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -66,7 +68,7 @@ class DropboxConnector @Inject constructor(
 
             val request = Request.Builder()
                 .url(CONTENT_BASE)
-                .post(okhttp3.RequestBody.create(null, ByteArray(0)))
+                .post(ByteArray(0).toRequestBody(null))
                 .header("Authorization",    auth)
                 .header("Dropbox-API-Arg",  apiArg)
                 .header("Content-Type",     "application/octet-stream")
@@ -98,7 +100,7 @@ class DropboxConnector @Inject constructor(
 
         // Incremental: walk all pages since the stored cursor
         val changed = mutableListOf<CloudFile>()
-        var cursor  = changeToken
+        var cursor: String = changeToken   // smart-cast to String (null case returned above)
         var hasMore = true
 
         while (hasMore) {
@@ -135,7 +137,7 @@ class DropboxConnector @Inject constructor(
         val path      = pathDisplay ?: "/$entryName"
         val parentDir = path.substringBeforeLast('/').ifEmpty { "/" }
         val modified  = serverModified?.let { runCatching { Instant.parse(it).toEpochMilli() }.getOrDefault(0L) } ?: 0L
-        val webUrl    = "https://www.dropbox.com/home${Uri.encode(path)}"
+        val webUrl    = "https://www.dropbox.com/home${Uri.encode(path, "/")}"
 
         return CloudFile(
             fileId        = entryId,
@@ -152,7 +154,4 @@ class DropboxConnector @Inject constructor(
         )
     }
 
-    /** URL-encodes a path for the Dropbox web-UI link. */
-    private fun Uri.encode(s: String): String =
-        android.net.Uri.encode(s, "/")
 }

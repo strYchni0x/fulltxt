@@ -12,6 +12,7 @@ import me.fulltxt.app.R
 import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Base64
@@ -236,7 +237,7 @@ class DropboxAuthManager @Inject constructor(
     private fun fetchCurrentAccount(accessToken: String): DropboxAccountInfo {
         val request = Request.Builder()
             .url(ACCOUNT_URL)
-            .post(okhttp3.RequestBody.create(null, ByteArray(0)))
+            .post(ByteArray(0).toRequestBody(null))
             .header("Authorization", "Bearer $accessToken")
             .header("Content-Type",  "application/json")
             .build()

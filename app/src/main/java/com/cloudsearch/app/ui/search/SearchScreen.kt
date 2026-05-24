@@ -205,6 +205,11 @@ private fun openFile(context: android.content.Context, file: CloudFile) {
 }
 
 private val CloudProvider.label get() = when (this) {
-    CloudProvider.GOOGLE_DRIVE -> "Drive"
-    CloudProvider.ONE_DRIVE -> "OneDrive"
+    CloudProvider.GOOGLE_DRIVE   -> "Drive"
+    CloudProvider.ONE_DRIVE      -> "OneDrive"
+    CloudProvider.NEXTCLOUD      -> "Nextcloud"
+    CloudProvider.OWNCLOUD       -> "ownCloud"
+    CloudProvider.DROPBOX        -> "Dropbox"
+    CloudProvider.MAGENTA_CLOUD  -> "MagentaCloud"
+    CloudProvider.STRATO_HIDRIVE -> "HiDrive"
 }
