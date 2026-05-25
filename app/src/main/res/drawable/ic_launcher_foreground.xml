@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Adaptive icon foreground – safe zone: 18–90 dp in a 108×108 viewport.
+
+  Layer order (back → front):
+    1. PDF file icon   – red,   x:18–52  y:22–70  fold top-right
+    2. Text file icon  – white, x:38–76  y:34–84  fold top-right + text lines
+    3. Magnifying glass – green, ring centre (51,53) r=15, handle →(75,77)
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- ══ PDF file (back-left) ══════════════════════════════════════ -->
+
+    <!-- Body: classic document shape with dog-ear fold (10 dp) -->
+    <path
+        android:fillColor="#EF5350"
+        android:pathData="M18,22 L42,22 L52,32 L52,70 L18,70 Z" />
+
+    <!-- Fold flap (darker red) -->
+    <path
+        android:fillColor="#B71C1C"
+        android:pathData="M42,22 L42,32 L52,32 Z" />
+
+    <!-- Bottom label band – marks it as PDF -->
+    <path
+        android:fillColor="#B71C1C"
+        android:pathData="M18,59 L52,59 L52,70 L18,70 Z" />
+
+    <!-- ══ Text file (front-right) ═══════════════════════════════════ -->
+
+    <!-- Body -->
+    <path
+        android:fillColor="#EEEEEE"
+        android:pathData="M38,34 L66,34 L76,44 L76,84 L38,84 Z" />
+
+    <!-- Fold flap (medium grey) -->
+    <path
+        android:fillColor="#BDBDBD"
+        android:pathData="M66,34 L66,44 L76,44 Z" />
+
+    <!-- Text lines representing document content -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#9E9E9E"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M44,55 L71,55 M44,63 L71,63 M44,71 L71,71" />
+
+    <!-- ══ Magnifying glass (green) ══════════════════════════════════ -->
+
+    <!-- Ring – transparent fill so file icons show through the lens -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#43A047"
+        android:strokeWidth="5.5"
+        android:pathData="M36,53 a15,15 0 1,0 30,0 a15,15 0 1,0 -30,0" />
+
+    <!-- Handle -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#43A047"
+        android:strokeWidth="5.5"
+        android:strokeLineCap="round"
+        android:pathData="M62,64 L75,77" />
+
+</vector>
