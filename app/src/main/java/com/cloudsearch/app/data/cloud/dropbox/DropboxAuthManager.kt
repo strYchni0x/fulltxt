@@ -7,11 +7,15 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.google.gson.Gson
 import dagger.hilt.android.qualifiers.ApplicationContext
+import android.util.Log
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import me.fulltxt.app.R
 import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.security.MessageDigest
 import java.security.SecureRandom
@@ -35,7 +39,11 @@ class DropboxAuthManager @Inject constructor(
         /** Called by DropboxCallbackActivity when the OAuth redirect arrives. */
         @JvmStatic
         fun deliverCode(code: String?) {
-            val d = pendingCallback ?: return
+            Log.d("DropboxAuth", "deliverCode: code=${code?.take(8)}… pendingCallback=$pendingCallback")
+            val d = pendingCallback ?: run {
+                Log.e("DropboxAuth", "deliverCode: pendingCallback is null – ignoring")
+                return
+            }
             pendingCallback = null
             if (code != null) d.complete(code)
             else d.completeExceptionally(Exception("OAuth-Vorgang abgebrochen"))
@@ -126,6 +134,7 @@ class DropboxAuthManager @Inject constructor(
             .appendQueryParameter("code_challenge",        challenge)
             .appendQueryParameter("code_challenge_method", "S256")
             .appendQueryParameter("token_access_type",     "offline")
+            .appendQueryParameter("scope",                 "files.metadata.read files.content.read account_info.read")
             .build()
 
         val deferred = CompletableDeferred<String>()
@@ -137,18 +146,22 @@ class DropboxAuthManager @Inject constructor(
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         )
 
+        Log.d("DropboxAuth", "Awaiting OAuth code…")
         val code         = deferred.await()
+        Log.d("DropboxAuth", "Code received (${code.take(8)}…), exchanging for token")
         val storedVerifier = tempPrefs.getString("code_verifier", null)
             ?: throw IllegalStateException("PKCE code_verifier verloren")
         tempPrefs.edit().remove("code_verifier").apply()
 
         val tokenResponse = exchangeCodeForToken(code, storedVerifier, appKey)
+        Log.d("DropboxAuth", "Token exchange OK, account_id=${tokenResponse.accountId}")
         val dbAccountId   = tokenResponse.accountId
             ?: throw Exception("Kein account_id in Token-Antwort")
 
         saveTokens(dbAccountId, tokenResponse)
 
         val info = fetchCurrentAccount(tokenResponse.accessToken)
+        Log.d("DropboxAuth", "Account info: ${info.displayName} <${info.email}>")
         saveAccountInfo(dbAccountId, info)
         lastSignedInAccount = info
         return info
@@ -166,41 +179,42 @@ class DropboxAuthManager @Inject constructor(
         return refreshAccessToken(accountId)
     }
 
-    private suspend fun refreshAccessToken(accountId: String): String {
-        val refreshToken = prefs.getString("${accountId}_refresh", null)
-            ?: throw IllegalStateException("Kein Refresh-Token für $accountId")
-        val appKey = context.getString(R.string.dropbox_app_key)
+    private suspend fun refreshAccessToken(accountId: String): String =
+        withContext(Dispatchers.IO) {
+            val refreshToken = prefs.getString("${accountId}_refresh", null)
+                ?: throw IllegalStateException("Kein Refresh-Token für $accountId")
+            val appKey = context.getString(R.string.dropbox_app_key)
 
-        val body = FormBody.Builder()
-            .add("grant_type",    "refresh_token")
-            .add("refresh_token", refreshToken)
-            .add("client_id",     appKey)
-            .build()
+            val body = FormBody.Builder()
+                .add("grant_type",    "refresh_token")
+                .add("refresh_token", refreshToken)
+                .add("client_id",     appKey)
+                .build()
 
-        val response = okHttpClient.newCall(
-            Request.Builder().url(TOKEN_URL).post(body).build()
-        ).execute()
+            val response = okHttpClient.newCall(
+                Request.Builder().url(TOKEN_URL).post(body).build()
+            ).execute()
 
-        val json = response.body?.string()
-            ?: throw Exception("Leere Antwort beim Token-Refresh")
-        if (!response.isSuccessful)
-            throw Exception("Token-Refresh fehlgeschlagen: HTTP ${response.code}")
+            val json = response.body?.string()
+                ?: throw Exception("Leere Antwort beim Token-Refresh")
+            if (!response.isSuccessful)
+                throw Exception("Token-Refresh fehlgeschlagen: HTTP ${response.code}")
 
-        val parsed = gson.fromJson(json, DropboxTokenResponse::class.java)
-        val newExpiry = System.currentTimeMillis() + parsed.expiresIn * 1000L
-        prefs.edit()
-            .putString("${accountId}_access", parsed.accessToken)
-            .putLong("${accountId}_expiry",   newExpiry)
-            .apply()
+            val parsed = gson.fromJson(json, DropboxTokenResponse::class.java)
+            val newExpiry = System.currentTimeMillis() + parsed.expiresIn * 1000L
+            prefs.edit()
+                .putString("${accountId}_access", parsed.accessToken)
+                .putLong("${accountId}_expiry",   newExpiry)
+                .apply()
 
-        return parsed.accessToken
-    }
+            parsed.accessToken
+        }
 
     private suspend fun exchangeCodeForToken(
         code: String,
         verifier: String,
         appKey: String
-    ): DropboxTokenResponse {
+    ): DropboxTokenResponse = withContext(Dispatchers.IO) {
         val body = FormBody.Builder()
             .add("code",          code)
             .add("grant_type",    "authorization_code")
@@ -218,7 +232,7 @@ class DropboxAuthManager @Inject constructor(
         if (!response.isSuccessful)
             throw Exception("Token-Austausch fehlgeschlagen: HTTP ${response.code} – $json")
 
-        return gson.fromJson(json, DropboxTokenResponse::class.java)
+        gson.fromJson(json, DropboxTokenResponse::class.java)
     }
 
     private fun saveTokens(accountId: String, response: DropboxTokenResponse) {
@@ -234,27 +248,28 @@ class DropboxAuthManager @Inject constructor(
 
     // ── Account info ──────────────────────────────────────────────────────────
 
-    private fun fetchCurrentAccount(accessToken: String): DropboxAccountInfo {
-        val request = Request.Builder()
-            .url(ACCOUNT_URL)
-            .post(ByteArray(0).toRequestBody(null))
-            .header("Authorization", "Bearer $accessToken")
-            .header("Content-Type",  "application/json")
-            .build()
+    private suspend fun fetchCurrentAccount(accessToken: String): DropboxAccountInfo =
+        withContext(Dispatchers.IO) {
+            // Dropbox RPC endpoints with no arguments require a literal JSON "null" body.
+            val request = Request.Builder()
+                .url(ACCOUNT_URL)
+                .post("null".toRequestBody("application/json; charset=utf-8".toMediaType()))
+                .header("Authorization", "Bearer $accessToken")
+                .build()
 
-        val response = okHttpClient.newCall(request).execute()
-        val json = response.body?.string()
-            ?: throw Exception("Leere Antwort von /users/get_current_account")
-        if (!response.isSuccessful)
-            throw Exception("Konto-Abfrage fehlgeschlagen: HTTP ${response.code}")
+            val response = okHttpClient.newCall(request).execute()
+            val json = response.body?.string()
+                ?: throw Exception("Leere Antwort von /users/get_current_account")
+            if (!response.isSuccessful)
+                throw Exception("Konto-Abfrage fehlgeschlagen: HTTP ${response.code}")
 
-        val account = gson.fromJson(json, DropboxAccount::class.java)
-        return DropboxAccountInfo(
-            accountId   = account.accountId,
-            displayName = account.name?.displayName ?: account.accountId,
-            email       = account.email ?: ""
-        )
-    }
+            val account = gson.fromJson(json, DropboxAccount::class.java)
+            DropboxAccountInfo(
+                accountId   = account.accountId,
+                displayName = account.name?.displayName ?: account.accountId,
+                email       = account.email ?: ""
+            )
+        }
 
     private fun saveAccountInfo(accountId: String, info: DropboxAccountInfo) {
         prefs.edit()

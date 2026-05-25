@@ -116,6 +116,17 @@ class DropboxConnector @Inject constructor(
         Pair(changed, cursor)
     }
 
+    /**
+     * Returns a short-lived (4 h) HTTPS URL that directly serves the file content.
+     * Useful for opening files in a local viewer without requiring the Dropbox app.
+     * [fileId] should be the Dropbox item ID ("id:…").
+     */
+    suspend fun getTemporaryLink(fileId: String, accountId: String): String =
+        withContext(Dispatchers.IO) {
+            val auth = authManager.getBearerHeader(accountId)
+            apiService.getTemporaryLink(auth, TemporaryLinkRequest(fileId)).link
+        }
+
     override fun isAuthenticated(accountId: String): Boolean =
         authManager.isAuthenticated(accountId)
 
@@ -137,7 +148,7 @@ class DropboxConnector @Inject constructor(
         val path      = pathDisplay ?: "/$entryName"
         val parentDir = path.substringBeforeLast('/').ifEmpty { "/" }
         val modified  = serverModified?.let { runCatching { Instant.parse(it).toEpochMilli() }.getOrDefault(0L) } ?: 0L
-        val webUrl    = "https://www.dropbox.com/home${Uri.encode(path, "/")}"
+        val webUrl    = "https://www.dropbox.com/preview${Uri.encode(path, "/")}"
 
         return CloudFile(
             fileId        = entryId,

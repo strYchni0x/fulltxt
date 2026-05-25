@@ -297,6 +297,16 @@ private fun AccountCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+                Spacer(Modifier.height(12.dp))
+                OutlinedButton(
+                    onClick = onDisconnect,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Trennen")
+                }
             } else {
                 val statusText = when {
                     state.isFullyIndexed -> "${state.fileCount} Dateien indexiert"

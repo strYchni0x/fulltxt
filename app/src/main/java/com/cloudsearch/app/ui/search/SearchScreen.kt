@@ -31,6 +31,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -47,7 +48,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import me.fulltxt.app.data.repository.SearchRepository
 import me.fulltxt.app.domain.model.CloudFile
 import me.fulltxt.app.domain.model.CloudProvider
 import me.fulltxt.app.domain.model.SearchResult
@@ -60,8 +60,21 @@ fun SearchScreen(
 ) {
     val query by viewModel.query.collectAsState()
     val results by viewModel.results.collectAsState()
+    val openingFile by viewModel.openingFile.collectAsState()
     val focusManager = LocalFocusManager.current
     val context = LocalContext.current
+
+    // Open URLs emitted by the ViewModel
+    LaunchedEffect(Unit) {
+        viewModel.openUrl.collect { url ->
+            runCatching {
+                context.startActivity(
+                    Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -106,7 +119,7 @@ fun SearchScreen(
                         result = result,
                         onClick = {
                             focusManager.clearFocus()
-                            openFile(context, result.file)
+                            viewModel.openFile(result.file)
                         }
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 4.dp))
@@ -188,19 +201,6 @@ private fun buildSnippetAnnotated(raw: String, highlightColor: Color): Annotated
             cursor = match.range.last + 1
         }
         if (cursor < raw.length) append(raw.substring(cursor))
-    }
-}
-
-private fun openFile(context: android.content.Context, file: CloudFile) {
-    val url = file.webUrl
-        ?: if (file.cloudProvider == CloudProvider.GOOGLE_DRIVE)
-            "https://drive.google.com/open?id=${file.fileId}"
-        else return
-    runCatching {
-        context.startActivity(
-            Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        )
     }
 }
 

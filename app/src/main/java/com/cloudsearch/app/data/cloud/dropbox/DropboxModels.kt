@@ -70,3 +70,12 @@ data class DropboxAccountInfo(
     val displayName: String,
     val email:       String
 )
+
+data class TemporaryLinkRequest(
+    @SerializedName("path") val path: String
+)
+
+data class TemporaryLinkResult(
+    @SerializedName("link")     val link: String,
+    @SerializedName("metadata") val metadata: DropboxEntry? = null
+)

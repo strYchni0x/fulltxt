@@ -360,6 +360,8 @@ class SettingsViewModel @Inject constructor(
     fun disconnectAccount(accountId: String) {
         viewModelScope.launch {
             val state = _accounts.value.find { it.account.accountId == accountId } ?: return@launch
+            // Cancel any running or enqueued indexing job first
+            WorkManager.getInstance(context).cancelAllWorkByTag(IndexFilesUseCase.workTag(accountId))
             when (state.account.provider) {
                 CloudProvider.GOOGLE_DRIVE -> googleDriveConnector.signOut(accountId)
                 CloudProvider.ONE_DRIVE    -> oneDriveConnector.signOut(accountId)

@@ -36,4 +36,14 @@ interface DropboxApiService {
         @Header("Authorization") auth: String,
         @Body request: ListFolderRequest
     ): CursorResult
+
+    /**
+     * Get a temporary (4-hour) HTTPS link to download a file directly.
+     * The path can be a Dropbox file ID (e.g. "id:abc123") or a path string.
+     */
+    @POST("files/get_temporary_link")
+    suspend fun getTemporaryLink(
+        @Header("Authorization") auth: String,
+        @Body request: TemporaryLinkRequest
+    ): TemporaryLinkResult
 }
