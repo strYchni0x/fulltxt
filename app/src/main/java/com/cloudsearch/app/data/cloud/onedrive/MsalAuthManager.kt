@@ -2,6 +2,7 @@ package me.fulltxt.app.data.cloud.onedrive
 
 import android.app.Activity
 import android.content.Context
+import android.util.Log
 import com.microsoft.identity.client.AcquireTokenParameters
 import com.microsoft.identity.client.AcquireTokenSilentParameters
 import com.microsoft.identity.client.AuthenticationCallback
@@ -102,22 +103,24 @@ class MsalAuthManager @Inject constructor(
     private suspend fun getApp(): IMultipleAccountPublicClientApplication {
         msalApp?.let { return it }
         // MSAL 5.x createMultipleAccountPublicClientApplication requires a File; extract from raw resource once.
+        // Always overwrite so a config change in raw/msal_config.json is picked up immediately.
         val configFile = File(context.cacheDir, "msal_config.json").also { file ->
-            if (!file.exists()) {
-                context.resources.openRawResource(R.raw.msal_config)
-                    .use { input -> file.outputStream().use { input.copyTo(it) } }
-            }
+            context.resources.openRawResource(R.raw.msal_config)
+                .use { input -> file.outputStream().use { input.copyTo(it) } }
         }
+        Log.d("MsalAuthManager", "Creating MSAL app from config: ${configFile.readText()}")
         return suspendCancellableCoroutine { cont ->
             PublicClientApplication.createMultipleAccountPublicClientApplication(
                 context,
                 configFile,
                 object : IPublicClientApplication.IMultipleAccountApplicationCreatedListener {
                     override fun onCreated(application: IMultipleAccountPublicClientApplication) {
+                        Log.d("MsalAuthManager", "MSAL app created successfully")
                         msalApp = application
                         cont.resume(application)
                     }
                     override fun onError(exception: MsalException) {
+                        Log.e("MsalAuthManager", "MSAL init ERROR: ${exception.message}", exception)
                         cont.resumeWithException(exception)
                     }
                 }
@@ -155,17 +158,25 @@ class MsalAuthManager @Inject constructor(
         app: IMultipleAccountPublicClientApplication,
         activity: Activity
     ): String = suspendCancellableCoroutine { cont ->
+        Log.d("MsalAuthManager", "Starting interactive auth, scopes=$scopes")
         val params = AcquireTokenParameters.Builder()
             .startAuthorizationFromActivity(activity)
             .withScopes(scopes)
             .withCallback(object : AuthenticationCallback {
                 override fun onSuccess(result: IAuthenticationResult) {
+                    Log.d("MsalAuthManager", "Auth SUCCESS — account=${result.account.username}")
                     lastSignedInAccount = result.account
                     authenticatedAccountIds.add(result.account.id)
                     cont.resume(result.accessToken)
                 }
-                override fun onCancel() { cont.cancel() }
-                override fun onError(exception: MsalException) = cont.resumeWithException(exception)
+                override fun onCancel() {
+                    Log.w("MsalAuthManager", "Auth CANCELED by user")
+                    cont.cancel()
+                }
+                override fun onError(exception: MsalException) {
+                    Log.e("MsalAuthManager", "Auth ERROR: ${exception.javaClass.simpleName} — ${exception.message}", exception)
+                    cont.resumeWithException(exception)
+                }
             })
             .build()
         app.acquireToken(params)
