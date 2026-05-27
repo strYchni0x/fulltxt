@@ -59,6 +59,13 @@
             </intent-filter>
         </activity>
 
+        <!-- Declare foreground service type for WorkManager's SystemForegroundService.
+             Required on Android 10+ when setForeground(ForegroundInfo(…, DATA_SYNC)) is used. -->
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="dataSync"
+            tools:node="merge" />
+
         <!-- Disable WorkManager auto-init so HiltWorkerFactory can be used instead -->
         <provider
             android:name="androidx.startup.InitializationProvider"
