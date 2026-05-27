@@ -56,7 +56,24 @@ class SearchRepository @Inject constructor(
             metadataMap[fileId]?.toSearchResult(snippetMap[fileId]?.snippet ?: "")
         }
 
-        emit(results)
+        // Duplicate detection: find files with the same name + size across multiple providers/accounts.
+        val allFileNames = results.map { it.file.fileName }.distinct()
+        val candidates = dao.getByFileNames(allFileNames)
+
+        // Group by (fileName, fileSizeBytes). Only groups with >1 distinct accountId are real duplicates.
+        val dupeProviders: Map<Pair<String, Long>, List<CloudProvider>> = candidates
+            .groupBy { it.fileName to it.fileSizeBytes }
+            .filter { (_, group) -> group.map { it.accountId }.distinct().size > 1 }
+            .mapValues { (_, group) ->
+                group.map { CloudProvider.valueOf(it.cloudProvider) }.distinct()
+            }
+
+        val enriched = results.map { r ->
+            val key = r.file.fileName to r.file.fileSizeBytes
+            r.copy(duplicateProviders = dupeProviders[key] ?: emptyList())
+        }
+
+        emit(enriched)
     }
 
     private fun sanitizeQuery(raw: String): String {

@@ -33,6 +33,11 @@ interface FileIndexDao {
     @Query("SELECT * FROM file_metadata WHERE fileId IN (:fileIds)")
     suspend fun getMetadataByIds(fileIds: List<String>): List<FileMetadataEntity>
 
+    /** Returns all metadata rows whose fileName matches any entry in [fileNames].
+     *  Used for cross-provider duplicate detection after a search query. */
+    @Query("SELECT * FROM file_metadata WHERE fileName IN (:fileNames)")
+    suspend fun getByFileNames(fileNames: List<String>): List<FileMetadataEntity>
+
     // Uses @RawQuery to call FTS4's snippet() auxiliary function,
     // which Room's compile-time validator does not recognise.
     @RawQuery

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -165,11 +166,22 @@ private fun SearchResultItem(result: SearchResult, onClick: () -> Unit) {
             }
         },
         trailingContent = {
-            Text(
-                text = result.file.cloudProvider.label,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = result.file.cloudProvider.label,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                val otherProviders = result.duplicateProviders
+                    .filter { it != result.file.cloudProvider }
+                if (otherProviders.isNotEmpty()) {
+                    Text(
+                        text = "Auch: " + otherProviders.joinToString(", ") { it.label },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
         }
     )
 }
