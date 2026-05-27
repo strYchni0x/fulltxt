@@ -9,3 +9,8 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Debug screenshots and UI dumps from development sessions
+screen_*.png
+ui*.xml
+fulltxt_*.png

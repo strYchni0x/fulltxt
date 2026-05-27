@@ -1,10 +1,20 @@
 package me.fulltxt.app.worker
 
+import android.app.Notification
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
+import android.content.pm.ServiceInfo
+import android.os.Build
+import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import me.fulltxt.app.FulltxtApplication.Companion.CHANNEL_INDEXING
+import me.fulltxt.app.MainActivity
+import me.fulltxt.app.R
 import me.fulltxt.app.data.cloud.dropbox.DropboxConnector
 import me.fulltxt.app.data.cloud.googledrive.GoogleDriveConnector
 import me.fulltxt.app.data.cloud.magenta.MagentaCloudConnector
@@ -18,7 +28,7 @@ import dagger.assisted.AssistedInject
 
 @HiltWorker
 class IndexingWorker @AssistedInject constructor(
-    @Assisted appContext: Context,
+    @Assisted private val appContext: Context,
     @Assisted params: WorkerParameters,
     private val indexRepository: IndexRepository,
     private val googleDriveConnector: GoogleDriveConnector,
@@ -31,16 +41,23 @@ class IndexingWorker @AssistedInject constructor(
 ) : CoroutineWorker(appContext, params) {
 
     companion object {
-        const val KEY_ACCOUNT_ID = "account_id"
-        const val KEY_PROVIDER = "provider"
+        const val KEY_ACCOUNT_ID   = "account_id"
+        const val KEY_PROVIDER     = "provider"
         const val PROGRESS_CURRENT = "progress_current"
-        const val PROGRESS_TOTAL = "progress_total"
-        const val PROGRESS_ERRORS = "progress_errors"
+        const val PROGRESS_TOTAL   = "progress_total"
+        const val PROGRESS_ERRORS  = "progress_errors"
+        private const val NOTIFICATION_ID = 1001
+
+        /** Dateien größer als dieses Limit (in Bytes) werden übersprungen. */
+        private const val MAX_FILE_BYTES = 50L * 1024 * 1024  // 50 MB
     }
+
+    override suspend fun getForegroundInfo(): ForegroundInfo =
+        buildForegroundInfo(0, 0, 0)
 
     override suspend fun doWork(): Result {
         val accountId = inputData.getString(KEY_ACCOUNT_ID) ?: return Result.failure()
-        val provider = inputData.getString(KEY_PROVIDER) ?: return Result.failure()
+        val provider  = inputData.getString(KEY_PROVIDER)   ?: return Result.failure()
 
         val connector = when (provider) {
             "GOOGLE_DRIVE"   -> googleDriveConnector
@@ -53,34 +70,83 @@ class IndexingWorker @AssistedInject constructor(
             else             -> return Result.failure()
         }
 
+        // Als Foreground Service starten — Android darf den Prozess nicht mehr killen.
+        setForeground(buildForegroundInfo(0, 0, 0))
+
         return try {
             val files = connector.listFiles(accountId)
             val total = files.size
             var current = 0
-            var errors = 0
+            var errors  = 0
 
+            setForeground(buildForegroundInfo(0, total, 0))
             setProgressAsync(workDataOf(
                 PROGRESS_CURRENT to 0,
-                PROGRESS_TOTAL to total,
-                PROGRESS_ERRORS to 0
+                PROGRESS_TOTAL   to total,
+                PROGRESS_ERRORS  to 0
             ))
 
             for (file in files) {
-                runCatching { indexRepository.indexFile(file, connector) }
-                    .onFailure { errors++ }
+                // Sehr große Dateien überspringen (würden OOM verursachen)
+                if (file.fileSizeBytes > MAX_FILE_BYTES) {
+                    errors++
+                } else {
+                    runCatching { indexRepository.indexFile(file, connector) }
+                        .onFailure { errors++ }
+                }
                 current++
-                setProgressAsync(workDataOf(
-                    PROGRESS_CURRENT to current,
-                    PROGRESS_TOTAL to total,
-                    PROGRESS_ERRORS to errors
-                ))
+
+                // Notification und Progress alle 10 Dateien aktualisieren
+                if (current % 10 == 0 || current == total) {
+                    setForeground(buildForegroundInfo(current, total, errors))
+                    setProgressAsync(workDataOf(
+                        PROGRESS_CURRENT to current,
+                        PROGRESS_TOTAL   to total,
+                        PROGRESS_ERRORS  to errors
+                    ))
+                }
             }
 
             indexRepository.markFullyIndexed(accountId)
-
             if (errors > 0 && current == errors) Result.failure() else Result.success()
         } catch (e: Exception) {
             if (runAttemptCount < 3) Result.retry() else Result.failure()
         }
+    }
+
+    private fun buildForegroundInfo(current: Int, total: Int, errors: Int): ForegroundInfo {
+        val notification = buildNotification(current, total, errors)
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ForegroundInfo(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        } else {
+            ForegroundInfo(NOTIFICATION_ID, notification)
+        }
+    }
+
+    private fun buildNotification(current: Int, total: Int, errors: Int): Notification {
+        val openIntent = PendingIntent.getActivity(
+            appContext, 0,
+            Intent(appContext, MainActivity::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val contentText = if (total == 0) {
+            "Dateiliste wird abgerufen…"
+        } else {
+            "$current / $total Dateien" + if (errors > 0) " · $errors Fehler" else ""
+        }
+
+        val progress = if (total > 0) current else 0
+        val maxProgress = if (total > 0) total else 0
+
+        return NotificationCompat.Builder(appContext, CHANNEL_INDEXING)
+            .setContentTitle("FullTXT indexiert…")
+            .setContentText(contentText)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentIntent(openIntent)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setProgress(maxProgress, progress, total == 0)
+            .build()
     }
 }
