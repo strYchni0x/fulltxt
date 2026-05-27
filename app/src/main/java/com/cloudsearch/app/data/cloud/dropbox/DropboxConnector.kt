@@ -4,6 +4,7 @@ import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.fulltxt.app.data.cloud.CloudConnector
+import me.fulltxt.app.data.cloud.SyncChanges
 import me.fulltxt.app.domain.model.CloudFile
 import me.fulltxt.app.domain.model.CloudProvider
 import okhttp3.OkHttpClient
@@ -89,18 +90,21 @@ class DropboxConnector @Inject constructor(
     override suspend fun getChanges(
         accountId: String,
         changeToken: String?
-    ): Pair<List<CloudFile>, String> = withContext(Dispatchers.IO) {
+    ): SyncChanges = withContext(Dispatchers.IO) {
         val auth = authManager.getBearerHeader(accountId)
 
         if (changeToken == null) {
+            // First run: full list + grab the latest cursor for future incremental syncs.
             val files  = listFiles(accountId)
             val cursor = apiService.getLatestCursor(auth, ListFolderRequest()).cursor
-            return@withContext Pair(files, cursor)
+            return@withContext SyncChanges(files, emptyList(), cursor)
         }
 
-        // Incremental: walk all pages since the stored cursor
+        // Incremental: walk all pages since the stored cursor.
+        // Note: Dropbox deleted entries don't include the file ID, only the path.
+        // Deletion tracking is skipped here; stale entries are handled by re-index skip logic.
         val changed = mutableListOf<CloudFile>()
-        var cursor: String = changeToken   // smart-cast to String (null case returned above)
+        var cursor: String = changeToken
         var hasMore = true
 
         while (hasMore) {
@@ -113,7 +117,7 @@ class DropboxConnector @Inject constructor(
             hasMore = page.hasMore
         }
 
-        Pair(changed, cursor)
+        SyncChanges(changed, emptyList(), cursor)
     }
 
     /**

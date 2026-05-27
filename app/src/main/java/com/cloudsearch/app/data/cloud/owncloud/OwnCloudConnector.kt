@@ -1,6 +1,7 @@
 package me.fulltxt.app.data.cloud.owncloud
 
 import me.fulltxt.app.data.cloud.CloudConnector
+import me.fulltxt.app.data.cloud.SyncChanges
 import me.fulltxt.app.data.cloud.nextcloud.NextcloudWebDavClient
 import me.fulltxt.app.domain.model.CloudFile
 import me.fulltxt.app.domain.model.CloudProvider
@@ -41,9 +42,9 @@ class OwnCloudConnector @Inject constructor(
     override suspend fun getChanges(
         accountId: String,
         changeToken: String?
-    ): Pair<List<CloudFile>, String> {
+    ): SyncChanges {
         val files = listFiles(accountId)
-        return Pair(files, System.currentTimeMillis().toString())
+        return SyncChanges(files, emptyList(), System.currentTimeMillis().toString())
     }
 
     override fun isAuthenticated(accountId: String): Boolean =

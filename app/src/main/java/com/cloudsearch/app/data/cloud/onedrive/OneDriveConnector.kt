@@ -1,6 +1,7 @@
 package me.fulltxt.app.data.cloud.onedrive
 
 import me.fulltxt.app.data.cloud.CloudConnector
+import me.fulltxt.app.data.cloud.SyncChanges
 import me.fulltxt.app.domain.model.CloudFile
 import me.fulltxt.app.domain.model.CloudProvider
 import java.time.Instant
@@ -51,23 +52,27 @@ class OneDriveConnector @Inject constructor(
     override suspend fun getChanges(
         accountId: String,
         changeToken: String?
-    ): Pair<List<CloudFile>, String> {
-        val bearer = "Bearer ${authManager.acquireToken(accountId)}"
-        val changed = mutableListOf<CloudFile>()
+    ): SyncChanges {
+        val bearer     = "Bearer ${authManager.acquireToken(accountId)}"
+        val changed    = mutableListOf<CloudFile>()
+        val deletedIds = mutableListOf<String>()
         var url: String? = changeToken ?: "$GRAPH_BASE_URL/me/drive/root/delta?\$select=$SELECT_FIELDS"
         var deltaLink = ""
 
         while (url != null) {
             val page = graphApiService.getPage(url, bearer)
-            page.items
-                .filter { it.deleted == null && it.file?.mimeType in SUPPORTED_MIME_TYPES }
-                .mapNotNull { it.toCloudFile(accountId) }
-                .let(changed::addAll)
+            page.items.forEach { item ->
+                when {
+                    item.deleted != null -> deletedIds.add(item.id)
+                    item.file?.mimeType in SUPPORTED_MIME_TYPES ->
+                        item.toCloudFile(accountId)?.let { changed.add(it) }
+                }
+            }
             page.deltaLink?.let { deltaLink = it }
             url = page.nextLink
         }
 
-        return Pair(changed, deltaLink)
+        return SyncChanges(changed, deletedIds, deltaLink)
     }
 
     override fun isAuthenticated(accountId: String): Boolean =

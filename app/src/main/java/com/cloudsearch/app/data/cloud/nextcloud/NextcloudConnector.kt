@@ -1,6 +1,7 @@
 package me.fulltxt.app.data.cloud.nextcloud
 
 import me.fulltxt.app.data.cloud.CloudConnector
+import me.fulltxt.app.data.cloud.SyncChanges
 import me.fulltxt.app.domain.model.CloudFile
 import me.fulltxt.app.domain.model.CloudProvider
 import javax.inject.Inject
@@ -34,12 +35,13 @@ class NextcloudConnector @Inject constructor(
      * We do a full re-list; unchanged files are skipped in IndexRepository via eTag comparison.
      * The returned "change token" is a timestamp placeholder for future Activity-API integration.
      */
+    /** WebDAV has no server-side deletion log; full re-list, unchanged files skipped via eTag. */
     override suspend fun getChanges(
         accountId: String,
         changeToken: String?
-    ): Pair<List<CloudFile>, String> {
+    ): SyncChanges {
         val files = listFiles(accountId)
-        return Pair(files, System.currentTimeMillis().toString())
+        return SyncChanges(files, emptyList(), System.currentTimeMillis().toString())
     }
 
     override fun isAuthenticated(accountId: String): Boolean =

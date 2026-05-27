@@ -1,6 +1,7 @@
 package me.fulltxt.app.data.cloud.strato
 
 import me.fulltxt.app.data.cloud.CloudConnector
+import me.fulltxt.app.data.cloud.SyncChanges
 import me.fulltxt.app.data.cloud.nextcloud.NextcloudWebDavClient
 import me.fulltxt.app.data.cloud.nextcloud.WebDavFile
 import me.fulltxt.app.domain.model.CloudFile
@@ -41,9 +42,9 @@ class StratoConnector @Inject constructor(
     override suspend fun getChanges(
         accountId: String,
         changeToken: String?
-    ): Pair<List<CloudFile>, String> {
+    ): SyncChanges {
         val files = listFiles(accountId)
-        return Pair(files, System.currentTimeMillis().toString())
+        return SyncChanges(files, emptyList(), System.currentTimeMillis().toString())
     }
 
     override fun isAuthenticated(accountId: String): Boolean =

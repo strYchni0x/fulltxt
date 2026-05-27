@@ -6,6 +6,7 @@ import com.google.api.services.drive.Drive
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.fulltxt.app.data.cloud.CloudConnector
+import me.fulltxt.app.data.cloud.SyncChanges
 import me.fulltxt.app.domain.model.CloudFile
 import me.fulltxt.app.domain.model.CloudProvider
 import javax.inject.Inject
@@ -57,27 +58,31 @@ class GoogleDriveConnector @Inject constructor(
     override suspend fun getChanges(
         accountId: String,
         changeToken: String?
-    ): Pair<List<CloudFile>, String> = withContext(Dispatchers.IO) {
+    ): SyncChanges = withContext(Dispatchers.IO) {
         val drive = buildService(accountId)
 
         if (changeToken == null) {
+            // First run: full list + grab the start page token for future incremental syncs.
             val files = listFilesInternal(drive, accountId)
             val token = drive.changes().getStartPageToken().execute().startPageToken
-            return@withContext Pair(files, token)
+            return@withContext SyncChanges(files, emptyList(), token)
         }
 
-        val changed = mutableListOf<CloudFile>()
+        val changed    = mutableListOf<CloudFile>()
+        val deletedIds = mutableListOf<String>()
         var pageToken: String? = changeToken
         var newToken = changeToken
 
         while (pageToken != null) {
             val response = drive.changes().list(pageToken)
-                .setFields("nextPageToken, newStartPageToken, changes(removed, file($FILE_FIELDS))")
+                .setFields("nextPageToken, newStartPageToken, changes(fileId, removed, file($FILE_FIELDS))")
                 .setPageSize(PAGE_SIZE)
                 .execute()
 
             response.changes?.forEach { change ->
-                if (!change.removed && change.file != null) {
+                if (change.removed) {
+                    change.fileId?.let { deletedIds.add(it) }
+                } else if (change.file != null) {
                     change.file.toCloudFile(accountId)?.let { changed.add(it) }
                 }
             }
@@ -86,7 +91,7 @@ class GoogleDriveConnector @Inject constructor(
             pageToken = response.nextPageToken
         }
 
-        Pair(changed.toList(), newToken ?: "")
+        SyncChanges(changed, deletedIds, newToken ?: "")
     }
 
     override fun isAuthenticated(accountId: String): Boolean =

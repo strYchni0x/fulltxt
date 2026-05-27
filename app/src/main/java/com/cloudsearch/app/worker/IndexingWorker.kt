@@ -48,7 +48,7 @@ class IndexingWorker @AssistedInject constructor(
         const val PROGRESS_ERRORS  = "progress_errors"
         private const val NOTIFICATION_ID = 1001
 
-        /** Dateien größer als dieses Limit (in Bytes) werden übersprungen. */
+        /** Files larger than this limit are skipped to avoid OOM. */
         private const val MAX_FILE_BYTES = 50L * 1024 * 1024  // 50 MB
     }
 
@@ -70,12 +70,15 @@ class IndexingWorker @AssistedInject constructor(
             else             -> return Result.failure()
         }
 
-        // Als Foreground Service starten — Android darf den Prozess nicht mehr killen.
+        // Run as foreground service — Android must not kill this process.
         setForeground(buildForegroundInfo(0, 0, 0))
 
         return try {
-            val files = connector.listFiles(accountId)
-            val total = files.size
+            // Load saved token; null = first full scan.
+            val changeToken = indexRepository.getChangeToken(accountId)
+            val sync = connector.getChanges(accountId, changeToken)
+
+            val total   = sync.changed.size
             var current = 0
             var errors  = 0
 
@@ -86,8 +89,8 @@ class IndexingWorker @AssistedInject constructor(
                 PROGRESS_ERRORS  to 0
             ))
 
-            for (file in files) {
-                // Sehr große Dateien überspringen (würden OOM verursachen)
+            // --- Index new / modified files ---
+            for (file in sync.changed) {
                 if (file.fileSizeBytes > MAX_FILE_BYTES) {
                     errors++
                 } else {
@@ -95,8 +98,6 @@ class IndexingWorker @AssistedInject constructor(
                         .onFailure { errors++ }
                 }
                 current++
-
-                // Notification und Progress alle 10 Dateien aktualisieren
                 if (current % 10 == 0 || current == total) {
                     setForeground(buildForegroundInfo(current, total, errors))
                     setProgressAsync(workDataOf(
@@ -107,7 +108,18 @@ class IndexingWorker @AssistedInject constructor(
                 }
             }
 
+            // --- Remove deleted files from local index ---
+            for (fileId in sync.deletedIds) {
+                runCatching { indexRepository.removeFile(fileId) }
+            }
+
+            // Persist the new change token for the next incremental sync.
+            if (sync.newChangeToken.isNotEmpty()) {
+                indexRepository.saveChangeToken(accountId, sync.newChangeToken)
+            }
+
             indexRepository.markFullyIndexed(accountId)
+
             if (errors > 0 && current == errors) Result.failure() else Result.success()
         } catch (e: Exception) {
             if (runAttemptCount < 3) Result.retry() else Result.failure()
@@ -130,14 +142,11 @@ class IndexingWorker @AssistedInject constructor(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val contentText = if (total == 0) {
-            "Dateiliste wird abgerufen…"
-        } else {
-            "$current / $total Dateien" + if (errors > 0) " · $errors Fehler" else ""
+        val contentText = when {
+            total == 0  -> "Dateiliste wird abgerufen…"
+            errors == 0 -> "$current / $total Dateien"
+            else        -> "$current / $total Dateien · $errors Fehler"
         }
-
-        val progress = if (total > 0) current else 0
-        val maxProgress = if (total > 0) total else 0
 
         return NotificationCompat.Builder(appContext, CHANNEL_INDEXING)
             .setContentTitle("FullTXT indexiert…")
@@ -146,7 +155,7 @@ class IndexingWorker @AssistedInject constructor(
             .setContentIntent(openIntent)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .setProgress(maxProgress, progress, total == 0)
+            .setProgress(total, current, total == 0)
             .build()
     }
 }
