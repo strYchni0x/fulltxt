@@ -190,7 +190,8 @@ fun SettingsScreen(
                 AccountCard(
                     state = state,
                     onStartIndexing = { viewModel.startIndexing(state.account) },
-                    onDisconnect = { viewModel.disconnectAccount(state.account.accountId) }
+                    onDisconnect = { viewModel.disconnectAccount(state.account.accountId) },
+                    onToggleDailyDelta = { enabled -> viewModel.toggleDailyDelta(state.account, enabled) }
                 )
             }
 
@@ -307,7 +308,8 @@ fun SettingsScreen(
 private fun AccountCard(
     state: AccountUiState,
     onStartIndexing: () -> Unit,
-    onDisconnect: () -> Unit
+    onDisconnect: () -> Unit,
+    onToggleDailyDelta: (Boolean) -> Unit
 ) {
     ElevatedCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -375,6 +377,36 @@ private fun AccountCard(
                 }
                 Text(statusText, style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+                // Daily delta toggle — only available after first full index
+                if (state.isFullyIndexed) {
+                    Spacer(Modifier.height(8.dp))
+                    HorizontalDivider()
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                "Tägl. Delta-Sync",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                if (state.dailyDeltaEnabled) "Läuft automatisch einmal täglich"
+                                else "Automatische Aktualisierung deaktiviert",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = state.dailyDeltaEnabled,
+                            onCheckedChange = onToggleDailyDelta
+                        )
+                    }
+                    HorizontalDivider()
+                }
 
                 Spacer(Modifier.height(12.dp))
 

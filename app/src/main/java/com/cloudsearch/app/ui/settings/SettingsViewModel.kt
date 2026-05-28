@@ -48,6 +48,7 @@ data class AccountUiState(
     val account: CloudAccount,
     val fileCount: Int = 0,
     val isFullyIndexed: Boolean = false,
+    val dailyDeltaEnabled: Boolean = false,
     val workState: WorkInfo.State? = null,
     val progressCurrent: Int = 0,
     val progressTotal: Int = 0,
@@ -111,7 +112,8 @@ class SettingsViewModel @Inject constructor(
                 AccountUiState(
                     account = account,
                     fileCount = indexRepository.getIndexedFileCount(account.accountId),
-                    isFullyIndexed = indexRepository.isFullyIndexed(account.accountId)
+                    isFullyIndexed = indexRepository.isFullyIndexed(account.accountId),
+                    dailyDeltaEnabled = appPreferences.isDailyDeltaEnabled(account.accountId)
                 )
             }
             accounts.forEach { observeWork(it.accountId) }
@@ -367,11 +369,28 @@ class SettingsViewModel @Inject constructor(
         indexFilesUseCase.scheduleInitialIndexing(account.accountId, account.provider)
     }
 
+    fun toggleDailyDelta(account: CloudAccount, enabled: Boolean) {
+        appPreferences.setDailyDeltaEnabled(account.accountId, enabled)
+        if (enabled) {
+            indexFilesUseCase.scheduleDailyDelta(account.accountId, account.provider)
+        } else {
+            indexFilesUseCase.cancelDailyDelta(account.accountId)
+        }
+        _accounts.update { list ->
+            list.map { state ->
+                if (state.account.accountId == account.accountId) state.copy(dailyDeltaEnabled = enabled)
+                else state
+            }
+        }
+    }
+
     fun disconnectAccount(accountId: String) {
         viewModelScope.launch {
             val state = _accounts.value.find { it.account.accountId == accountId } ?: return@launch
-            // Cancel any running or enqueued indexing job first
+            // Cancel any running or enqueued indexing jobs (one-time + periodic daily delta)
             WorkManager.getInstance(context).cancelAllWorkByTag(IndexFilesUseCase.workTag(accountId))
+            indexFilesUseCase.cancelDailyDelta(accountId)
+            appPreferences.setDailyDeltaEnabled(accountId, false)
             when (state.account.provider) {
                 CloudProvider.GOOGLE_DRIVE -> googleDriveConnector.signOut(accountId)
                 CloudProvider.ONE_DRIVE    -> oneDriveConnector.signOut(accountId)

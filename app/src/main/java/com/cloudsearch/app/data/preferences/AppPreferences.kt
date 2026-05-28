@@ -24,7 +24,16 @@ class AppPreferences @Inject constructor(
         get() = prefs.getBoolean(KEY_ALLOW_METERED, false)
         set(value) = prefs.edit { putBoolean(KEY_ALLOW_METERED, value) }
 
+    /** Returns true if the daily automatic delta sync is enabled for the given account. */
+    fun isDailyDeltaEnabled(accountId: String): Boolean =
+        prefs.getBoolean(dailyDeltaKey(accountId), false)
+
+    /** Persists the daily delta sync preference for the given account. */
+    fun setDailyDeltaEnabled(accountId: String, enabled: Boolean) =
+        prefs.edit { putBoolean(dailyDeltaKey(accountId), enabled) }
+
     companion object {
         private const val KEY_ALLOW_METERED = "allow_metered_indexing"
+        private fun dailyDeltaKey(accountId: String) = "daily_delta_$accountId"
     }
 }
