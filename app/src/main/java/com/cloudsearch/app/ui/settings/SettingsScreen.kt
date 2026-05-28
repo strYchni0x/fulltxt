@@ -24,15 +24,18 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -62,11 +65,13 @@ fun SettingsScreen(
 ) {
     val accounts by viewModel.accounts.collectAsState()
     val connectingProvider by viewModel.connectingProvider.collectAsState()
+    val allowMeteredIndexing by viewModel.allowMeteredIndexing.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showNextcloudDialog   by rememberSaveable { mutableStateOf(false) }
     var showOwnCloudDialog    by rememberSaveable { mutableStateOf(false) }
     var showMagentaDialog     by rememberSaveable { mutableStateOf(false) }
     var showStratoDialog      by rememberSaveable { mutableStateOf(false) }
+    var showMeteredWarning    by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.errorMessage.collect { message ->
@@ -117,6 +122,29 @@ fun SettingsScreen(
             onConfirm    = { user, pass ->
                 showStratoDialog = false
                 viewModel.connectStrato(user, pass)
+            }
+        )
+    }
+
+    if (showMeteredWarning) {
+        AlertDialog(
+            onDismissRequest = { showMeteredWarning = false },
+            title = { Text("Mobilfunk-Indexierung aktivieren?") },
+            text = {
+                Text(
+                    "Die Indexierung großer Cloud-Accounts kann mehrere Gigabyte Datenvolumen " +
+                    "verbrauchen. Beim nächsten Indexieren wird auch das Mobilfunknetz (5G/LTE) " +
+                    "genutzt.\n\nBitte achte auf dein Datenkontingent."
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    viewModel.setAllowMeteredIndexing(true)
+                    showMeteredWarning = false
+                }) { Text("Aktivieren") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showMeteredWarning = false }) { Text("Abbrechen") }
             }
         )
     }
@@ -236,6 +264,38 @@ fun SettingsScreen(
                         onClick = { viewModel.connectAccount(CloudProvider.DROPBOX) }
                     )
                 }
+            }
+
+            item {
+                Spacer(Modifier.height(8.dp))
+                HorizontalDivider()
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "Indexierung",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                ListItem(
+                    headlineContent = { Text("Mobilfunk erlauben") },
+                    supportingContent = {
+                        Text(
+                            if (allowMeteredIndexing)
+                                "Indexierung läuft auch über mobile Daten (5G/LTE)."
+                            else
+                                "Indexierung nur über WLAN (Standard)."
+                        )
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = allowMeteredIndexing,
+                            onCheckedChange = { enabled ->
+                                if (enabled) showMeteredWarning = true
+                                else viewModel.setAllowMeteredIndexing(false)
+                            }
+                        )
+                    }
+                )
             }
 
             item { Spacer(Modifier.height(16.dp)) }

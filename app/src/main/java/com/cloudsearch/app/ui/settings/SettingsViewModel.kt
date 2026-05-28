@@ -35,6 +35,7 @@ import me.fulltxt.app.data.cloud.owncloud.OwnCloudCredentials
 import me.fulltxt.app.data.cloud.strato.StratoAuthManager
 import me.fulltxt.app.data.cloud.strato.StratoConnector
 import me.fulltxt.app.data.cloud.strato.StratoCredentials
+import me.fulltxt.app.data.preferences.AppPreferences
 import me.fulltxt.app.data.repository.IndexRepository
 import me.fulltxt.app.domain.model.CloudAccount
 import me.fulltxt.app.domain.model.CloudProvider
@@ -59,6 +60,7 @@ data class AccountUiState(
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val appPreferences: AppPreferences,
     private val indexRepository: IndexRepository,
     private val googleDriveConnector: GoogleDriveConnector,
     private val oneDriveConnector: OneDriveConnector,
@@ -85,6 +87,14 @@ class SettingsViewModel @Inject constructor(
 
     private val _errorMessage = MutableSharedFlow<String>()
     val errorMessage = _errorMessage.asSharedFlow()
+
+    private val _allowMeteredIndexing = MutableStateFlow(appPreferences.allowMeteredIndexing)
+    val allowMeteredIndexing: StateFlow<Boolean> = _allowMeteredIndexing.asStateFlow()
+
+    fun setAllowMeteredIndexing(allow: Boolean) {
+        appPreferences.allowMeteredIndexing = allow
+        _allowMeteredIndexing.value = allow
+    }
 
     init {
         loadAccounts()

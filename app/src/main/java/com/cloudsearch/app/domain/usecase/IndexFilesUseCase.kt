@@ -8,6 +8,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import me.fulltxt.app.data.preferences.AppPreferences
 import me.fulltxt.app.domain.model.CloudProvider
 import me.fulltxt.app.worker.IndexingWorker
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -15,15 +16,20 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class IndexFilesUseCase @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val appPreferences: AppPreferences
 ) {
     companion object {
         fun workTag(accountId: String) = "indexing_$accountId"
     }
 
     fun scheduleInitialIndexing(accountId: String, provider: CloudProvider) {
+        // Use CONNECTED (any network) when the user explicitly allows metered indexing,
+        // otherwise restrict to UNMETERED (WiFi / Ethernet) to avoid surprise data charges.
+        val networkType = if (appPreferences.allowMeteredIndexing) NetworkType.CONNECTED
+                          else NetworkType.UNMETERED
         val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.UNMETERED)
+            .setRequiredNetworkType(networkType)
             .build()
 
         val request = OneTimeWorkRequestBuilder<IndexingWorker>()
