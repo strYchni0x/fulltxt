@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Network Security Configuration
+    ================================
+    Release builds: HTTPS only — cleartext (HTTP) is blocked for all connections.
+    Debug builds:   cleartext allowed so developers can test against local servers
+                    (e.g. a Nextcloud instance running on http://192.168.x.x).
+
+    Note: Self-hosted providers (Nextcloud, ownCloud, MagentaCloud, Strato HiDrive)
+    must be reachable over HTTPS in production. Entering an http:// server URL in
+    the connect dialog will fail with a cleartext-not-permitted error.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <debug-overrides>
+        <base-config cleartextTrafficPermitted="true" />
+    </debug-overrides>
+</network-security-config>

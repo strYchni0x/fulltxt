@@ -41,6 +41,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true   // needed for BuildConfig.DEBUG checks at runtime
     }
 
     packaging {

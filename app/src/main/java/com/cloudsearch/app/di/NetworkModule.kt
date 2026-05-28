@@ -1,5 +1,6 @@
 package me.fulltxt.app.di
 
+import me.fulltxt.app.BuildConfig
 import me.fulltxt.app.data.cloud.RateLimitMiddleware
 import me.fulltxt.app.data.cloud.dropbox.DropboxApiService
 import me.fulltxt.app.data.cloud.onedrive.GraphApiService
@@ -27,9 +28,14 @@ object NetworkModule {
     fun provideOkHttpClient(rateLimitMiddleware: RateLimitMiddleware): OkHttpClient =
         OkHttpClient.Builder()
             .addInterceptor(rateLimitMiddleware)
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BASIC
-            })
+            .apply {
+                // Only log HTTP traffic in debug builds — avoids leaking API URLs in production.
+                if (BuildConfig.DEBUG) {
+                    addInterceptor(HttpLoggingInterceptor().apply {
+                        level = HttpLoggingInterceptor.Level.BASIC
+                    })
+                }
+            }
             .followRedirects(true)
             .build()
 

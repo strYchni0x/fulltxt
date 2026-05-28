@@ -22,7 +22,7 @@ googleApiClientAndroid = "2.6.0"
 playServicesAuth = "21.2.0"
 msal = "5.3.0"
 pdfbox = "2.0.27.0"
-poi = "5.3.0"
+poi = "5.5.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

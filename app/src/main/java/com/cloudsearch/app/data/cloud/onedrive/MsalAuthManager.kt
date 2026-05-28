@@ -108,7 +108,7 @@ class MsalAuthManager @Inject constructor(
             context.resources.openRawResource(R.raw.msal_config)
                 .use { input -> file.outputStream().use { input.copyTo(it) } }
         }
-        Log.d("MsalAuthManager", "Creating MSAL app from config: ${configFile.readText()}")
+        // Config file read intentionally NOT logged — contains client_id and redirect URI.
         return suspendCancellableCoroutine { cont ->
             PublicClientApplication.createMultipleAccountPublicClientApplication(
                 context,

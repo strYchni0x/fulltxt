@@ -92,7 +92,10 @@ class IndexRepository @Inject constructor(
             return false
         }
 
-        val tempFile = File(context.cacheDir, "${file.fileId}.tmp")
+        // Use createTempFile so the OS generates a safe, unique filename.
+        // Avoids path-traversal: file IDs from some providers (e.g. Dropbox) contain '/'
+        // which would make File(cacheDir, fileId) resolve to an absolute path outside cacheDir.
+        val tempFile = File.createTempFile("idx_", ".tmp", context.cacheDir)
         try {
             tempFile.writeBytes(connector.downloadFile(file.fileId, file.accountId))
             val text = TextExtractor.extract(tempFile, file.mimeType)
