@@ -20,7 +20,7 @@ securityCrypto = "1.1.0-alpha06"
 googleApiDrive = "v3-rev20240730-2.0.0"
 googleApiClientAndroid = "2.6.0"
 playServicesAuth = "21.2.0"
-msal = "5.3.0"
+msal = "8.3.3"
 pdfbox = "2.0.27.0"
 poi = "5.5.1"
 
