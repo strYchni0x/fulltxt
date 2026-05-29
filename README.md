@@ -223,12 +223,13 @@ Disconnecting an account automatically cancels any scheduled daily sync.
 
 ```bash
 # Install on connected device (Windows)
-$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
 .\gradlew.bat installDebug
 
 # Install on connected device (macOS / Linux)
 ./gradlew installDebug
 ```
+
+> **Note:** If Gradle cannot find the JDK, set `JAVA_HOME` to the JDK bundled with Android Studio (e.g. `$env:JAVA_HOME = "path\to\AndroidStudio\jbr"` on Windows or `export JAVA_HOME="path/to/AndroidStudio/jbr"` on macOS/Linux).
 
 ---
 
@@ -244,7 +245,7 @@ $env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
 | ✅ | Daily automatic sync (PeriodicWork) |
 | ✅ | Duplicate file detection |
 | ✅ | Mobile data toggle (per-device) |
-| 🔜 | Filter by provider, file type, date |
+| ✅ | Filter by provider, file type, date |
 | 🔜 | Multiple accounts per provider |
 | 🔜 | OpenDocument format support (`.odt`, `.ods`, `.odp`) |
 | 🔜 | Index export / backup |

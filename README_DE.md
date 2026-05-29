@@ -223,12 +223,13 @@ Beim Trennen eines Accounts wird der tägliche Sync automatisch abgebrochen.
 
 ```bash
 # Auf verbundenem Gerät installieren (Windows)
-$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
 .\gradlew.bat installDebug
 
 # Auf verbundenem Gerät installieren (macOS / Linux)
 ./gradlew installDebug
 ```
+
+> **Hinweis:** Falls Gradle das JDK nicht findet, `JAVA_HOME` auf das in Android Studio enthaltene JDK setzen (z. B. `$env:JAVA_HOME = "Pfad\zu\AndroidStudio\jbr"` unter Windows bzw. `export JAVA_HOME="Pfad/zu/AndroidStudio/jbr"` unter macOS/Linux).
 
 ---
 
@@ -244,7 +245,7 @@ $env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
 | ✅ | Täglicher automatischer Sync (PeriodicWork) |
 | ✅ | Duplikatserkennung |
 | ✅ | Mobilfunk-Schalter (geräteweit) |
-| 🔜 | Filter nach Anbieter, Dateityp, Datum |
+| ✅ | Filter nach Anbieter, Dateityp, Datum |
 | 🔜 | Mehrere Accounts pro Anbieter |
 | 🔜 | OpenDocument-Formate (`.odt`, `.ods`, `.odp`) |
 | 🔜 | Index-Export / Backup |
