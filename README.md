@@ -246,7 +246,7 @@ Disconnecting an account automatically cancels any scheduled daily sync.
 | ✅ | Duplicate file detection |
 | ✅ | Mobile data toggle (per-device) |
 | ✅ | Filter by provider, file type, date |
-| 🔜 | Local folder indexing (Downloads, document editor app folders, etc.) |
+| ✅ | Local folder indexing (via Storage Access Framework, recursive, delta-sync) |
 | 🔜 | Multiple accounts per provider |
 | 🔜 | OpenDocument format support (`.odt`, `.ods`, `.odp`) |
 | 🔜 | Index export / backup |
