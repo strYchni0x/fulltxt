@@ -92,6 +92,9 @@ class SettingsViewModel @Inject constructor(
     private val _allowMeteredIndexing = MutableStateFlow(appPreferences.allowMeteredIndexing)
     val allowMeteredIndexing: StateFlow<Boolean> = _allowMeteredIndexing.asStateFlow()
 
+    private val _dbSizeBytes = MutableStateFlow(context.getDatabasePath("fulltxt.db").length())
+    val dbSizeBytes: StateFlow<Long> = _dbSizeBytes.asStateFlow()
+
     fun setAllowMeteredIndexing(allow: Boolean) {
         appPreferences.allowMeteredIndexing = allow
         _allowMeteredIndexing.value = allow
@@ -117,6 +120,7 @@ class SettingsViewModel @Inject constructor(
                 )
             }
             accounts.forEach { observeWork(it.accountId) }
+            _dbSizeBytes.value = context.getDatabasePath("fulltxt.db").length()
         }
     }
 

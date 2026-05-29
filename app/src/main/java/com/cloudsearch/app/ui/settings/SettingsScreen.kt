@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
@@ -66,6 +67,7 @@ fun SettingsScreen(
     val accounts by viewModel.accounts.collectAsState()
     val connectingProvider by viewModel.connectingProvider.collectAsState()
     val allowMeteredIndexing by viewModel.allowMeteredIndexing.collectAsState()
+    val dbSizeBytes by viewModel.dbSizeBytes.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showNextcloudDialog   by rememberSaveable { mutableStateOf(false) }
     var showOwnCloudDialog    by rememberSaveable { mutableStateOf(false) }
@@ -293,6 +295,34 @@ fun SettingsScreen(
                             onCheckedChange = { enabled ->
                                 if (enabled) showMeteredWarning = true
                                 else viewModel.setAllowMeteredIndexing(false)
+                            }
+                        )
+                    }
+                )
+            }
+
+            item {
+                Spacer(Modifier.height(8.dp))
+                HorizontalDivider()
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "Speicher",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                val totalFiles = accounts.sumOf { it.fileCount }
+                ListItem(
+                    leadingContent = {
+                        Icon(Icons.Default.Storage, contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    },
+                    headlineContent = { Text("Index-Datenbank") },
+                    supportingContent = {
+                        Text(
+                            buildString {
+                                append(formatDbSize(dbSizeBytes))
+                                if (totalFiles > 0) append(" · $totalFiles Dateien")
                             }
                         )
                     }
@@ -754,6 +784,13 @@ private fun NextcloudConnectDialog(
             }
         }
     )
+}
+
+private fun formatDbSize(bytes: Long): String = when {
+    bytes <= 0L          -> "0 B"
+    bytes < 1024L        -> "$bytes B"
+    bytes < 1024L * 1024 -> "${bytes / 1024} KB"
+    else                 -> "${"%.1f".format(bytes / (1024.0 * 1024.0))} MB"
 }
 
 private val CloudProvider.displayName get() = when (this) {
