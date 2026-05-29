@@ -246,6 +246,7 @@ Beim Trennen eines Accounts wird der tägliche Sync automatisch abgebrochen.
 | ✅ | Duplikatserkennung |
 | ✅ | Mobilfunk-Schalter (geräteweit) |
 | ✅ | Filter nach Anbieter, Dateityp, Datum |
+| 🔜 | Lokale Ordner indexieren (Downloads, Ordner von Dokumentbearbeitungs-Apps usw.) |
 | 🔜 | Mehrere Accounts pro Anbieter |
 | 🔜 | OpenDocument-Formate (`.odt`, `.ods`, `.odp`) |
 | 🔜 | Index-Export / Backup |
