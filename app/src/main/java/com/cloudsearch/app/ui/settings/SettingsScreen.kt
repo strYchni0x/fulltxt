@@ -1,6 +1,7 @@
 package me.fulltxt.app.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,9 +10,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
@@ -20,11 +23,14 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOpen
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -72,6 +78,10 @@ fun SettingsScreen(
     val connectingProvider by viewModel.connectingProvider.collectAsState()
     val allowMeteredIndexing by viewModel.allowMeteredIndexing.collectAsState()
     val dbSizeBytes by viewModel.dbSizeBytes.collectAsState()
+    val isPro by viewModel.isPro.collectAsState()
+    val proPrice by viewModel.proPrice.collectAsState()
+    val showUpgradeDialog by viewModel.showUpgradeDialog.collectAsState()
+    val activity = LocalContext.current as ComponentActivity
 
     val folderPickerLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocumentTree()
@@ -132,6 +142,33 @@ fun SettingsScreen(
             onConfirm    = { user, pass ->
                 showStratoDialog = false
                 viewModel.connectStrato(user, pass)
+            }
+        )
+    }
+
+    if (showUpgradeDialog) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissUpgradeDialog,
+            title = { Text("FullTXT Pro") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Google Drive, OneDrive und Dropbox sind Teil von FullTXT Pro.")
+                    Text(
+                        if (proPrice.isNotEmpty()) "$proPrice · Einmalig"
+                        else "Preis wird geladen…",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = { viewModel.purchasePro(activity) }) {
+                    Text("Jetzt kaufen")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::dismissUpgradeDialog) { Text("Abbrechen") }
             }
         )
     }
@@ -212,6 +249,7 @@ fun SettingsScreen(
                     ConnectButton(
                         label = "Google Drive verbinden",
                         isConnecting = connectingProvider == CloudProvider.GOOGLE_DRIVE,
+                        isLocked = !isPro,
                         onClick = { viewModel.connectAccount(CloudProvider.GOOGLE_DRIVE) }
                     )
                 }
@@ -222,6 +260,7 @@ fun SettingsScreen(
                     ConnectButton(
                         label = "OneDrive verbinden",
                         isConnecting = connectingProvider == CloudProvider.ONE_DRIVE,
+                        isLocked = !isPro,
                         onClick = { viewModel.connectAccount(CloudProvider.ONE_DRIVE) }
                     )
                 }
@@ -272,6 +311,7 @@ fun SettingsScreen(
                     ConnectButton(
                         label = "Dropbox verbinden",
                         isConnecting = connectingProvider == CloudProvider.DROPBOX,
+                        isLocked = !isPro,
                         onClick = { viewModel.connectAccount(CloudProvider.DROPBOX) }
                     )
                 }
@@ -498,6 +538,7 @@ private fun AccountCard(
 private fun ConnectButton(
     label: String,
     isConnecting: Boolean,
+    isLocked: Boolean = false,
     onClick: () -> Unit
 ) {
     OutlinedButton(
@@ -506,16 +547,29 @@ private fun ConnectButton(
         modifier = Modifier.fillMaxWidth()
     ) {
         if (isConnecting) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(16.dp),
-                strokeWidth = 2.dp
-            )
+            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
             Spacer(Modifier.width(8.dp))
             Text("Verbinde…")
         } else {
-            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+            Icon(
+                if (isLocked) Icons.Default.Lock else Icons.Default.Add,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
             Spacer(Modifier.width(8.dp))
-            Text(label)
+            Text(label, modifier = Modifier.weight(1f))
+            if (isLocked) {
+                Spacer(Modifier.width(8.dp))
+                Badge(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ) {
+                    Text(
+                        "PRO",
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.padding(horizontal = 4.dp)
+                    )
+                }
+            }
         }
     }
 }

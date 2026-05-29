@@ -14,6 +14,12 @@ data class CloudFile(
     val webUrl: String? = null
 )
 
+val CloudProvider.requiresPro: Boolean get() = this in setOf(
+    CloudProvider.GOOGLE_DRIVE,
+    CloudProvider.ONE_DRIVE,
+    CloudProvider.DROPBOX
+)
+
 enum class CloudProvider {
     GOOGLE_DRIVE,
     ONE_DRIVE,
