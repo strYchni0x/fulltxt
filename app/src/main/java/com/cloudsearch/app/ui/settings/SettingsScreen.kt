@@ -296,19 +296,12 @@ fun SettingsScreen(
                     Spacer(Modifier.width(8.dp))
                     Text("Ordner auswählen…")
                 }
-                Spacer(Modifier.height(6.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(
-                        onClick = { folderPickerLauncher.launch(null) },
-                        enabled = connectingProvider == null,
-                        modifier = Modifier.weight(1f)
-                    ) { Text("Downloads") }
-                    OutlinedButton(
-                        onClick = { folderPickerLauncher.launch(null) },
-                        enabled = connectingProvider == null,
-                        modifier = Modifier.weight(1f)
-                    ) { Text("Dokumente") }
-                }
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "Tipp: Android erlaubt aus Sicherheitsgründen keinen Zugriff auf Systemordner wie Downloads oder Dokumente direkt. Lege deine Dateien in einem eigenen Unterordner ab (z. B. Downloads/Rechnungen) und wähle diesen aus.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
 
             item {
