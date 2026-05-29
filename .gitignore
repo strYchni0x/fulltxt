@@ -10,6 +10,10 @@
 .cxx
 local.properties
 
+# Signing
+keystore.properties
+fulltxt.jks
+
 # Debug screenshots and UI dumps from development sessions
 screen_*.png
 ui*.xml
