@@ -1,6 +1,7 @@
 package me.fulltxt.app.ui.settings
 
 import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo
@@ -19,6 +20,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import me.fulltxt.app.data.cloud.googledrive.GoogleAuthManager
 import me.fulltxt.app.data.cloud.googledrive.GoogleDriveConnector
+import me.fulltxt.app.data.cloud.local.LocalFolderAuthManager
+import me.fulltxt.app.data.cloud.local.LocalFolderConnector
 import me.fulltxt.app.data.cloud.dropbox.DropboxAuthManager
 import me.fulltxt.app.data.cloud.dropbox.DropboxConnector
 import me.fulltxt.app.data.cloud.magenta.MagentaCloudAuthManager
@@ -77,6 +80,8 @@ class SettingsViewModel @Inject constructor(
     private val dropboxAuthManager: DropboxAuthManager,
     private val magentaCloudAuthManager: MagentaCloudAuthManager,
     private val stratoAuthManager: StratoAuthManager,
+    private val localFolderConnector: LocalFolderConnector,
+    private val localFolderAuthManager: LocalFolderAuthManager,
     private val indexFilesUseCase: IndexFilesUseCase
 ) : ViewModel() {
 
@@ -185,6 +190,8 @@ class SettingsViewModel @Inject constructor(
                     CloudProvider.OWNCLOUD       -> null
                     CloudProvider.MAGENTA_CLOUD  -> null
                     CloudProvider.STRATO_HIDRIVE -> null
+                    // Local folders are connected via connectLocalFolder() with a URI.
+                    CloudProvider.LOCAL -> null
                     // Dropbox uses a browser OAuth flow triggered via connectDropbox().
                     CloudProvider.DROPBOX -> {
                         dropboxConnector.authenticate("")
@@ -401,6 +408,33 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun connectLocalFolder(treeUri: Uri) {
+        viewModelScope.launch {
+            _connectingProvider.value = CloudProvider.LOCAL
+            try {
+                localFolderAuthManager.addFolder(treeUri)
+                val accountId = treeUri.toString()
+                val account = CloudAccount(
+                    accountId   = accountId,
+                    provider    = CloudProvider.LOCAL,
+                    displayName = localFolderAuthManager.getFolderName(treeUri),
+                    email       = ""
+                )
+                indexRepository.saveAccount(account)
+                if (_accounts.value.none { it.account.accountId == accountId }) {
+                    _accounts.update { it + AccountUiState(account = account) }
+                    observeWork(accountId)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _errorMessage.emit("Ordner konnte nicht hinzugefügt werden: ${e.localizedMessage ?: e.javaClass.simpleName}")
+            } finally {
+                _connectingProvider.value = null
+            }
+        }
+    }
+
     fun disconnectAccount(accountId: String) {
         viewModelScope.launch {
             val state = _accounts.value.find { it.account.accountId == accountId } ?: return@launch
@@ -416,6 +450,7 @@ class SettingsViewModel @Inject constructor(
                 CloudProvider.DROPBOX        -> dropboxConnector.signOut(accountId)
                 CloudProvider.MAGENTA_CLOUD  -> magentaCloudConnector.signOut(accountId)
                 CloudProvider.STRATO_HIDRIVE -> stratoConnector.signOut(accountId)
+                CloudProvider.LOCAL          -> localFolderConnector.signOut(accountId)
             }
             indexRepository.deleteAllByAccount(accountId)
             indexRepository.removeAccount(accountId)

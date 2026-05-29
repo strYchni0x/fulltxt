@@ -12,10 +12,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -68,6 +72,10 @@ fun SettingsScreen(
     val connectingProvider by viewModel.connectingProvider.collectAsState()
     val allowMeteredIndexing by viewModel.allowMeteredIndexing.collectAsState()
     val dbSizeBytes by viewModel.dbSizeBytes.collectAsState()
+
+    val folderPickerLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri -> uri?.let { viewModel.connectLocalFolder(it) } }
     val snackbarHostState = remember { SnackbarHostState() }
     var showNextcloudDialog   by rememberSaveable { mutableStateOf(false) }
     var showOwnCloudDialog    by rememberSaveable { mutableStateOf(false) }
@@ -274,6 +282,40 @@ fun SettingsScreen(
                 HorizontalDivider()
                 Spacer(Modifier.height(4.dp))
                 Text(
+                    "Lokale Ordner",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                OutlinedButton(
+                    onClick = { folderPickerLauncher.launch(null) },
+                    enabled = connectingProvider == null,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Ordner auswählen…")
+                }
+                Spacer(Modifier.height(6.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        onClick = { folderPickerLauncher.launch(null) },
+                        enabled = connectingProvider == null,
+                        modifier = Modifier.weight(1f)
+                    ) { Text("Downloads") }
+                    OutlinedButton(
+                        onClick = { folderPickerLauncher.launch(null) },
+                        enabled = connectingProvider == null,
+                        modifier = Modifier.weight(1f)
+                    ) { Text("Dokumente") }
+                }
+            }
+
+            item {
+                Spacer(Modifier.height(8.dp))
+                HorizontalDivider()
+                Spacer(Modifier.height(4.dp))
+                Text(
                     "Indexierung",
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.primary,
@@ -345,7 +387,8 @@ private fun AccountCard(
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    Icons.Default.Cloud,
+                    if (state.account.provider == CloudProvider.LOCAL) Icons.Default.Folder
+                    else Icons.Default.Cloud,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
@@ -794,11 +837,12 @@ private fun formatDbSize(bytes: Long): String = when {
 }
 
 private val CloudProvider.displayName get() = when (this) {
-    CloudProvider.GOOGLE_DRIVE -> "Google Drive"
-    CloudProvider.ONE_DRIVE    -> "Microsoft OneDrive"
-    CloudProvider.NEXTCLOUD    -> "Nextcloud"
+    CloudProvider.GOOGLE_DRIVE   -> "Google Drive"
+    CloudProvider.ONE_DRIVE      -> "Microsoft OneDrive"
+    CloudProvider.NEXTCLOUD      -> "Nextcloud"
     CloudProvider.OWNCLOUD       -> "ownCloud"
     CloudProvider.DROPBOX        -> "Dropbox"
     CloudProvider.MAGENTA_CLOUD  -> "MagentaCloud"
     CloudProvider.STRATO_HIDRIVE -> "Strato HiDrive"
+    CloudProvider.LOCAL          -> "Lokaler Ordner"
 }

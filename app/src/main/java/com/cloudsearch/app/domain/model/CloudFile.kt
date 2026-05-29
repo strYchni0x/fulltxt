@@ -21,5 +21,6 @@ enum class CloudProvider {
     OWNCLOUD,
     DROPBOX,
     MAGENTA_CLOUD,
-    STRATO_HIDRIVE
+    STRATO_HIDRIVE,
+    LOCAL
 }

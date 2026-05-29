@@ -27,10 +27,11 @@ class IndexFilesUseCase @Inject constructor(
     }
 
     fun scheduleInitialIndexing(accountId: String, provider: CloudProvider) {
-        // Use CONNECTED (any network) when the user explicitly allows metered indexing,
-        // otherwise restrict to UNMETERED (WiFi / Ethernet) to avoid surprise data charges.
-        val networkType = if (appPreferences.allowMeteredIndexing) NetworkType.CONNECTED
-                          else NetworkType.UNMETERED
+        val networkType = when {
+            provider == CloudProvider.LOCAL        -> NetworkType.NOT_REQUIRED
+            appPreferences.allowMeteredIndexing    -> NetworkType.CONNECTED
+            else                                   -> NetworkType.UNMETERED
+        }
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(networkType)
             .build()
@@ -55,8 +56,11 @@ class IndexFilesUseCase @Inject constructor(
      * toggling the metered setting afterwards requires calling this function again.
      */
     fun scheduleDailyDelta(accountId: String, provider: CloudProvider) {
-        val networkType = if (appPreferences.allowMeteredIndexing) NetworkType.CONNECTED
-                          else NetworkType.UNMETERED
+        val networkType = when {
+            provider == CloudProvider.LOCAL     -> NetworkType.NOT_REQUIRED
+            appPreferences.allowMeteredIndexing -> NetworkType.CONNECTED
+            else                               -> NetworkType.UNMETERED
+        }
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(networkType)
             .build()

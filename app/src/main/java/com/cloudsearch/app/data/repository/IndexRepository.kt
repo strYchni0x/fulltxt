@@ -82,6 +82,9 @@ class IndexRepository @Inject constructor(
     suspend fun getIndexedFileCount(accountId: String): Int =
         dao.getIndexedFileCount(accountId)
 
+    suspend fun getFileIdsByAccount(provider: String, accountId: String): List<String> =
+        dao.getAllByAccount(provider, accountId).map { it.fileId }
+
     /**
      * Downloads, extracts and stores a single file.
      * Returns false if the file was skipped because its changeToken matches the stored one.

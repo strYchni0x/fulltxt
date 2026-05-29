@@ -17,6 +17,7 @@ import me.fulltxt.app.MainActivity
 import me.fulltxt.app.R
 import me.fulltxt.app.data.cloud.dropbox.DropboxConnector
 import me.fulltxt.app.data.cloud.googledrive.GoogleDriveConnector
+import me.fulltxt.app.data.cloud.local.LocalFolderConnector
 import me.fulltxt.app.data.cloud.magenta.MagentaCloudConnector
 import me.fulltxt.app.data.cloud.nextcloud.NextcloudConnector
 import me.fulltxt.app.data.cloud.onedrive.OneDriveConnector
@@ -37,7 +38,8 @@ class IndexingWorker @AssistedInject constructor(
     private val ownCloudConnector: OwnCloudConnector,
     private val dropboxConnector: DropboxConnector,
     private val magentaCloudConnector: MagentaCloudConnector,
-    private val stratoConnector: StratoConnector
+    private val stratoConnector: StratoConnector,
+    private val localFolderConnector: LocalFolderConnector
 ) : CoroutineWorker(appContext, params) {
 
     companion object {
@@ -67,6 +69,7 @@ class IndexingWorker @AssistedInject constructor(
             "DROPBOX"        -> dropboxConnector
             "MAGENTA_CLOUD"  -> magentaCloudConnector
             "STRATO_HIDRIVE" -> stratoConnector
+            "LOCAL"          -> localFolderConnector
             else             -> return Result.failure()
         }
 
