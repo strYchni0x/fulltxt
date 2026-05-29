@@ -5,6 +5,9 @@ import me.fulltxt.app.data.local.dao.FileIndexDao
 import me.fulltxt.app.data.local.entity.FileMetadataEntity
 import me.fulltxt.app.domain.model.CloudFile
 import me.fulltxt.app.domain.model.CloudProvider
+import me.fulltxt.app.domain.model.DateFilter
+import me.fulltxt.app.domain.model.FileTypeFilter
+import me.fulltxt.app.domain.model.SearchFilter
 import me.fulltxt.app.domain.model.SearchResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -22,7 +25,7 @@ class SearchRepository @Inject constructor(
         const val SNIPPET_END = "]]"
     }
 
-    fun search(query: String): Flow<List<SearchResult>> = flow {
+    fun search(query: String, filter: SearchFilter = SearchFilter()): Flow<List<SearchResult>> = flow {
         val sanitized = sanitizeQuery(query)
         if (sanitized.isEmpty()) {
             emit(emptyList())
@@ -52,8 +55,22 @@ class SearchRepository @Inject constructor(
         val snippetMap = snippetResults.associateBy { it.fileId }
         val metadataMap = dao.getMetadataByIds(fileIds).associateBy { it.fileId }
 
-        val results = fileIds.mapNotNull { fileId ->
+        var results = fileIds.mapNotNull { fileId ->
             metadataMap[fileId]?.toSearchResult(snippetMap[fileId]?.snippet ?: "")
+        }
+
+        if (filter.providers.isNotEmpty()) {
+            results = results.filter { it.file.cloudProvider in filter.providers }
+        }
+        if (filter.fileTypes.isNotEmpty()) {
+            val extensions = filter.fileTypes.flatMap { it.extensions }.toSet()
+            results = results.filter { r ->
+                extensions.any { ext -> r.file.fileName.endsWith(".$ext", ignoreCase = true) }
+            }
+        }
+        filter.dateFilter?.let { df ->
+            val cutoff = df.cutoffMillis
+            results = results.filter { it.file.modifiedAt >= cutoff }
         }
 
         // Duplicate detection: find files with the same name + size across multiple providers/accounts.

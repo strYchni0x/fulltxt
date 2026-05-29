@@ -32,8 +32,21 @@ class AppPreferences @Inject constructor(
     fun setDailyDeltaEnabled(accountId: String, enabled: Boolean) =
         prefs.edit { putBoolean(dailyDeltaKey(accountId), enabled) }
 
+    var batteryOptimizationPromptShown: Boolean
+        get() = prefs.getBoolean(KEY_BATTERY_OPT_PROMPT, false)
+        set(value) = prefs.edit { putBoolean(KEY_BATTERY_OPT_PROMPT, value) }
+
+    var recentSearches: List<String>
+        get() = prefs.getString(KEY_RECENT_SEARCHES, null)
+            ?.split("\n")
+            ?.filter { it.isNotBlank() }
+            ?: emptyList()
+        set(value) = prefs.edit { putString(KEY_RECENT_SEARCHES, value.joinToString("\n")) }
+
     companion object {
         private const val KEY_ALLOW_METERED = "allow_metered_indexing"
+        private const val KEY_BATTERY_OPT_PROMPT = "battery_opt_prompt_shown"
+        private const val KEY_RECENT_SEARCHES = "recent_searches"
         private fun dailyDeltaKey(accountId: String) = "daily_delta_$accountId"
     }
 }

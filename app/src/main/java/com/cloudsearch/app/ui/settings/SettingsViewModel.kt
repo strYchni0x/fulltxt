@@ -197,8 +197,13 @@ class SettingsViewModel @Inject constructor(
 
                 if (account != null) {
                     indexRepository.saveAccount(account)
-                    _accounts.update { it + AccountUiState(account = account) }
-                    observeWork(account.accountId)
+                    // Guard against duplicate: account may already be in the list if the user
+                    // re-authenticated (e.g. expired token) while the account was loaded from DB.
+                    val alreadyPresent = _accounts.value.any { it.account.accountId == account.accountId }
+                    if (!alreadyPresent) {
+                        _accounts.update { it + AccountUiState(account = account) }
+                        observeWork(account.accountId)
+                    }
                 }
             } catch (e: CancellationException) {
                 throw e
@@ -237,8 +242,10 @@ class SettingsViewModel @Inject constructor(
                     email       = "$username@$host"
                 )
                 indexRepository.saveAccount(account)
-                _accounts.update { it + AccountUiState(account = account) }
-                observeWork(accountId)
+                if (_accounts.value.none { it.account.accountId == accountId }) {
+                    _accounts.update { it + AccountUiState(account = account) }
+                    observeWork(accountId)
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -276,8 +283,10 @@ class SettingsViewModel @Inject constructor(
                     email       = "$username@$host"
                 )
                 indexRepository.saveAccount(account)
-                _accounts.update { it + AccountUiState(account = account) }
-                observeWork(accountId)
+                if (_accounts.value.none { it.account.accountId == accountId }) {
+                    _accounts.update { it + AccountUiState(account = account) }
+                    observeWork(accountId)
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -310,8 +319,10 @@ class SettingsViewModel @Inject constructor(
                     email       = "$username@hidrive.strato.com"
                 )
                 indexRepository.saveAccount(account)
-                _accounts.update { it + AccountUiState(account = account) }
-                observeWork(accountId)
+                if (_accounts.value.none { it.account.accountId == accountId }) {
+                    _accounts.update { it + AccountUiState(account = account) }
+                    observeWork(accountId)
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -353,8 +364,10 @@ class SettingsViewModel @Inject constructor(
                     email       = "$username@$host"
                 )
                 indexRepository.saveAccount(account)
-                _accounts.update { it + AccountUiState(account = account) }
-                observeWork(accountId)
+                if (_accounts.value.none { it.account.accountId == accountId }) {
+                    _accounts.update { it + AccountUiState(account = account) }
+                    observeWork(accountId)
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
