@@ -17,6 +17,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -86,6 +89,16 @@ fun SettingsScreen(
     val folderPickerLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocumentTree()
     ) { uri -> uri?.let { viewModel.connectLocalFolder(it) } }
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/octet-stream")
+    ) { uri -> uri?.let { viewModel.exportIndex(it) } }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri -> uri?.let { viewModel.importIndex(it) } }
+
+    var showImportConfirm by rememberSaveable { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     var showNextcloudDialog   by rememberSaveable { mutableStateOf(false) }
     var showOwnCloudDialog    by rememberSaveable { mutableStateOf(false) }
@@ -96,6 +109,12 @@ fun SettingsScreen(
     LaunchedEffect(Unit) {
         viewModel.errorMessage.collect { message ->
             snackbarHostState.showSnackbar(message)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.exportSuccess.collect {
+            snackbarHostState.showSnackbar("Index erfolgreich exportiert.")
         }
     }
 
@@ -142,6 +161,25 @@ fun SettingsScreen(
             onConfirm    = { user, pass ->
                 showStratoDialog = false
                 viewModel.connectStrato(user, pass)
+            }
+        )
+    }
+
+    if (showImportConfirm) {
+        AlertDialog(
+            onDismissRequest = { showImportConfirm = false },
+            title = { Text("Index importieren") },
+            text = {
+                Text("Der aktuelle Suchindex wird vollständig ersetzt. Die App wird danach neu gestartet. Fortfahren?")
+            },
+            confirmButton = {
+                Button(onClick = {
+                    showImportConfirm = false
+                    importLauncher.launch(arrayOf("application/octet-stream", "*/*"))
+                }) { Text("Importieren") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showImportConfirm = false }) { Text("Abbrechen") }
             }
         )
     }
@@ -402,6 +440,20 @@ fun SettingsScreen(
                         )
                     }
                 )
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        onClick = {
+                            val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                            exportLauncher.launch("fulltxt_backup_$date.db")
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) { Text("Exportieren") }
+                    OutlinedButton(
+                        onClick = { showImportConfirm = true },
+                        modifier = Modifier.weight(1f)
+                    ) { Text("Importieren") }
+                }
             }
 
             item { Spacer(Modifier.height(16.dp)) }

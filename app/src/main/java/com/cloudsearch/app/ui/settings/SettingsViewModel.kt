@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import me.fulltxt.app.data.cloud.googledrive.GoogleAuthManager
 import me.fulltxt.app.data.cloud.googledrive.GoogleDriveConnector
+import me.fulltxt.app.data.backup.BackupManager
 import me.fulltxt.app.data.billing.BillingManager
 import me.fulltxt.app.data.cloud.local.LocalFolderAuthManager
 import me.fulltxt.app.data.cloud.local.LocalFolderConnector
@@ -86,6 +87,7 @@ class SettingsViewModel @Inject constructor(
     private val localFolderConnector: LocalFolderConnector,
     private val localFolderAuthManager: LocalFolderAuthManager,
     private val billingManager: BillingManager,
+    private val backupManager: BackupManager,
     private val indexFilesUseCase: IndexFilesUseCase
 ) : ViewModel() {
 
@@ -112,6 +114,25 @@ class SettingsViewModel @Inject constructor(
     fun purchasePro(activity: Activity) {
         dismissUpgradeDialog()
         billingManager.launchBillingFlow(activity)
+    }
+
+    private val _exportSuccess = MutableSharedFlow<Unit>()
+    val exportSuccess = _exportSuccess.asSharedFlow()
+
+    fun exportIndex(uri: Uri) {
+        viewModelScope.launch {
+            runCatching { backupManager.exportTo(uri) }
+                .onSuccess { _exportSuccess.emit(Unit) }
+                .onFailure { _errorMessage.emit("Export fehlgeschlagen: ${it.localizedMessage ?: it.javaClass.simpleName}") }
+        }
+    }
+
+    fun importIndex(uri: Uri) {
+        viewModelScope.launch {
+            runCatching { backupManager.importFrom(uri) }
+                .onSuccess { backupManager.restartApp() }
+                .onFailure { _errorMessage.emit("Import fehlgeschlagen: ${it.localizedMessage ?: it.javaClass.simpleName}") }
+        }
     }
 
     private val _dbSizeBytes = MutableStateFlow(context.getDatabasePath("fulltxt.db").length())
