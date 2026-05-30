@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FullTXT – Datenschutzerklärung / Privacy Policy</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg:#0c0c0c; --surface:#161616; --border:#2a2a2a; --primary:#22c55e; --text:#f0f0f0; --muted:#888; }
+    body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; line-height:1.7; }
+    nav { display:flex; align-items:center; justify-content:space-between; padding:0 24px; height:60px; background:rgba(12,12,12,.9); border-bottom:1px solid var(--border); }
+    .nav-logo { font-size:1.1rem; font-weight:700; color:var(--primary); text-decoration:none; }
+    .lang-switcher { display:flex; gap:4px; }
+    .lang-btn { background:none; border:1px solid var(--border); color:var(--muted); padding:4px 10px; border-radius:6px; cursor:pointer; font-size:.85rem; transition:all .15s; }
+    .lang-btn.active, .lang-btn:hover { border-color:var(--primary); color:var(--primary); }
+    .content { max-width:780px; margin:0 auto; padding:60px 24px; }
+    h1 { font-size:2rem; font-weight:800; margin-bottom:8px; }
+    .meta { color:var(--muted); font-size:.9rem; margin-bottom:48px; }
+    h2 { font-size:1.15rem; font-weight:700; margin:36px 0 12px; color:var(--primary); }
+    p { color:#ccc; margin-bottom:14px; }
+    table { width:100%; border-collapse:collapse; margin:16px 0 24px; font-size:.9rem; }
+    th { text-align:left; padding:10px 14px; background:var(--surface); border:1px solid var(--border); color:var(--text); font-weight:600; }
+    td { padding:10px 14px; border:1px solid var(--border); color:#ccc; vertical-align:top; }
+    a { color:var(--primary); }
+    ul { margin:12px 0 16px 20px; color:#ccc; }
+    li { margin-bottom:6px; }
+    code { background:var(--surface); padding:2px 6px; border-radius:4px; font-size:.9em; }
+    .back-link { display:inline-flex; align-items:center; gap:6px; color:var(--muted); text-decoration:none; font-size:.9rem; margin-bottom:32px; transition:color .15s; }
+    .back-link:hover { color:var(--primary); }
+    [data-lang] { display:none; }
+    body.lang-de [data-lang="de"] { display:block; }
+    body.lang-en [data-lang="en"] { display:block; }
+  </style>
+</head>
+<body class="lang-de">
+<nav>
+  <a class="nav-logo" href="index.html">← FullTXT</a>
+  <div class="lang-switcher">
+    <button class="lang-btn active" id="btn-de" onclick="setLang('de')">DE</button>
+    <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+  </div>
+</nav>
+
+<div class="content">
+
+<!-- DEUTSCH -->
+<div data-lang="de">
+  <h1>Datenschutzerklärung</h1>
+  <p class="meta">Stand: Mai 2026 &nbsp;·&nbsp; Verantwortlicher: Florian Willnat &nbsp;·&nbsp; <a href="mailto:florian@willnat.org">florian@willnat.org</a></p>
+
+  <h2>1. Überblick</h2>
+  <p>FULLTXT ist eine Android-App zur Volltext-Suche in Cloud-Speicherdiensten. Diese Datenschutzerklärung erläutert, welche Daten die App verarbeitet, wie sie gespeichert werden und welche Rechte dir als Nutzer zustehen.</p>
+  <p><strong>Kernprinzip:</strong> FULLTXT verarbeitet alle Daten ausschließlich lokal auf deinem Gerät. Es gibt keinen eigenen Backend-Server; es werden keine Nutzungsdaten, Analysedaten oder Dateiinhalte an den App-Entwickler übertragen.</p>
+
+  <h2>2. Verarbeitete Daten</h2>
+  <p><strong>2.1 Kontodaten (Cloud-Anbieter)</strong><br>Beim Verbinden eines Cloud-Accounts werden folgende Informationen lokal gespeichert:</p>
+  <table>
+    <tr><th>Datum</th><th>Zweck</th><th>Speicherort</th></tr>
+    <tr><td>E-Mail / Benutzername</td><td>Anzeige in der App, eindeutige Kontokennung</td><td>Verschlüsselte Gerätedatenbank</td></tr>
+    <tr><td>OAuth-Token / App-Passwort</td><td>Zugriff auf die Cloud-API</td><td>Android <code>EncryptedSharedPreferences</code> (AES-256)</td></tr>
+    <tr><td>Anzeigename</td><td>Anzeige in der App</td><td>Verschlüsselte Gerätedatenbank</td></tr>
+  </table>
+  <p>Unterstützte Anbieter: Google Drive, Microsoft OneDrive, Nextcloud, ownCloud, Dropbox, MagentaCloud, Strato HiDrive.</p>
+
+  <p><strong>2.2 Datei-Index</strong><br>Zur Volltextsuche werden von deinen Cloud-Dateien folgende Metadaten lokal indexiert:</p>
+  <ul>
+    <li>Dateiname, Dateigröße, Änderungsdatum, Dateipfad</li>
+    <li>Textinhalt der Datei (für Office-Dokumente und PDFs)</li>
+  </ul>
+  <p>Der Index wird in einer SQLite-Datenbank auf dem Gerät gespeichert und <strong>verlässt das Gerät nicht</strong>.</p>
+
+  <p><strong>2.3 Temporäre Dateien</strong><br>Zur Textextraktion werden Dateien vorübergehend in den internen Cache des Geräts heruntergeladen. Die temporären Dateien werden unmittelbar nach der Textextraktion gelöscht.</p>
+
+  <p><strong>2.4 Benachrichtigungen</strong><br>Die App zeigt Fortschrittsbenachrichtigungen während laufender Indexierungsvorgänge an. Dafür wird die Berechtigung <code>POST_NOTIFICATIONS</code> benötigt (Android 13+).</p>
+
+  <h2>3. Datenübertragung an Dritte</h2>
+  <p>FULLTXT selbst übermittelt keine Daten an externe Server. Beim Indexieren kommuniziert die App direkt mit den APIs der jeweiligen Cloud-Anbieter. Es gelten deren Datenschutzbestimmungen:</p>
+  <ul>
+    <li><strong>Google Drive:</strong> <a href="https://policies.google.com/privacy" target="_blank">policies.google.com/privacy</a></li>
+    <li><strong>Microsoft OneDrive:</strong> <a href="https://privacy.microsoft.com/de-de/privacystatement" target="_blank">privacy.microsoft.com</a></li>
+    <li><strong>Dropbox:</strong> <a href="https://www.dropbox.com/privacy" target="_blank">dropbox.com/privacy</a></li>
+    <li><strong>Nextcloud / ownCloud / MagentaCloud / Strato HiDrive:</strong> Richtlinien des jeweiligen Server-Betreibers</li>
+  </ul>
+
+  <h2>4. Berechtigungen</h2>
+  <table>
+    <tr><th>Berechtigung</th><th>Zweck</th></tr>
+    <tr><td><code>INTERNET</code></td><td>Verbindung zu Cloud-APIs</td></tr>
+    <tr><td><code>ACCESS_NETWORK_STATE</code></td><td>Prüfung des Netzwerktyps (WLAN vs. Mobilfunk)</td></tr>
+    <tr><td><code>FOREGROUND_SERVICE</code></td><td>Indexierung im Vordergrund-Dienst</td></tr>
+    <tr><td><code>POST_NOTIFICATIONS</code></td><td>Fortschrittsanzeige während der Indexierung</td></tr>
+    <tr><td><code>REQUEST_IGNORE_BATTERY_OPTIMIZATIONS</code></td><td>Zuverlässige Hintergrundindexierung</td></tr>
+  </table>
+  <p>Die App fordert <strong>keine</strong> Berechtigung für den Zugriff auf Standort, Kamera oder Kontakte.</p>
+
+  <h2>5. Datenspeicherung und Löschung</h2>
+  <ul>
+    <li><strong>Account trennen:</strong> Alle Indexdaten, Zugangsdaten und Tokens werden sofort gelöscht.</li>
+    <li><strong>Deinstallation:</strong> Android löscht automatisch alle App-Daten.</li>
+    <li><strong>Datensicherung:</strong> Die App ist mit <code>android:allowBackup="false"</code> konfiguriert.</li>
+  </ul>
+
+  <h2>6. Datensicherheit</h2>
+  <ul>
+    <li>OAuth-Token und Passwörter: <code>EncryptedSharedPreferences</code> (AES-256-GCM, Android Keystore)</li>
+    <li>Netzwerkverbindungen in Release-Builds: ausschließlich HTTPS</li>
+    <li>Kein Klartext-Logging in Release-Builds</li>
+  </ul>
+
+  <h2>7. Rechtsgrundlage (DSGVO)</h2>
+  <p>Die Verarbeitung erfolgt auf Grundlage von <strong>Art. 6 Abs. 1 lit. b DSGVO</strong> (Vertragserfüllung). Du kannst die Verarbeitung jederzeit durch Trennen des Accounts oder Deinstallieren der App beenden.</p>
+
+  <h2>8. Deine Rechte</h2>
+  <ul>
+    <li><strong>Auskunft</strong> (Art. 15 DSGVO): Alle Daten befinden sich lokal auf deinem Gerät und sind in der App einsehbar.</li>
+    <li><strong>Löschung</strong> (Art. 17 DSGVO): Account trennen oder App deinstallieren.</li>
+    <li><strong>Beschwerde</strong> (Art. 77 DSGVO): Recht auf Beschwerde bei einer Datenschutzaufsichtsbehörde.</li>
+  </ul>
+
+  <h2>9. Kinder</h2>
+  <p>Die App richtet sich nicht an Kinder unter 16 Jahren.</p>
+
+  <h2>10. Kontakt</h2>
+  <p>Florian Willnat &nbsp;·&nbsp; <a href="mailto:florian@willnat.org">florian@willnat.org</a></p>
+</div>
+
+<!-- ENGLISH -->
+<div data-lang="en">
+  <h1>Privacy Policy</h1>
+  <p class="meta">Last updated: May 2026 &nbsp;·&nbsp; Controller: Florian Willnat &nbsp;·&nbsp; <a href="mailto:florian@willnat.org">florian@willnat.org</a></p>
+
+  <h2>1. Overview</h2>
+  <p>FULLTXT is an Android app for full-text search across cloud storage services. This Privacy Policy explains what data the app processes, how it is stored, and what rights you have as a user.</p>
+  <p><strong>Core principle:</strong> FULLTXT processes all data exclusively on your device. There is no proprietary back-end server; no usage data, analytics, or file contents are transmitted to the app developer.</p>
+
+  <h2>2. Data Processed</h2>
+  <p><strong>2.1 Account Data</strong><br>When you connect a cloud account, the following is stored locally:</p>
+  <table>
+    <tr><th>Data</th><th>Purpose</th><th>Storage</th></tr>
+    <tr><td>Email / username</td><td>Display in app, unique account identifier</td><td>Encrypted on-device database</td></tr>
+    <tr><td>OAuth token / app password</td><td>Access to cloud API</td><td>Android <code>EncryptedSharedPreferences</code> (AES-256)</td></tr>
+    <tr><td>Display name</td><td>Display in app</td><td>Encrypted on-device database</td></tr>
+  </table>
+  <p>Supported providers: Google Drive, Microsoft OneDrive, Nextcloud, ownCloud, Dropbox, MagentaCloud, Strato HiDrive.</p>
+
+  <p><strong>2.2 File Index</strong><br>The following metadata is indexed locally for full-text search:</p>
+  <ul>
+    <li>File name, file size, modification date, file path</li>
+    <li>Text content of the file (for Office documents and PDFs)</li>
+  </ul>
+  <p>The index is stored in an SQLite database on the device and <strong>never leaves the device</strong>.</p>
+
+  <p><strong>2.3 Temporary Files</strong><br>Files are temporarily downloaded to the device's internal cache for text extraction and deleted immediately afterwards.</p>
+
+  <p><strong>2.4 Notifications</strong><br>Progress notifications are shown during indexing. This requires <code>POST_NOTIFICATIONS</code> permission (Android 13+).</p>
+
+  <h2>3. Data Sharing with Third Parties</h2>
+  <p>FULLTXT itself does not transmit any data to external servers. During indexing, the app communicates directly with the respective cloud provider APIs:</p>
+  <ul>
+    <li><strong>Google Drive:</strong> <a href="https://policies.google.com/privacy" target="_blank">policies.google.com/privacy</a></li>
+    <li><strong>Microsoft OneDrive:</strong> <a href="https://privacy.microsoft.com/en-us/privacystatement" target="_blank">privacy.microsoft.com</a></li>
+    <li><strong>Dropbox:</strong> <a href="https://www.dropbox.com/privacy" target="_blank">dropbox.com/privacy</a></li>
+    <li><strong>Nextcloud / ownCloud / MagentaCloud / Strato HiDrive:</strong> Privacy policy of the respective server operator</li>
+  </ul>
+
+  <h2>4. Permissions</h2>
+  <table>
+    <tr><th>Permission</th><th>Purpose</th></tr>
+    <tr><td><code>INTERNET</code></td><td>Connection to cloud APIs</td></tr>
+    <tr><td><code>ACCESS_NETWORK_STATE</code></td><td>Check network type (Wi-Fi vs. mobile data)</td></tr>
+    <tr><td><code>FOREGROUND_SERVICE</code></td><td>Indexing via foreground service</td></tr>
+    <tr><td><code>POST_NOTIFICATIONS</code></td><td>Progress display during indexing</td></tr>
+    <tr><td><code>REQUEST_IGNORE_BATTERY_OPTIMIZATIONS</code></td><td>Reliable background indexing</td></tr>
+  </table>
+  <p>The app does <strong>not</strong> request access to location, camera, or contacts.</p>
+
+  <h2>5. Data Retention and Deletion</h2>
+  <ul>
+    <li><strong>Disconnect account:</strong> All index data, credentials and tokens are immediately deleted.</li>
+    <li><strong>Uninstall:</strong> Android automatically deletes all app data.</li>
+    <li><strong>Backup:</strong> App is configured with <code>android:allowBackup="false"</code>.</li>
+  </ul>
+
+  <h2>6. Data Security</h2>
+  <ul>
+    <li>OAuth tokens and passwords: <code>EncryptedSharedPreferences</code> (AES-256-GCM, Android Keystore)</li>
+    <li>Network connections in release builds: HTTPS only</li>
+    <li>No plaintext logging in release builds</li>
+  </ul>
+
+  <h2>7. Legal Basis (GDPR)</h2>
+  <p>Processing is based on <strong>Art. 6(1)(b) GDPR</strong> (performance of a contract). You can stop processing at any time by disconnecting your account or uninstalling the app.</p>
+
+  <h2>8. Your Rights</h2>
+  <ul>
+    <li><strong>Access</strong> (Art. 15 GDPR): All data resides locally on your device and is visible within the app.</li>
+    <li><strong>Erasure</strong> (Art. 17 GDPR): Disconnect the account or uninstall the app.</li>
+    <li><strong>Complaint</strong> (Art. 77 GDPR): Right to lodge a complaint with a supervisory authority.</li>
+  </ul>
+
+  <h2>9. Children</h2>
+  <p>The app is not directed at children under the age of 16.</p>
+
+  <h2>10. Contact</h2>
+  <p>Florian Willnat &nbsp;·&nbsp; <a href="mailto:florian@willnat.org">florian@willnat.org</a></p>
+</div>
+
+</div><!-- .content -->
+
+<script>
+  function setLang(lang) {
+    document.body.className = 'lang-' + lang;
+    document.documentElement.lang = lang;
+    document.getElementById('btn-de').classList.toggle('active', lang === 'de');
+    document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+    localStorage.setItem('fulltxt-lang', lang);
+  }
+  (function() {
+    const saved = localStorage.getItem('fulltxt-lang');
+    const browser = navigator.language?.startsWith('de') ? 'de' : 'en';
+    setLang(saved || browser);
+  })();
+</script>
+</body>
+</html>

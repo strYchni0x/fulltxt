@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FullTXT – Volltextsuche für deine Cloud</title>
+  <meta name="description" content="FullTXT durchsucht alle deine Cloud-Speicher per Volltext – komplett privat und offline auf deinem Gerät.">
+  <meta property="og:title" content="FullTXT – Volltextsuche für deine Cloud">
+  <meta property="og:description" content="Durchsuche Google Drive, OneDrive, Dropbox, Nextcloud und mehr – privat, offline, auf deinem Gerät.">
+  <meta property="og:url" content="https://fulltxt.me">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0c0c0c;
+      --surface: #161616;
+      --card: #1c1c1c;
+      --border: #2a2a2a;
+      --primary: #22c55e;
+      --primary-dark: #16a34a;
+      --text: #f0f0f0;
+      --muted: #888;
+      --radius: 12px;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; height: 60px;
+      background: rgba(12,12,12,.9); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { font-size: 1.25rem; font-weight: 700; color: var(--primary); letter-spacing: -.5px; text-decoration: none; }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .lang-switcher { display: flex; gap: 4px; }
+    .lang-btn {
+      background: none; border: 1px solid var(--border); color: var(--muted);
+      padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: .85rem;
+      transition: all .15s;
+    }
+    .lang-btn.active, .lang-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .nav-dl {
+      background: var(--primary); color: #000; font-weight: 600; font-size: .85rem;
+      padding: 6px 16px; border-radius: 8px; text-decoration: none; transition: background .15s;
+    }
+    .nav-dl:hover { background: var(--primary-dark); }
+
+    /* HERO */
+    .hero {
+      text-align: center; padding: 100px 24px 80px;
+      background: radial-gradient(ellipse 70% 50% at 50% -10%, rgba(34,197,94,.12) 0%, transparent 70%);
+    }
+    .hero-badge {
+      display: inline-block; background: rgba(34,197,94,.15); color: var(--primary);
+      border: 1px solid rgba(34,197,94,.3); border-radius: 99px;
+      padding: 4px 14px; font-size: .8rem; font-weight: 600; letter-spacing: .5px;
+      margin-bottom: 24px; text-transform: uppercase;
+    }
+    .hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; line-height: 1.15; letter-spacing: -.5px; margin-bottom: 20px; }
+    .hero h1 span { color: var(--primary); }
+    .hero p { font-size: 1.15rem; color: var(--muted); max-width: 560px; margin: 0 auto 40px; }
+    .hero-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--primary); color: #000; font-weight: 700; font-size: 1rem;
+      padding: 14px 28px; border-radius: 10px; text-decoration: none; transition: background .15s;
+    }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--card); color: var(--text); font-weight: 600; font-size: 1rem;
+      padding: 14px 28px; border-radius: 10px; text-decoration: none;
+      border: 1px solid var(--border); transition: border-color .15s;
+    }
+    .btn-secondary:hover { border-color: var(--primary); }
+
+    /* SECTIONS */
+    section { padding: 80px 24px; }
+    .section-inner { max-width: 1100px; margin: 0 auto; }
+    .section-label { font-size: .8rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--primary); margin-bottom: 12px; }
+    .section-title { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800; letter-spacing: -.3px; margin-bottom: 16px; }
+    .section-sub { font-size: 1.05rem; color: var(--muted); max-width: 560px; margin-bottom: 56px; }
+
+    /* FEATURES GRID */
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .feature-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 28px; transition: border-color .2s;
+    }
+    .feature-card:hover { border-color: rgba(34,197,94,.4); }
+    .feature-icon { font-size: 1.8rem; margin-bottom: 14px; }
+    .feature-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+    .feature-card p { font-size: .9rem; color: var(--muted); line-height: 1.55; }
+
+    /* PROVIDERS */
+    .providers-section { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .providers-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+    .provider-item {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+      padding: 14px 18px; font-size: .9rem; font-weight: 500;
+    }
+    .provider-icon { font-size: 1.3rem; }
+    .provider-badge {
+      margin-left: auto; background: var(--primary); color: #000;
+      font-size: .65rem; font-weight: 800; padding: 2px 7px; border-radius: 4px; letter-spacing: .5px;
+    }
+
+    /* PRIVACY HIGHLIGHT */
+    .privacy-highlight {
+      background: linear-gradient(135deg, rgba(34,197,94,.08) 0%, transparent 60%);
+      border: 1px solid rgba(34,197,94,.2); border-radius: var(--radius);
+      padding: 48px; display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap;
+    }
+    .privacy-icon { font-size: 3rem; flex-shrink: 0; }
+    .privacy-text h3 { font-size: 1.4rem; font-weight: 700; margin-bottom: 10px; }
+    .privacy-text p { color: var(--muted); line-height: 1.65; }
+    .privacy-checks { list-style: none; margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+    .privacy-checks li { display: flex; gap: 10px; align-items: flex-start; font-size: .95rem; color: var(--muted); }
+    .privacy-checks li::before { content: "✓"; color: var(--primary); font-weight: 700; flex-shrink: 0; }
+
+    /* FORMATS */
+    .formats-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+    .format-chip {
+      background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px 16px; font-size: .9rem; font-family: monospace; color: var(--text);
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border); padding: 40px 24px;
+      text-align: center; color: var(--muted); font-size: .9rem;
+    }
+    .footer-links { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+    .footer-links a { color: var(--muted); text-decoration: none; transition: color .15s; }
+    .footer-links a:hover { color: var(--primary); }
+
+    /* LANG */
+    [data-lang] { display: none; }
+    body.lang-de [data-lang="de"], body.lang-en [data-lang="en"] { display: block; }
+    .lang-inline[data-lang] { display: none; }
+    body.lang-de .lang-inline[data-lang="de"], body.lang-en .lang-inline[data-lang="en"] { display: inline; }
+
+    @media (max-width: 600px) {
+      .privacy-highlight { padding: 28px; }
+      section { padding: 60px 20px; }
+    }
+  </style>
+</head>
+<body class="lang-de">
+
+<nav>
+  <a class="nav-logo" href="#">FullTXT</a>
+  <div class="nav-right">
+    <div class="lang-switcher">
+      <button class="lang-btn active" id="btn-de" onclick="setLang('de')">DE</button>
+      <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+    </div>
+    <a class="nav-dl" href="https://github.com/strYchni0x/fulltxt/releases/latest">
+      <span class="lang-inline" data-lang="de">Download</span>
+      <span class="lang-inline" data-lang="en">Download</span>
+    </a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">Android App</div>
+  <h1>
+    <span data-lang="de">Volltextsuche für<br><span>deine Cloud.</span></span>
+    <span data-lang="en">Full-text search across<br><span>your cloud storage.</span></span>
+  </h1>
+  <p data-lang="de">FullTXT indexiert Dateien aus Google Drive, OneDrive, Dropbox, Nextcloud und mehr – und durchsucht sie in Sekunden. Alles bleibt auf deinem Gerät.</p>
+  <p data-lang="en">FullTXT indexes files from Google Drive, OneDrive, Dropbox, Nextcloud and more – and searches them in seconds. Everything stays on your device.</p>
+  <div class="hero-cta">
+    <a class="btn-primary" href="https://github.com/strYchni0x/fulltxt/releases/latest">
+      ↓ <span class="lang-inline" data-lang="de">Jetzt herunterladen</span><span class="lang-inline" data-lang="en">Download now</span>
+    </a>
+    <a class="btn-secondary" href="https://github.com/strYchni0x/fulltxt">
+      <span class="lang-inline" data-lang="de">GitHub ansehen</span><span class="lang-inline" data-lang="en">View on GitHub</span>
+    </a>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section>
+  <div class="section-inner">
+    <div class="section-label" data-lang="de">Funktionen</div>
+    <div class="section-label" data-lang="en">Features</div>
+    <h2 class="section-title" data-lang="de">Alles auf deinem Gerät.</h2>
+    <h2 class="section-title" data-lang="en">Everything on your device.</h2>
+    <p class="section-sub" data-lang="de">Keine Cloud, kein Server, keine Kompromisse. Der gesamte Suchindex lebt lokal auf deinem Smartphone.</p>
+    <p class="section-sub" data-lang="en">No cloud backend, no server, no compromises. The entire search index lives locally on your phone.</p>
+    <div class="features-grid">
+
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <h3 data-lang="de">Volltextsuche</h3>
+        <h3 data-lang="en">Full-text search</h3>
+        <p data-lang="de">Suche simultan über alle verbundenen Cloud-Accounts. Ergebnisse erscheinen bereits ab zwei Zeichen mit hervorgehobenen Treffern im Snippet.</p>
+        <p data-lang="en">Search simultaneously across all connected cloud accounts. Results appear after two characters with highlighted matches in the snippet.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📦</div>
+        <h3 data-lang="de">Lokaler Index</h3>
+        <h3 data-lang="en">Local index</h3>
+        <p data-lang="de">Der Index wird als SQLite-FTS5-Datenbank lokal gespeichert. Suchen laufen offline – ohne Wartezeit und ohne Internetzugang.</p>
+        <p data-lang="en">The index is stored locally as a SQLite FTS5 database. Searches run offline – no waiting, no internet required.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3 data-lang="de">Delta-Sync</h3>
+        <h3 data-lang="en">Delta sync</h3>
+        <p data-lang="de">Nach der ersten Indexierung werden nur noch geänderte Dateien synchronisiert. Schnell, effizient und schonend für dein Datenvolumen.</p>
+        <p data-lang="en">After the first indexing, only changed files are synced. Fast, efficient, and easy on your data plan.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🔎</div>
+        <h3 data-lang="de">Suchfilter</h3>
+        <h3 data-lang="en">Search filters</h3>
+        <p data-lang="de">Filtere Ergebnisse nach Cloud-Anbieter, Dateityp (PDF, Word, Excel …) und Änderungsdatum. Die letzten 3 Suchbegriffe werden gespeichert.</p>
+        <p data-lang="en">Filter results by cloud provider, file type (PDF, Word, Excel …) and modification date. The last 3 search terms are saved.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🔔</div>
+        <h3 data-lang="de">Foreground Service</h3>
+        <h3 data-lang="en">Foreground service</h3>
+        <p data-lang="de">Die Indexierung läuft als Foreground-Service mit Fortschrittsanzeige. Android kann den Prozess nicht vorzeitig beenden.</p>
+        <p data-lang="en">Indexing runs as a foreground service with progress notification. Android cannot kill the process prematurely.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📋</div>
+        <h3 data-lang="de">Duplikaterkennung</h3>
+        <h3 data-lang="en">Duplicate detection</h3>
+        <p data-lang="de">Dateien, die bei mehreren Anbietern vorhanden sind, werden automatisch markiert. Kein doppeltes Durchsuchen mehr.</p>
+        <p data-lang="en">Files that exist on multiple providers are automatically flagged. No more searching duplicates.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- PROVIDERS -->
+<section class="providers-section">
+  <div class="section-inner">
+    <div class="section-label" data-lang="de">Unterstützte Dienste</div>
+    <div class="section-label" data-lang="en">Supported services</div>
+    <h2 class="section-title" data-lang="de">Deine Cloud, deine Wahl.</h2>
+    <h2 class="section-title" data-lang="en">Your cloud, your choice.</h2>
+    <p class="section-sub" data-lang="de">FullTXT unterstützt alle großen Cloud-Dienste sowie selbst gehostete Lösungen und lokale Ordner auf deinem Gerät.</p>
+    <p class="section-sub" data-lang="en">FullTXT supports all major cloud services as well as self-hosted solutions and local folders on your device.</p>
+    <div class="providers-grid">
+      <div class="provider-item"><span class="provider-icon">🟢</span> Google Drive <span class="provider-badge">PRO</span></div>
+      <div class="provider-item"><span class="provider-icon">🔵</span> Microsoft OneDrive <span class="provider-badge">PRO</span></div>
+      <div class="provider-item"><span class="provider-icon">📦</span> Dropbox <span class="provider-badge">PRO</span></div>
+      <div class="provider-item"><span class="provider-icon">☁️</span> Nextcloud</div>
+      <div class="provider-item"><span class="provider-icon">☁️</span> ownCloud</div>
+      <div class="provider-item"><span class="provider-icon">🇩🇪</span> MagentaCloud</div>
+      <div class="provider-item"><span class="provider-icon">🌐</span> Strato HiDrive</div>
+      <div class="provider-item"><span class="provider-icon">📁</span> <span data-lang="de">Lokale Ordner</span><span data-lang="en">Local folders</span></div>
+    </div>
+    <p style="margin-top:20px; font-size:.85rem; color:var(--muted);">
+      <span data-lang="de">Dienste mit <strong style="color:var(--primary)">PRO</strong>-Badge erfordern FullTXT Pro (Einmalkauf).</span>
+      <span data-lang="en">Services with <strong style="color:var(--primary)">PRO</strong> badge require FullTXT Pro (one-time purchase).</span>
+    </p>
+  </div>
+</section>
+
+<!-- FORMATS -->
+<section>
+  <div class="section-inner">
+    <div class="section-label" data-lang="de">Dateiformate</div>
+    <div class="section-label" data-lang="en">File formats</div>
+    <h2 class="section-title" data-lang="de">Die wichtigsten Formate.</h2>
+    <h2 class="section-title" data-lang="en">The most important formats.</h2>
+    <p class="section-sub" data-lang="de">FullTXT extrahiert Text aus Office-Dokumenten, PDFs und Textdateien. Dateien über 50 MB werden übersprungen.</p>
+    <p class="section-sub" data-lang="en">FullTXT extracts text from Office documents, PDFs and text files. Files over 50 MB are skipped.</p>
+    <div class="formats-grid">
+      <div class="format-chip">.pdf</div>
+      <div class="format-chip">.docx</div>
+      <div class="format-chip">.xlsx</div>
+      <div class="format-chip">.pptx</div>
+      <div class="format-chip">.txt</div>
+      <div class="format-chip">.md</div>
+      <div class="format-chip">.csv</div>
+      <div class="format-chip">.log</div>
+    </div>
+  </div>
+</section>
+
+<!-- PRIVACY -->
+<section style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="section-inner">
+    <div class="privacy-highlight">
+      <div class="privacy-icon">🔒</div>
+      <div class="privacy-text">
+        <h3 data-lang="de">Deine Daten bleiben auf deinem Gerät.</h3>
+        <h3 data-lang="en">Your data stays on your device.</h3>
+        <p data-lang="de">FullTXT hat keinen eigenen Backend-Server und überträgt keinerlei Daten an den Entwickler. Der Suchindex, deine Zugangsdaten und alle Dateiinhalte verbleiben ausschließlich auf deinem Smartphone.</p>
+        <p data-lang="en">FullTXT has no proprietary backend server and transmits no data to the developer. The search index, your credentials and all file contents remain exclusively on your phone.</p>
+        <ul class="privacy-checks">
+          <li data-lang="de">Kein Analytics, kein Tracking, keine Crash-Reports</li>
+          <li data-lang="en">No analytics, no tracking, no crash reporting</li>
+          <li data-lang="de">OAuth-Token verschlüsselt im Android Keystore (AES-256)</li>
+          <li data-lang="en">OAuth tokens encrypted in Android Keystore (AES-256)</li>
+          <li data-lang="de">Temporär heruntergeladene Dateien werden sofort gelöscht</li>
+          <li data-lang="en">Temporarily downloaded files are deleted immediately</li>
+          <li data-lang="de">Open Source auf GitHub</li>
+          <li data-lang="en">Open source on GitHub</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-links">
+    <a href="https://github.com/strYchni0x/fulltxt/releases/latest" data-lang="de">Download</a>
+    <a href="https://github.com/strYchni0x/fulltxt/releases/latest" data-lang="en">Download</a>
+    <a href="https://github.com/strYchni0x/fulltxt">GitHub</a>
+    <a href="privacy.html" data-lang="de">Datenschutzerklärung</a>
+    <a href="privacy.html" data-lang="en">Privacy Policy</a>
+    <a href="terms.html" data-lang="de">Nutzungsbedingungen</a>
+    <a href="terms.html" data-lang="en">Terms of Use</a>
+    <a href="mailto:florian@willnat.org">
+      <span class="lang-inline" data-lang="de">Kontakt</span>
+      <span class="lang-inline" data-lang="en">Contact</span>
+    </a>
+  </div>
+  <p>© 2026 Florian Willnat · <a href="mailto:florian@willnat.org" style="color:var(--muted); text-decoration:none;">florian@willnat.org</a></p>
+</footer>
+
+<script>
+  function setLang(lang) {
+    document.body.className = 'lang-' + lang;
+    document.documentElement.lang = lang;
+    document.getElementById('btn-de').classList.toggle('active', lang === 'de');
+    document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+    localStorage.setItem('fulltxt-lang', lang);
+  }
+  (function() {
+    const saved = localStorage.getItem('fulltxt-lang');
+    const browser = navigator.language?.startsWith('de') ? 'de' : 'en';
+    setLang(saved || browser);
+  })();
+</script>
+</body>
+</html>

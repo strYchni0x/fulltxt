@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FullTXT – Nutzungsbedingungen / Terms of Use</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg:#0c0c0c; --surface:#161616; --border:#2a2a2a; --primary:#22c55e; --text:#f0f0f0; --muted:#888; }
+    body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; line-height:1.7; }
+    nav { display:flex; align-items:center; justify-content:space-between; padding:0 24px; height:60px; background:rgba(12,12,12,.9); border-bottom:1px solid var(--border); }
+    .nav-logo { font-size:1.1rem; font-weight:700; color:var(--primary); text-decoration:none; }
+    .lang-switcher { display:flex; gap:4px; }
+    .lang-btn { background:none; border:1px solid var(--border); color:var(--muted); padding:4px 10px; border-radius:6px; cursor:pointer; font-size:.85rem; transition:all .15s; }
+    .lang-btn.active, .lang-btn:hover { border-color:var(--primary); color:var(--primary); }
+    .content { max-width:780px; margin:0 auto; padding:60px 24px; }
+    h1 { font-size:2rem; font-weight:800; margin-bottom:8px; }
+    .meta { color:var(--muted); font-size:.9rem; margin-bottom:48px; }
+    h2 { font-size:1.15rem; font-weight:700; margin:36px 0 12px; color:var(--primary); }
+    h3 { font-size:1rem; font-weight:700; margin:20px 0 8px; }
+    p { color:#ccc; margin-bottom:14px; }
+    a { color:var(--primary); }
+    ul { margin:12px 0 16px 20px; color:#ccc; }
+    li { margin-bottom:6px; }
+    code { background:var(--surface); padding:2px 6px; border-radius:4px; font-size:.9em; }
+    [data-lang] { display:none; }
+    body.lang-de [data-lang="de"] { display:block; }
+    body.lang-en [data-lang="en"] { display:block; }
+  </style>
+</head>
+<body class="lang-de">
+<nav>
+  <a class="nav-logo" href="index.html">← FullTXT</a>
+  <div class="lang-switcher">
+    <button class="lang-btn active" id="btn-de" onclick="setLang('de')">DE</button>
+    <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+  </div>
+</nav>
+
+<div class="content">
+
+<!-- DEUTSCH -->
+<div data-lang="de">
+  <h1>Nutzungsbedingungen</h1>
+  <p class="meta">Stand: Mai 2026 &nbsp;·&nbsp; Anbieter: Florian Willnat &nbsp;·&nbsp; <a href="mailto:florian@willnat.org">florian@willnat.org</a></p>
+
+  <h2>1. Geltungsbereich</h2>
+  <p>Diese Nutzungsbedingungen gelten für die Nutzung der Android-App <strong>FULLTXT</strong> (Paketname: <code>me.fulltxt.app</code>). Mit dem Herunterladen oder der Nutzung der App stimmst du diesen Bedingungen zu.</p>
+
+  <h2>2. Leistungsbeschreibung</h2>
+  <p>FULLTXT ermöglicht die Volltextsuche in Dateien, die in verbundenen Cloud-Speicherdiensten (Google Drive, Microsoft OneDrive, Nextcloud, ownCloud, Dropbox, MagentaCloud, Strato HiDrive) und auf dem Gerät gespeichert sind. Die App lädt Dateien lokal herunter, extrahiert den Textinhalt, erstellt einen lokalen Suchindex und stellt eine Suchoberfläche bereit.</p>
+
+  <h2>3. Nutzungsvoraussetzungen</h2>
+  <ul>
+    <li>Android-Gerät mit Android 8.0 (API 26) oder neuer</li>
+    <li>Gültiges Konto bei mindestens einem der unterstützten Cloud-Anbieter</li>
+    <li>Einhaltung der Nutzungsbedingungen des jeweiligen Cloud-Anbieters</li>
+    <li>Nutzung ausschließlich für eigene Dateien und Konten, zu deren Zugriff du berechtigt bist</li>
+  </ul>
+
+  <h2>4. Kostenlose Nutzung und Verfügbarkeit</h2>
+  <p>Teile der App sind kostenlos. Premium-Funktionen (FullTXT Pro) erfordern einen einmaligen In-App-Kauf. Es besteht kein Anspruch auf dauerhaften Betrieb, Updates, neue Funktionen oder Support.</p>
+
+  <h2>5. Nutzerpflichten</h2>
+  <p>Du verpflichtest dich:</p>
+  <ul>
+    <li>die App ausschließlich für legale Zwecke zu nutzen</li>
+    <li>keine Cloud-Konten Dritter ohne deren ausdrückliche Genehmigung zu verbinden</li>
+    <li>die App nicht zu dekompilieren, zu modifizieren oder für kommerzielle Zwecke weiterzuvertreiben</li>
+    <li>keine automatisierten Massenzugriffe auf Cloud-APIs zu veranlassen</li>
+  </ul>
+
+  <h2>6. Haftungsausschluss</h2>
+  <h3>6.1 Keine Gewährleistung</h3>
+  <p>Die App wird <strong>„wie besehen"</strong> bereitgestellt. Der Anbieter übernimmt keine Gewährleistung für Fehlerfreiheit, Vollständigkeit der Suchergebnisse oder Kompatibilität mit allen Geräten.</p>
+  <h3>6.2 Haftungsbeschränkung</h3>
+  <p>Soweit gesetzlich zulässig, haftet der Anbieter nicht für Datenverluste, Schäden durch Zugriffe Dritter oder Ausfälle von Cloud-Anbieter-APIs. Diese Beschränkung gilt nicht für grobe Fahrlässigkeit oder Vorsatz.</p>
+
+  <h2>7. Rechte an Inhalten</h2>
+  <p>FULLTXT greift nur lesend auf deine Cloud-Dateien zu. Die App verändert, löscht oder überträgt keine Dateien. Das Eigentum an deinen Dateien verbleibt bei dir.</p>
+
+  <h2>8. Open Source</h2>
+  <p>Teile der App basieren auf Open-Source-Bibliotheken. Der Quellcode ist auf <a href="https://github.com/strYchni0x/fulltxt" target="_blank">GitHub</a> verfügbar.</p>
+
+  <h2>9. Drittanbieter</h2>
+  <p>Der Anbieter ist nicht verantwortlich für die Dienste oder Datenschutzpraktiken der Cloud-Anbieter (Google, Microsoft, Dropbox, Telekom, Strato, Nextcloud-Betreiber).</p>
+
+  <h2>10. Änderungen</h2>
+  <p>Wesentliche Änderungen werden durch eine neue App-Version dokumentiert. Die fortgesetzte Nutzung gilt als Zustimmung.</p>
+
+  <h2>11. Anwendbares Recht</h2>
+  <p>Es gilt das Recht der Bundesrepublik Deutschland. Für EU-Verbraucher gelten vorrangig die zwingenden Schutzvorschriften des jeweiligen Aufenthaltslandes.</p>
+
+  <h2>12. Kontakt</h2>
+  <p>Florian Willnat &nbsp;·&nbsp; <a href="mailto:florian@willnat.org">florian@willnat.org</a></p>
+</div>
+
+<!-- ENGLISH -->
+<div data-lang="en">
+  <h1>Terms of Use</h1>
+  <p class="meta">Last updated: May 2026 &nbsp;·&nbsp; Provider: Florian Willnat &nbsp;·&nbsp; <a href="mailto:florian@willnat.org">florian@willnat.org</a></p>
+
+  <h2>1. Scope</h2>
+  <p>These Terms of Use apply to the Android app <strong>FULLTXT</strong> (package name: <code>me.fulltxt.app</code>). By downloading or using the app, you agree to these terms.</p>
+
+  <h2>2. Description of Service</h2>
+  <p>FULLTXT enables full-text search across files stored in connected cloud services (Google Drive, Microsoft OneDrive, Nextcloud, ownCloud, Dropbox, MagentaCloud, Strato HiDrive) and on the device. The app downloads files locally, extracts text content, creates a local search index, and provides a search interface.</p>
+
+  <h2>3. Requirements</h2>
+  <ul>
+    <li>Android device running Android 8.0 (API 26) or later</li>
+    <li>Valid account with at least one supported cloud provider</li>
+    <li>Compliance with the terms of service of the respective cloud provider</li>
+    <li>Use limited to your own files and accounts you are authorised to access</li>
+  </ul>
+
+  <h2>4. Free Use and Availability</h2>
+  <p>Parts of the app are free. Premium features (FullTXT Pro) require a one-time in-app purchase. There is no entitlement to continued operation, updates, new features, or support.</p>
+
+  <h2>5. User Obligations</h2>
+  <p>You agree to:</p>
+  <ul>
+    <li>Use the app for lawful purposes only</li>
+    <li>Not connect cloud accounts belonging to third parties without their explicit permission</li>
+    <li>Not decompile, modify, or redistribute the app for commercial purposes</li>
+    <li>Not cause automated mass requests to cloud APIs</li>
+  </ul>
+
+  <h2>6. Disclaimer of Warranties and Limitation of Liability</h2>
+  <h3>6.1 No Warranty</h3>
+  <p>The app is provided <strong>"as is"</strong>. The provider makes no warranty regarding freedom from errors, completeness of search results, or compatibility with all devices.</p>
+  <h3>6.2 Limitation of Liability</h3>
+  <p>To the extent permitted by law, the provider is not liable for data loss, damage from third-party access, or outages of cloud provider APIs. This limitation does not apply to gross negligence or wilful misconduct.</p>
+
+  <h2>7. Content Rights</h2>
+  <p>FULLTXT accesses your cloud files in read-only mode. The app does not modify, delete, or transmit files. Ownership of your files remains with you.</p>
+
+  <h2>8. Open Source</h2>
+  <p>Parts of the app are based on open-source libraries. Source code is available on <a href="https://github.com/strYchni0x/fulltxt" target="_blank">GitHub</a>.</p>
+
+  <h2>9. Third-Party Providers</h2>
+  <p>The provider is not responsible for the services or privacy practices of cloud providers (Google, Microsoft, Dropbox, Telekom, Strato, Nextcloud operators).</p>
+
+  <h2>10. Changes to These Terms</h2>
+  <p>Material changes will be documented in a new app version. Continued use constitutes acceptance.</p>
+
+  <h2>11. Governing Law</h2>
+  <p>These terms are governed by the laws of Germany. EU consumers benefit from the mandatory protective provisions of their country of residence.</p>
+
+  <h2>12. Contact</h2>
+  <p>Florian Willnat &nbsp;·&nbsp; <a href="mailto:florian@willnat.org">florian@willnat.org</a></p>
+</div>
+
+</div>
+
+<script>
+  function setLang(lang) {
+    document.body.className = 'lang-' + lang;
+    document.documentElement.lang = lang;
+    document.getElementById('btn-de').classList.toggle('active', lang === 'de');
+    document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+    localStorage.setItem('fulltxt-lang', lang);
+  }
+  (function() {
+    const saved = localStorage.getItem('fulltxt-lang');
+    const browser = navigator.language?.startsWith('de') ? 'de' : 'en';
+    setLang(saved || browser);
+  })();
+</script>
+</body>
+</html>
