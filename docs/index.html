@@ -101,15 +101,17 @@
     .providers-section { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
     .providers-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
     .provider-item {
-      display: flex; align-items: center; gap: 10px;
+      display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px;
       background: var(--card); border: 1px solid var(--border); border-radius: 10px;
       padding: 14px 18px; font-size: .9rem; font-weight: 500;
     }
-    .provider-icon { font-size: 1.3rem; }
+    .provider-icon { font-size: 1.3rem; flex-shrink: 0; }
     .provider-badge {
-      margin-left: auto; background: var(--primary); color: #000;
       font-size: .65rem; font-weight: 800; padding: 2px 7px; border-radius: 4px; letter-spacing: .5px;
+      flex-shrink: 0;
     }
+    .provider-badge.pro  { background: var(--primary); color: #000; }
+    .provider-badge.free { background: #1e3a2e; color: var(--primary); border: 1px solid rgba(34,197,94,.35); }
 
     /* PRIVACY HIGHLIGHT */
     .privacy-highlight {
@@ -141,10 +143,13 @@
     .footer-links a:hover { color: var(--primary); }
 
     /* LANG */
-    [data-lang] { display: none; }
-    body.lang-de [data-lang="de"], body.lang-en [data-lang="en"] { display: block; }
-    .lang-inline[data-lang] { display: none; }
-    body.lang-de .lang-inline[data-lang="de"], body.lang-en .lang-inline[data-lang="en"] { display: inline; }
+    [data-lang] { display: none !important; }
+    body.lang-de [data-lang="de"] { display: block !important; }
+    body.lang-en [data-lang="en"] { display: block !important; }
+    body.lang-de li[data-lang="de"], body.lang-en li[data-lang="en"] { display: flex !important; }
+    .lang-inline[data-lang] { display: none !important; }
+    body.lang-de .lang-inline[data-lang="de"] { display: inline !important; }
+    body.lang-en .lang-inline[data-lang="en"] { display: inline !important; }
 
     @media (max-width: 600px) {
       .privacy-highlight { padding: 28px; }
@@ -260,14 +265,14 @@
     <p class="section-sub" data-lang="de">FullTXT unterstützt alle großen Cloud-Dienste sowie selbst gehostete Lösungen und lokale Ordner auf deinem Gerät.</p>
     <p class="section-sub" data-lang="en">FullTXT supports all major cloud services as well as self-hosted solutions and local folders on your device.</p>
     <div class="providers-grid">
-      <div class="provider-item"><span class="provider-icon">🟢</span> Google Drive <span class="provider-badge">PRO</span></div>
-      <div class="provider-item"><span class="provider-icon">🔵</span> Microsoft OneDrive <span class="provider-badge">PRO</span></div>
-      <div class="provider-item"><span class="provider-icon">📦</span> Dropbox <span class="provider-badge">PRO</span></div>
-      <div class="provider-item"><span class="provider-icon">☁️</span> Nextcloud</div>
-      <div class="provider-item"><span class="provider-icon">☁️</span> ownCloud</div>
-      <div class="provider-item"><span class="provider-icon">🇩🇪</span> MagentaCloud</div>
-      <div class="provider-item"><span class="provider-icon">🌐</span> Strato HiDrive</div>
-      <div class="provider-item"><span class="provider-icon">📁</span> <span data-lang="de">Lokale Ordner</span><span data-lang="en">Local folders</span></div>
+      <div class="provider-item"><span class="provider-icon">☁️</span> Nextcloud          <span class="provider-badge free lang-inline" data-lang="de">GRATIS</span><span class="provider-badge free lang-inline" data-lang="en">FREE</span></div>
+      <div class="provider-item"><span class="provider-icon">☁️</span> ownCloud            <span class="provider-badge free lang-inline" data-lang="de">GRATIS</span><span class="provider-badge free lang-inline" data-lang="en">FREE</span></div>
+      <div class="provider-item"><span class="provider-icon">🇩🇪</span> MagentaCloud        <span class="provider-badge free lang-inline" data-lang="de">GRATIS</span><span class="provider-badge free lang-inline" data-lang="en">FREE</span></div>
+      <div class="provider-item"><span class="provider-icon">🌐</span> Strato HiDrive      <span class="provider-badge free lang-inline" data-lang="de">GRATIS</span><span class="provider-badge free lang-inline" data-lang="en">FREE</span></div>
+      <div class="provider-item"><span class="provider-icon">📁</span> <span data-lang="de">Lokale Ordner</span><span data-lang="en">Local folders</span> <span class="provider-badge free lang-inline" data-lang="de">GRATIS</span><span class="provider-badge free lang-inline" data-lang="en">FREE</span></div>
+      <div class="provider-item"><span class="provider-icon">🟢</span> Google Drive        <span class="provider-badge pro">PRO</span></div>
+      <div class="provider-item"><span class="provider-icon">🔵</span> Microsoft OneDrive  <span class="provider-badge pro">PRO</span></div>
+      <div class="provider-item"><span class="provider-icon">📦</span> Dropbox             <span class="provider-badge pro">PRO</span></div>
     </div>
     <p style="margin-top:20px; font-size:.85rem; color:var(--muted);">
       <span data-lang="de">Dienste mit <strong style="color:var(--primary)">PRO</strong>-Badge erfordern FullTXT Pro (Einmalkauf).</span>
@@ -333,12 +338,12 @@
     <a href="privacy.html" data-lang="en">Privacy Policy</a>
     <a href="terms.html" data-lang="de">Nutzungsbedingungen</a>
     <a href="terms.html" data-lang="en">Terms of Use</a>
-    <a href="mailto:florian@willnat.org">
+    <a href="mailto:info@fulltxt.me">
       <span class="lang-inline" data-lang="de">Kontakt</span>
       <span class="lang-inline" data-lang="en">Contact</span>
     </a>
   </div>
-  <p>© 2026 Florian Willnat · <a href="mailto:florian@willnat.org" style="color:var(--muted); text-decoration:none;">florian@willnat.org</a></p>
+  <p>© 2026 Florian Willnat · <a href="mailto:info@fulltxt.me" style="color:var(--muted); text-decoration:none;">info@fulltxt.me</a></p>
 </footer>
 
 <script>
