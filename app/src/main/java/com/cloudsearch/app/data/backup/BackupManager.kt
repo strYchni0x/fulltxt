@@ -2,6 +2,7 @@ package me.fulltxt.app.data.backup
 
 import android.content.Context
 import android.net.Uri
+import androidx.sqlite.db.SimpleSQLiteQuery
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -17,12 +18,19 @@ class BackupManager @Inject constructor(
     private val db: FulltxtDatabase
 ) {
     suspend fun exportTo(uri: Uri) = withContext(Dispatchers.IO) {
-        // Merge WAL into main database file before copying
-        db.openHelper.writableDatabase.execSQL("PRAGMA wal_checkpoint(FULL)")
         val dbFile = context.getDatabasePath("fulltxt.db")
-        context.contentResolver.openOutputStream(uri)?.use { out ->
-            dbFile.inputStream().use { it.copyTo(out) }
-        } ?: throw IOException("Cannot open output stream")
+        // Switch to DELETE journal mode — forces SQLite to merge ALL WAL data
+        // into the main file before the mode switch completes. This guarantees
+        // a consistent single-file backup regardless of WAL state.
+        try {
+            db.openHelper.writableDatabase.query(SimpleSQLiteQuery("PRAGMA journal_mode=DELETE")).close()
+            context.contentResolver.openOutputStream(uri)?.use { out ->
+                dbFile.inputStream().use { it.copyTo(out) }
+            } ?: throw IOException("Cannot open output stream")
+        } finally {
+            // Restore WAL mode for normal operation
+            db.openHelper.writableDatabase.query(SimpleSQLiteQuery("PRAGMA journal_mode=WAL")).close()
+        }
     }
 
     suspend fun importFrom(uri: Uri) = withContext(Dispatchers.IO) {
