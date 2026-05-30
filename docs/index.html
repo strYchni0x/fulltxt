@@ -106,7 +106,8 @@
       background: var(--card); border: 1px solid var(--border); border-radius: 10px;
       padding: 14px 18px; font-size: .9rem; font-weight: 500;
     }
-    .provider-icon { font-size: 1.3rem; flex-shrink: 0; }
+    .provider-icon { width: 22px; height: 22px; flex-shrink: 0; object-fit: contain; }
+    .provider-icon-folder { width: 22px; height: 22px; flex-shrink: 0; }
     .provider-badge {
       font-size: .65rem; font-weight: 800; padding: 2px 7px; border-radius: 4px; letter-spacing: .5px;
       flex-shrink: 0;
@@ -267,14 +268,48 @@
     <p class="section-sub" data-lang="de">FullTXT unterstützt alle großen Cloud-Dienste sowie selbst gehostete Lösungen und lokale Ordner auf deinem Gerät.</p>
     <p class="section-sub" data-lang="en">FullTXT supports all major cloud services as well as self-hosted solutions and local folders on your device.</p>
     <div class="providers-grid">
-      <div class="provider-item"><span class="provider-icon">☁️</span> Nextcloud          <span class="provider-badge free lang-inline" data-lang="de">GRATIS</span><span class="provider-badge free lang-inline" data-lang="en">FREE</span></div>
-      <div class="provider-item"><span class="provider-icon">☁️</span> ownCloud            <span class="provider-badge free lang-inline" data-lang="de">GRATIS</span><span class="provider-badge free lang-inline" data-lang="en">FREE</span></div>
-      <div class="provider-item"><span class="provider-icon">🇩🇪</span> MagentaCloud        <span class="provider-badge free lang-inline" data-lang="de">GRATIS</span><span class="provider-badge free lang-inline" data-lang="en">FREE</span></div>
-      <div class="provider-item"><span class="provider-icon">🌐</span> Strato HiDrive      <span class="provider-badge free lang-inline" data-lang="de">GRATIS</span><span class="provider-badge free lang-inline" data-lang="en">FREE</span></div>
-      <div class="provider-item"><span class="provider-icon">📁</span> <span data-lang="de">Lokale Ordner</span><span data-lang="en">Local folders</span> <span class="provider-badge free lang-inline" data-lang="de">GRATIS</span><span class="provider-badge free lang-inline" data-lang="en">FREE</span></div>
-      <div class="provider-item"><span class="provider-icon">🟢</span> Google Drive        <span class="provider-badge pro">PRO</span></div>
-      <div class="provider-item"><span class="provider-icon">🔵</span> Microsoft OneDrive  <span class="provider-badge pro">PRO</span></div>
-      <div class="provider-item"><span class="provider-icon">📦</span> Dropbox             <span class="provider-badge pro">PRO</span></div>
+      <div class="provider-item">
+        <img class="provider-icon" src="https://cdn.simpleicons.org/nextcloud/0082C9" alt="Nextcloud">
+        Nextcloud
+        <span class="provider-badge free lang-inline" data-lang="de">GRATIS</span><span class="provider-badge free lang-inline" data-lang="en">FREE</span>
+      </div>
+      <div class="provider-item">
+        <img class="provider-icon" src="https://cdn.simpleicons.org/owncloud/0082C9" alt="ownCloud">
+        ownCloud
+        <span class="provider-badge free lang-inline" data-lang="de">GRATIS</span><span class="provider-badge free lang-inline" data-lang="en">FREE</span>
+      </div>
+      <div class="provider-item">
+        <img class="provider-icon" src="https://cdn.simpleicons.org/deutschetelekom/E20074" alt="MagentaCloud">
+        MagentaCloud
+        <span class="provider-badge free lang-inline" data-lang="de">GRATIS</span><span class="provider-badge free lang-inline" data-lang="en">FREE</span>
+      </div>
+      <div class="provider-item">
+        <img class="provider-icon" src="https://cdn.simpleicons.org/strato/FF6600" alt="Strato HiDrive">
+        Strato HiDrive
+        <span class="provider-badge free lang-inline" data-lang="de">GRATIS</span><span class="provider-badge free lang-inline" data-lang="en">FREE</span>
+      </div>
+      <div class="provider-item">
+        <svg class="provider-icon-folder" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 7C3 5.9 3.9 5 5 5H10L12 7H19C20.1 7 21 7.9 21 9V17C21 18.1 20.1 19 19 19H5C3.9 19 3 18.1 3 17V7Z" fill="#22c55e"/>
+        </svg>
+        <span data-lang="de">Lokale Ordner</span><span data-lang="en">Local folders</span>
+        <span class="provider-badge free lang-inline" data-lang="de">GRATIS</span><span class="provider-badge free lang-inline" data-lang="en">FREE</span>
+      </div>
+      <div class="provider-item">
+        <img class="provider-icon" src="https://cdn.simpleicons.org/googledrive/4285F4" alt="Google Drive">
+        Google Drive
+        <span class="provider-badge pro">PRO</span>
+      </div>
+      <div class="provider-item">
+        <img class="provider-icon" src="https://cdn.simpleicons.org/microsoftonedrive/0078D4" alt="OneDrive">
+        Microsoft OneDrive
+        <span class="provider-badge pro">PRO</span>
+      </div>
+      <div class="provider-item">
+        <img class="provider-icon" src="https://cdn.simpleicons.org/dropbox/0061FF" alt="Dropbox">
+        Dropbox
+        <span class="provider-badge pro">PRO</span>
+      </div>
     </div>
     <p style="margin-top:20px; font-size:.85rem; color:var(--muted);">
       <span data-lang="de">Dienste mit <strong style="color:var(--primary)">PRO</strong>-Badge erfordern FullTXT Pro (Einmalkauf).</span>
