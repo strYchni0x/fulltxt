@@ -1,0 +1,57 @@
+===============================================================================
+PLAY STORE LISTING – ENGLISH
+===============================================================================
+
+SHORT DESCRIPTION (max. 80 characters)
+---------------------------------------
+Full-text search across your cloud storage – private, offline, on-device.
+
+
+FULL DESCRIPTION (max. 4,000 characters)
+-----------------------------------------
+Search all your cloud files with a single query – in seconds, without internet access, and without your data ever leaving your device.
+
+FullTXT builds a local full-text index of your cloud documents directly on your phone. Once indexed, you'll find any file instantly – completely offline.
+
+🔍 WHAT FULLTXT CAN DO
+
+• Full-text search across all connected accounts simultaneously
+• Search runs offline – no internet connection needed
+• Results from 2 characters with highlighted text snippets
+• Filter by file type, cloud provider and modification date
+• Recent search terms are saved for quick access
+• Open files directly from search results
+• Automatically detect duplicates across multiple providers
+
+☁️ SUPPORTED SERVICES
+
+Free: Nextcloud, ownCloud, MagentaCloud, Strato HiDrive, local folders
+With FullTXT Pro: Google Drive, Microsoft OneDrive, Dropbox
+
+FullTXT Pro is a one-time in-app purchase – no subscription, no recurring fees.
+
+📄 SUPPORTED FILE FORMATS
+
+PDF, Word (.docx), Excel (.xlsx), PowerPoint (.pptx),
+OpenDocument (.odt, .ods, .odp),
+Text files (.txt, .md, .csv, .log)
+
+Files over 50 MB are skipped.
+
+🔒 COMPLETELY PRIVATE
+
+FullTXT has no proprietary server. The search index, your credentials and all file contents stay exclusively on your device:
+
+• No analytics, no tracking, no third-party data sharing
+• OAuth tokens encrypted in Android Keystore (AES-256)
+• Temporarily downloaded files are deleted immediately
+• Open source on GitHub
+
+⚡ TECHNICAL HIGHLIGHTS
+
+• Delta sync: after the first index run, only changes are downloaded
+• Foreground service prevents Android from interrupting indexing
+• Optional daily automatic background sync per account
+• Index local folders on your device (e.g. subfolders of Downloads)
+
+More information: fulltxt.me
