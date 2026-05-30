@@ -45,6 +45,9 @@ Mehrere Accounts desselben Anbieters werden unterstützt.
 | Word | `.docx` | Apache POI |
 | Excel | `.xlsx` | Apache POI |
 | PowerPoint | `.pptx` | Apache POI |
+| OpenDocument Text | `.odt` | Integrierter ZIP/XML-Parser |
+| OpenDocument Tabelle | `.ods` | Integrierter ZIP/XML-Parser |
+| OpenDocument Präsentation | `.odp` | Integrierter ZIP/XML-Parser |
 
 Dateien über **50 MB** werden übersprungen, um Speicherüberlauf zu verhindern.
 
@@ -248,7 +251,7 @@ Beim Trennen eines Accounts wird der tägliche Sync automatisch abgebrochen.
 | ✅ | Filter nach Anbieter, Dateityp, Datum |
 | ✅ | Lokale Ordner indexieren (via Storage Access Framework, rekursiv, Delta-Sync) |
 | 🔜 | Mehrere Accounts pro Anbieter |
-| 🔜 | OpenDocument-Formate (`.odt`, `.ods`, `.odp`) |
+| ✅ | OpenDocument-Formate (`.odt`, `.ods`, `.odp`) |
 | 🔜 | Index-Export / Backup |
 | 🔜 | Play-Store-Veröffentlichung |
 

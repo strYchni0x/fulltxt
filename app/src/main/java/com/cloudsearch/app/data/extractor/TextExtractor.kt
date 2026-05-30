@@ -1,5 +1,6 @@
 package me.fulltxt.app.data.extractor
 
+import android.util.Xml
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.text.PDFTextStripper
 import org.apache.poi.ss.usermodel.DataFormatter
@@ -10,7 +11,10 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.apache.poi.xwpf.usermodel.XWPFDocument
 import org.apache.poi.xwpf.usermodel.XWPFParagraph
 import org.apache.poi.xwpf.usermodel.XWPFTable
+import org.xmlpull.v1.XmlPullParser
 import java.io.File
+import java.io.StringReader
+import java.util.zip.ZipFile
 
 object TextExtractor {
 
@@ -21,6 +25,7 @@ object TextExtractor {
             isDocx(mimeType)      -> extractDocx(file)
             isXlsx(mimeType)      -> extractXlsx(file)
             isPptx(mimeType)      -> extractPptx(file)
+            isOdf(mimeType)       -> extractOdf(file)
             else                  -> ""
         }
     }.getOrDefault("")
@@ -30,6 +35,7 @@ object TextExtractor {
     private fun isDocx(mimeType: String) = mimeType == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     private fun isXlsx(mimeType: String) = mimeType == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     private fun isPptx(mimeType: String) = mimeType == "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+    private fun isOdf(mimeType: String)  = mimeType.startsWith("application/vnd.oasis.opendocument.")
 
     private fun extractPlainText(file: File): String =
         runCatching { file.readText(Charsets.UTF_8) }
@@ -77,6 +83,51 @@ object TextExtractor {
                 }
             }
         }
+    }
+
+    /**
+     * Extracts text from OpenDocument formats (.odt, .ods, .odp).
+     * ODF files are ZIP archives; text lives in <text:p> / <text:h> elements in content.xml.
+     */
+    private fun extractOdf(file: File): String {
+        val xml = ZipFile(file).use { zip ->
+            zip.getEntry("content.xml")?.let { entry ->
+                zip.getInputStream(entry).use { it.readBytes().toString(Charsets.UTF_8) }
+            }
+        } ?: return ""
+
+        val parser: XmlPullParser = Xml.newPullParser()
+        parser.setInput(StringReader(xml))
+
+        return buildString {
+            var paragraphDepth = 0
+            val currentParagraph = StringBuilder()
+
+            var eventType = parser.eventType
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                when (eventType) {
+                    XmlPullParser.START_TAG -> {
+                        if (parser.name == "text:p" || parser.name == "text:h") {
+                            paragraphDepth++
+                            if (paragraphDepth == 1) currentParagraph.clear()
+                        }
+                    }
+                    XmlPullParser.TEXT -> {
+                        if (paragraphDepth > 0) currentParagraph.append(parser.text)
+                    }
+                    XmlPullParser.END_TAG -> {
+                        if (parser.name == "text:p" || parser.name == "text:h") {
+                            paragraphDepth--
+                            if (paragraphDepth == 0) {
+                                val text = currentParagraph.toString().trim()
+                                if (text.isNotEmpty()) appendLine(text)
+                            }
+                        }
+                    }
+                }
+                eventType = parser.next()
+            }
+        }.trim()
     }
 
     private fun extractPptx(file: File): String =

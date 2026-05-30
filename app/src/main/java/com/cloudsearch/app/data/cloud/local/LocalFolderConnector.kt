@@ -127,6 +127,9 @@ class LocalFolderConnector @Inject constructor(
             fileName.endsWith(".docx", ignoreCase = true) -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             fileName.endsWith(".xlsx", ignoreCase = true) -> "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             fileName.endsWith(".pptx", ignoreCase = true) -> "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+            fileName.endsWith(".odt",  ignoreCase = true) -> "application/vnd.oasis.opendocument.text"
+            fileName.endsWith(".ods",  ignoreCase = true) -> "application/vnd.oasis.opendocument.spreadsheet"
+            fileName.endsWith(".odp",  ignoreCase = true) -> "application/vnd.oasis.opendocument.presentation"
             fileName.endsWith(".txt",  ignoreCase = true) -> "text/plain"
             fileName.endsWith(".md",   ignoreCase = true) -> "text/markdown"
             fileName.endsWith(".csv",  ignoreCase = true) -> "text/csv"
@@ -137,6 +140,7 @@ class LocalFolderConnector @Inject constructor(
 
     private fun isSupportedMime(mime: String): Boolean = when {
         mime.startsWith("text/") -> true
+        mime.startsWith("application/vnd.oasis.opendocument.") -> true
         mime == "application/pdf" -> true
         mime == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" -> true
         mime == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" -> true

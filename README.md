@@ -45,6 +45,9 @@ Multiple accounts of the same provider are supported.
 | Word | `.docx` | Apache POI |
 | Excel | `.xlsx` | Apache POI |
 | PowerPoint | `.pptx` | Apache POI |
+| OpenDocument Text | `.odt` | Built-in ZIP/XML parser |
+| OpenDocument Spreadsheet | `.ods` | Built-in ZIP/XML parser |
+| OpenDocument Presentation | `.odp` | Built-in ZIP/XML parser |
 
 Files larger than **50 MB** are skipped to prevent out-of-memory errors.
 
@@ -248,7 +251,7 @@ Disconnecting an account automatically cancels any scheduled daily sync.
 | ✅ | Filter by provider, file type, date |
 | ✅ | Local folder indexing (via Storage Access Framework, recursive, delta-sync) |
 | 🔜 | Multiple accounts per provider |
-| 🔜 | OpenDocument format support (`.odt`, `.ods`, `.odp`) |
+| ✅ | OpenDocument format support (`.odt`, `.ods`, `.odp`) |
 | 🔜 | Index export / backup |
 | 🔜 | Play Store release |
 
