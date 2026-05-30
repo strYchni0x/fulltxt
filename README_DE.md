@@ -248,11 +248,12 @@ Beim Trennen eines Accounts wird der tägliche Sync automatisch abgebrochen.
 | ✅ | Täglicher automatischer Sync (PeriodicWork) |
 | ✅ | Duplikatserkennung |
 | ✅ | Mobilfunk-Schalter (geräteweit) |
+| ✅ | Index-Export / Backup |
 | ✅ | Filter nach Anbieter, Dateityp, Datum |
 | ✅ | Lokale Ordner indexieren (via Storage Access Framework, rekursiv, Delta-Sync) |
 | 🔜 | Mehrere Accounts pro Anbieter |
 | ✅ | OpenDocument-Formate (`.odt`, `.ods`, `.odp`) |
-| 🔜 | Index-Export / Backup |
+| ✅ | Index-Export / Backup |
 | 🔜 | Play-Store-Veröffentlichung |
 
 ---

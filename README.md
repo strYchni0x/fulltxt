@@ -248,11 +248,12 @@ Disconnecting an account automatically cancels any scheduled daily sync.
 | ✅ | Daily automatic sync (PeriodicWork) |
 | ✅ | Duplicate file detection |
 | ✅ | Mobile data toggle (per-device) |
+| ✅ | Index backup (export / import) |
 | ✅ | Filter by provider, file type, date |
 | ✅ | Local folder indexing (via Storage Access Framework, recursive, delta-sync) |
 | 🔜 | Multiple accounts per provider |
 | ✅ | OpenDocument format support (`.odt`, `.ods`, `.odp`) |
-| 🔜 | Index export / backup |
+| ✅ | Index export / backup |
 | 🔜 | Play Store release |
 
 ---
