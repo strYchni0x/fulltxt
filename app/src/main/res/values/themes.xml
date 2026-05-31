@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!--
+        Helle Variante des Window-Basisthemes. Die Dark-Variante liegt in
+        values-night/themes.xml und wird im System-Dunkelmodus automatisch
+        gewählt. Das App-UI selbst wird von FulltxtTheme in Compose thematisiert.
+    -->
     <style name="Theme.Fulltxt" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>

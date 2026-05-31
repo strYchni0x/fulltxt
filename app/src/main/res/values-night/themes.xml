@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Dark-Variante des Window-Basisthemes (vor dem Compose-Start, z. B.
+        Window-Hintergrund beim App-Launch). Der -night Ressourcen-Qualifier
+        greift automatisch im System-Dunkelmodus und verhindert ein helles
+        Aufblitzen. Das eigentliche UI-Theming übernimmt FulltxtTheme in Compose.
+    -->
+    <style name="Theme.Fulltxt" parent="android:Theme.Material.NoActionBar" />
+</resources>
