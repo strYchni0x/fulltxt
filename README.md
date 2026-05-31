@@ -16,6 +16,7 @@ FullTXT indexes files from connected cloud accounts and lets you search their co
 - **Duplicate detection** — files that exist on multiple providers are marked automatically
 - **Delta sync** — subsequent index runs only fetch changes, not all files again
 - **Daily automatic sync** — optional per-account background update once every 24 hours
+- **Light / dark theme** — follow the system or force light/dark in-app
 - **Privacy by design** — no telemetry, no tracking, no third-party data transfer
 
 ---
@@ -58,7 +59,7 @@ Files larger than **50 MB** are skipped to prevent out-of-memory errors.
 
 ### 1 — Connect an account
 
-Open **Settings** (gear icon, top right) and tap the provider you want to connect:
+Open **Settings** (gear icon, top right), tap **Cloud-Speicher & Konten**, then tap the provider you want to connect:
 
 - **Google Drive / OneDrive / Dropbox** — a browser-based OAuth flow opens; sign in and grant read-only access.
 - **Nextcloud / ownCloud / MagentaCloud** — enter your server URL and an *app password* (create one in your cloud's security settings to avoid using your main password).
@@ -118,6 +119,14 @@ Each account card shows a **Tägl. Delta-Sync** toggle after the first full inde
 The periodic job uses the same network constraint as a manual sync (Wi-Fi only, unless mobile data is enabled). Android decides the exact execution time within the 24-hour window based on device state (charging, idle, network).
 
 Disconnecting an account automatically cancels any scheduled daily sync.
+
+### Appearance — light / dark theme
+
+Go to **Settings → Darstellung** and choose **System**, **Hell** (light) or **Dunkel** (dark). The change applies instantly across the whole app. **System** (default) follows the device's day/night setting; on Android 12+ the palette also adapts via Material You dynamic color.
+
+### Cloud storage & accounts
+
+Connected accounts and the per-provider connect buttons live on their own page, reached via **Settings → Cloud-Speicher & Konten**, keeping the main settings screen compact.
 
 ---
 
@@ -253,6 +262,7 @@ Disconnecting an account automatically cancels any scheduled daily sync.
 | ✅ | Mobile data toggle (per-device) |
 | ✅ | Index backup (export / import) |
 | ✅ | Filter by provider, file type, date |
+| ✅ | Light / dark theme switch (System / Light / Dark) |
 | ✅ | Local folder indexing (via Storage Access Framework, recursive, delta-sync) |
 | 🔜 | Multiple accounts per provider |
 | ✅ | OpenDocument format support (`.odt`, `.ods`, `.odp`) |

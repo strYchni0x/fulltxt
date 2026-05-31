@@ -201,6 +201,7 @@ Die App hält die Rate Limits der jeweiligen Cloud-Anbieter **strikt ein**, auch
 - [x] Erstindexierung im Hintergrund (WorkManager)
 - [x] Rate-Limit-konforme API-Nutzung
 - [x] Einfache Suchoberfläche
+- [x] Heller / dunkler Design-Umschalter (System / Hell / Dunkel)
 
 ### Version 1.x
 - [ ] Delta-Synchronisation (Änderungen in der Cloud erkennen)

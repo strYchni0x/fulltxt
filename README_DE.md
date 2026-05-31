@@ -16,6 +16,7 @@ FullTXT indexiert Dateien aus verbundenen Cloud-Accounts und ermöglicht die Suc
 - **Duplikatserkennung** — Dateien, die bei mehreren Anbietern vorhanden sind, werden automatisch markiert
 - **Delta-Sync** — Folgeindexierungen laden nur Änderungen, nicht den gesamten Bestand
 - **Täglicher automatischer Sync** — optionaler Account-spezifischer Hintergrund-Update einmal täglich
+- **Helles / dunkles Design** — dem System folgen oder in der App fest hell/dunkel wählen
 - **Privacy by Design** — kein Tracking, keine Telemetrie, keine Weitergabe an Dritte
 
 ---
@@ -58,7 +59,7 @@ Dateien über **50 MB** werden übersprungen, um Speicherüberlauf zu verhindern
 
 ### 1 — Account verbinden
 
-Öffne **Einstellungen** (Zahnrad-Symbol oben rechts) und tippe auf den gewünschten Anbieter:
+Öffne **Einstellungen** (Zahnrad-Symbol oben rechts), tippe auf **Cloud-Speicher & Konten** und dann auf den gewünschten Anbieter:
 
 - **Google Drive / OneDrive / Dropbox** — Ein Browser-OAuth-Flow öffnet sich; anmelden und Lesezugriff erteilen.
 - **Nextcloud / ownCloud / MagentaCloud** — Server-URL und ein *App-Passwort* eingeben (in den Sicherheitseinstellungen der jeweiligen Cloud erstellen, um das Hauptpasswort nicht zu verwenden).
@@ -118,6 +119,14 @@ In jeder Account-Karte wird nach Abschluss der ersten vollständigen Indexierung
 Der periodische Job verwendet dieselbe Netzwerkbeschränkung wie eine manuelle Indexierung (nur WLAN, außer Mobilfunk ist aktiviert). Android wählt den genauen Ausführungszeitpunkt innerhalb des 24-Stunden-Fensters anhand des Gerätezustands (Laden, Inaktiv, Netzwerk).
 
 Beim Trennen eines Accounts wird der tägliche Sync automatisch abgebrochen.
+
+### Darstellung — helles / dunkles Design
+
+Unter **Einstellungen → Darstellung** lässt sich **System**, **Hell** oder **Dunkel** wählen. Die Änderung wirkt sofort app-weit. **System** (Standard) folgt der Hell-/Dunkel-Einstellung des Geräts; auf Android 12+ passt sich die Farbpalette zusätzlich per Material You (Dynamic Color) an.
+
+### Cloud-Speicher & Konten
+
+Verbundene Konten und die Verbinden-Buttons je Anbieter liegen auf einer eigenen Seite, erreichbar über **Einstellungen → Cloud-Speicher & Konten** — so bleibt die Hauptseite der Einstellungen kompakt.
 
 ---
 
@@ -253,6 +262,7 @@ Beim Trennen eines Accounts wird der tägliche Sync automatisch abgebrochen.
 | ✅ | Mobilfunk-Schalter (geräteweit) |
 | ✅ | Index-Export / Backup |
 | ✅ | Filter nach Anbieter, Dateityp, Datum |
+| ✅ | Heller / dunkler Design-Umschalter (System / Hell / Dunkel) |
 | ✅ | Lokale Ordner indexieren (via Storage Access Framework, rekursiv, Delta-Sync) |
 | 🔜 | Mehrere Accounts pro Anbieter |
 | ✅ | OpenDocument-Formate (`.odt`, `.ods`, `.odp`) |

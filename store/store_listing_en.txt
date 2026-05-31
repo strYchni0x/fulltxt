@@ -22,6 +22,7 @@ FullTXT builds a local full-text index of your cloud documents directly on your 
 • Recent search terms are saved for quick access
 • Open files directly from search results
 • Automatically detect duplicates across multiple providers
+• Light and dark theme – follow the system or choose your own
 
 ☁️ SUPPORTED SERVICES
 

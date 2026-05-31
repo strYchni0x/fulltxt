@@ -22,6 +22,7 @@ FullTXT erstellt einen lokalen Volltextindex deiner Cloud-Dokumente direkt auf d
 • Letzte Suchbegriffe werden gespeichert
 • Dateien direkt aus dem Suchergebnis öffnen
 • Duplikate über mehrere Anbieter hinweg automatisch erkennen
+• Helles und dunkles Design – dem System folgen oder selbst wählen
 
 ☁️ UNTERSTÜTZTE DIENSTE
 
