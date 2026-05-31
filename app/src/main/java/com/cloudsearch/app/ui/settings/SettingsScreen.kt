@@ -50,6 +50,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
@@ -73,6 +76,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import me.fulltxt.app.data.preferences.ThemeMode
 import me.fulltxt.app.domain.model.CloudAccount
 import me.fulltxt.app.domain.model.CloudProvider
 
@@ -86,6 +90,7 @@ fun SettingsScreen(
     val accounts by viewModel.accounts.collectAsState()
     val allowMeteredIndexing by viewModel.allowMeteredIndexing.collectAsState()
     val recentSearchLimit by viewModel.recentSearchLimit.collectAsState()
+    val themeMode by viewModel.themeMode.collectAsState()
     val dbSizeBytes by viewModel.dbSizeBytes.collectAsState()
 
     val exportLauncher = rememberLauncherForActivityResult(
@@ -197,6 +202,32 @@ fun SettingsScreen(
                         },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                     )
+                }
+            }
+
+            item {
+                Spacer(Modifier.height(8.dp))
+                HorizontalDivider()
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "Darstellung",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                val options = listOf(
+                    ThemeMode.SYSTEM to "System",
+                    ThemeMode.LIGHT  to "Hell",
+                    ThemeMode.DARK   to "Dunkel"
+                )
+                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    options.forEachIndexed { index, (mode, label) ->
+                        SegmentedButton(
+                            selected = themeMode == mode,
+                            onClick = { viewModel.setThemeMode(mode) },
+                            shape = SegmentedButtonDefaults.itemShape(index, options.size)
+                        ) { Text(label) }
+                    }
                 }
             }
 

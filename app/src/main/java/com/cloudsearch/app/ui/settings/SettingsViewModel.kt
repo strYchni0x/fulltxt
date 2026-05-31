@@ -45,6 +45,7 @@ import me.fulltxt.app.data.cloud.yandex.YandexAuthManager
 import me.fulltxt.app.data.cloud.yandex.YandexConnector
 import me.fulltxt.app.data.cloud.yandex.YandexCredentials
 import me.fulltxt.app.data.preferences.AppPreferences
+import me.fulltxt.app.data.preferences.ThemeMode
 import me.fulltxt.app.data.repository.IndexRepository
 import me.fulltxt.app.domain.model.CloudAccount
 import me.fulltxt.app.domain.model.CloudProvider
@@ -110,6 +111,12 @@ class SettingsViewModel @Inject constructor(
 
     private val _recentSearchLimit = MutableStateFlow(appPreferences.recentSearchLimit)
     val recentSearchLimit: StateFlow<Int> = _recentSearchLimit.asStateFlow()
+
+    val themeMode: StateFlow<ThemeMode> = appPreferences.themeModeFlow
+
+    fun setThemeMode(mode: ThemeMode) {
+        appPreferences.themeMode = mode
+    }
 
     val isPro: StateFlow<Boolean> = billingManager.isPro
     val proPrice: StateFlow<String> = billingManager.proPrice

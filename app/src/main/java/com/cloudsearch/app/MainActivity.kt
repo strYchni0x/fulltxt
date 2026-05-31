@@ -9,12 +9,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,6 +31,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import me.fulltxt.app.data.cloud.googledrive.GoogleAuthManager
 import me.fulltxt.app.data.cloud.onedrive.MsalAuthManager
 import me.fulltxt.app.data.preferences.AppPreferences
+import me.fulltxt.app.data.preferences.ThemeMode
 import me.fulltxt.app.ui.search.SearchScreen
 import me.fulltxt.app.ui.settings.CloudAccountsScreen
 import me.fulltxt.app.ui.settings.SettingsScreen
@@ -59,7 +62,13 @@ class MainActivity : ComponentActivity() {
         val initialShowDialog = !isIgnoring && !appPreferences.batteryOptimizationPromptShown
 
         setContent {
-            FulltxtTheme {
+            val themeMode by appPreferences.themeModeFlow.collectAsState()
+            val darkTheme = when (themeMode) {
+                ThemeMode.SYSTEM -> isSystemInDarkTheme()
+                ThemeMode.LIGHT  -> false
+                ThemeMode.DARK   -> true
+            }
+            FulltxtTheme(darkTheme = darkTheme) {
                 var showBatteryDialog by remember { mutableStateOf(initialShowDialog) }
 
                 if (showBatteryDialog) {

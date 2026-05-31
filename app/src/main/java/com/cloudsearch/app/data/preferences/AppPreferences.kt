@@ -3,8 +3,14 @@ package me.fulltxt.app.data.preferences
 import android.content.Context
 import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
+
+/** App-weite Theme-Auswahl, unabhängig pro Konto. */
+enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
 /**
  * Thin wrapper around SharedPreferences for app-wide settings that are
@@ -15,6 +21,23 @@ class AppPreferences @Inject constructor(
     @ApplicationContext context: Context
 ) {
     private val prefs = context.getSharedPreferences("fulltxt_prefs", Context.MODE_PRIVATE)
+
+    private fun readThemeMode(): ThemeMode =
+        prefs.getString(KEY_THEME_MODE, null)
+            ?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() }
+            ?: ThemeMode.SYSTEM
+
+    private val _themeMode = MutableStateFlow(readThemeMode())
+
+    /** Reactive theme selection so the Compose root can re-theme on change. */
+    val themeModeFlow: StateFlow<ThemeMode> = _themeMode.asStateFlow()
+
+    var themeMode: ThemeMode
+        get() = _themeMode.value
+        set(value) {
+            prefs.edit { putString(KEY_THEME_MODE, value.name) }
+            _themeMode.value = value
+        }
 
     /**
      * When true, the indexing WorkManager job runs on any network (including mobile data).
@@ -56,6 +79,7 @@ class AppPreferences @Inject constructor(
         private const val KEY_BATTERY_OPT_PROMPT = "battery_opt_prompt_shown"
         private const val KEY_RECENT_SEARCHES = "recent_searches"
         private const val KEY_RECENT_LIMIT = "recent_search_limit"
+        private const val KEY_THEME_MODE = "theme_mode"
         const val DEFAULT_RECENT_LIMIT = 5
         const val MIN_RECENT_LIMIT = 0
         const val MAX_RECENT_LIMIT = 10
