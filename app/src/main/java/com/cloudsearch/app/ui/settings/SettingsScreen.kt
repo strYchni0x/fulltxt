@@ -22,6 +22,7 @@ import java.util.Date
 import java.util.Locale
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.Folder
@@ -44,6 +45,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -64,6 +66,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -77,21 +80,13 @@ import me.fulltxt.app.domain.model.CloudProvider
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
+    onCloudAccountsClick: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val accounts by viewModel.accounts.collectAsState()
-    val connectingProvider by viewModel.connectingProvider.collectAsState()
     val allowMeteredIndexing by viewModel.allowMeteredIndexing.collectAsState()
     val recentSearchLimit by viewModel.recentSearchLimit.collectAsState()
     val dbSizeBytes by viewModel.dbSizeBytes.collectAsState()
-    val isPro by viewModel.isPro.collectAsState()
-    val proPrice by viewModel.proPrice.collectAsState()
-    val showUpgradeDialog by viewModel.showUpgradeDialog.collectAsState()
-    val activity = LocalContext.current as ComponentActivity
-
-    val folderPickerLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocumentTree()
-    ) { uri -> uri?.let { viewModel.connectLocalFolder(it) } }
 
     val exportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/octet-stream")
@@ -103,11 +98,6 @@ fun SettingsScreen(
 
     var showImportConfirm by rememberSaveable { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
-    var showNextcloudDialog   by rememberSaveable { mutableStateOf(false) }
-    var showOwnCloudDialog    by rememberSaveable { mutableStateOf(false) }
-    var showMagentaDialog     by rememberSaveable { mutableStateOf(false) }
-    var showStratoDialog      by rememberSaveable { mutableStateOf(false) }
-    var showYandexDialog      by rememberSaveable { mutableStateOf(false) }
     var showMeteredWarning    by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -120,64 +110,6 @@ fun SettingsScreen(
         viewModel.exportSuccess.collect {
             snackbarHostState.showSnackbar("Index erfolgreich exportiert.")
         }
-    }
-
-    if (showNextcloudDialog) {
-        NextcloudConnectDialog(
-            isConnecting = connectingProvider == CloudProvider.NEXTCLOUD,
-            onDismiss    = { showNextcloudDialog = false },
-            onConfirm    = { url, user, pass ->
-                showNextcloudDialog = false
-                viewModel.connectNextcloud(url, user, pass)
-            }
-        )
-    }
-
-    if (showOwnCloudDialog) {
-        OwnCloudConnectDialog(
-            isConnecting = connectingProvider == CloudProvider.OWNCLOUD,
-            onDismiss    = { showOwnCloudDialog = false },
-            onConfirm    = { url, user, pass ->
-                showOwnCloudDialog = false
-                viewModel.connectOwnCloud(url, user, pass)
-            }
-        )
-    }
-
-    if (showMagentaDialog) {
-        WebDavConnectDialog(
-            title          = "MagentaCloud verbinden",
-            hint           = "Verwende ein App-Passwort (MagentaCloud → Einstellungen → Sicherheit).",
-            prefillUrl     = "https://magentacloud.de",
-            isConnecting   = connectingProvider == CloudProvider.MAGENTA_CLOUD,
-            onDismiss      = { showMagentaDialog = false },
-            onConfirm      = { url, user, pass ->
-                showMagentaDialog = false
-                viewModel.connectMagentaCloud(url, user, pass)
-            }
-        )
-    }
-
-    if (showStratoDialog) {
-        StratoConnectDialog(
-            isConnecting = connectingProvider == CloudProvider.STRATO_HIDRIVE,
-            onDismiss    = { showStratoDialog = false },
-            onConfirm    = { user, pass ->
-                showStratoDialog = false
-                viewModel.connectStrato(user, pass)
-            }
-        )
-    }
-
-    if (showYandexDialog) {
-        YandexConnectDialog(
-            isConnecting = connectingProvider == CloudProvider.YANDEX_DISK,
-            onDismiss    = { showYandexDialog = false },
-            onConfirm    = { user, pass ->
-                showYandexDialog = false
-                viewModel.connectYandex(user, pass)
-            }
-        )
     }
 
     if (showImportConfirm) {
@@ -195,33 +127,6 @@ fun SettingsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showImportConfirm = false }) { Text("Abbrechen") }
-            }
-        )
-    }
-
-    if (showUpgradeDialog) {
-        AlertDialog(
-            onDismissRequest = viewModel::dismissUpgradeDialog,
-            title = { Text("FullTXT Pro") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Google Drive, OneDrive und Dropbox sind Teil von FullTXT Pro.")
-                    Text(
-                        if (proPrice.isNotEmpty()) "$proPrice · Einmalig"
-                        else "Preis wird geladen…",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            },
-            confirmButton = {
-                Button(onClick = { viewModel.purchasePro(activity) }) {
-                    Text("Jetzt kaufen")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::dismissUpgradeDialog) { Text("Abbrechen") }
             }
         )
     }
@@ -249,8 +154,6 @@ fun SettingsScreen(
         )
     }
 
-    val connectedProviders = accounts.map { it.account.provider }.toSet()
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -270,141 +173,31 @@ fun SettingsScreen(
         ) {
             item {
                 Spacer(Modifier.height(4.dp))
-                Text("Cloud-Accounts", style = MaterialTheme.typography.titleSmall,
+                Text("Cloud-Speicher", style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.height(8.dp))
-            }
-
-            if (accounts.isEmpty()) {
-                item {
-                    Text(
-                        "Noch kein Account verbunden.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
-            }
-
-            items(accounts, key = { it.account.accountId }) { state ->
-                AccountCard(
-                    state = state,
-                    onStartIndexing = { viewModel.startIndexing(state.account) },
-                    onDisconnect = { viewModel.disconnectAccount(state.account.accountId) },
-                    onToggleDailyDelta = { enabled -> viewModel.toggleDailyDelta(state.account, enabled) }
-                )
-            }
-
-            item { Spacer(Modifier.height(4.dp)) }
-
-            if (CloudProvider.GOOGLE_DRIVE !in connectedProviders) {
-                item {
-                    ConnectButton(
-                        label = "Google Drive verbinden",
-                        isConnecting = connectingProvider == CloudProvider.GOOGLE_DRIVE,
-                        isLocked = !isPro,
-                        onClick = { viewModel.connectAccount(CloudProvider.GOOGLE_DRIVE) }
-                    )
-                }
-            }
-
-            if (CloudProvider.ONE_DRIVE !in connectedProviders) {
-                item {
-                    ConnectButton(
-                        label = "OneDrive verbinden",
-                        isConnecting = connectingProvider == CloudProvider.ONE_DRIVE,
-                        isLocked = !isPro,
-                        onClick = { viewModel.connectAccount(CloudProvider.ONE_DRIVE) }
-                    )
-                }
-            }
-
-            if (CloudProvider.NEXTCLOUD !in connectedProviders) {
-                item {
-                    ConnectButton(
-                        label = "Nextcloud verbinden",
-                        isConnecting = connectingProvider == CloudProvider.NEXTCLOUD,
-                        onClick = { showNextcloudDialog = true }
-                    )
-                }
-            }
-
-            if (CloudProvider.OWNCLOUD !in connectedProviders) {
-                item {
-                    ConnectButton(
-                        label = "ownCloud verbinden",
-                        isConnecting = connectingProvider == CloudProvider.OWNCLOUD,
-                        onClick = { showOwnCloudDialog = true }
-                    )
-                }
-            }
-
-            if (CloudProvider.MAGENTA_CLOUD !in connectedProviders) {
-                item {
-                    ConnectButton(
-                        label = "MagentaCloud verbinden",
-                        isConnecting = connectingProvider == CloudProvider.MAGENTA_CLOUD,
-                        onClick = { showMagentaDialog = true }
-                    )
-                }
-            }
-
-            if (CloudProvider.STRATO_HIDRIVE !in connectedProviders) {
-                item {
-                    ConnectButton(
-                        label = "Strato HiDrive verbinden",
-                        isConnecting = connectingProvider == CloudProvider.STRATO_HIDRIVE,
-                        onClick = { showStratoDialog = true }
-                    )
-                }
-            }
-
-            if (CloudProvider.YANDEX_DISK !in connectedProviders) {
-                item {
-                    ConnectButton(
-                        label = "Yandex Disk verbinden",
-                        isConnecting = connectingProvider == CloudProvider.YANDEX_DISK,
-                        onClick = { showYandexDialog = true }
-                    )
-                }
-            }
-
-            if (CloudProvider.DROPBOX !in connectedProviders) {
-                item {
-                    ConnectButton(
-                        label = "Dropbox verbinden",
-                        isConnecting = connectingProvider == CloudProvider.DROPBOX,
-                        isLocked = !isPro,
-                        onClick = { viewModel.connectAccount(CloudProvider.DROPBOX) }
-                    )
-                }
-            }
-
-            item {
-                Spacer(Modifier.height(8.dp))
-                HorizontalDivider()
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    "Lokale Ordner",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-                OutlinedButton(
-                    onClick = { folderPickerLauncher.launch(null) },
-                    enabled = connectingProvider == null,
+                ElevatedCard(
+                    onClick = onCloudAccountsClick,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Icon(Icons.Default.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("Ordner auswählen…")
+                    ListItem(
+                        leadingContent = {
+                            Icon(Icons.Default.Cloud, contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary)
+                        },
+                        headlineContent = { Text("Cloud-Speicher & Konten") },
+                        supportingContent = {
+                            Text(
+                                if (accounts.isEmpty()) "Konten verbinden und verwalten"
+                                else "${accounts.size} verbunden · Konten verwalten"
+                            )
+                        },
+                        trailingContent = {
+                            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    )
                 }
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    "Tipp: Android erlaubt aus Sicherheitsgründen keinen Zugriff auf Systemordner wie Downloads oder Dokumente direkt. Lege deine Dateien in einem eigenen Unterordner ab (z. B. Downloads/Rechnungen) und wähle diesen aus.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
 
             item {
@@ -522,6 +315,294 @@ fun SettingsScreen(
                         modifier = Modifier.weight(1f)
                     ) { Text("Importieren") }
                 }
+            }
+
+            item { Spacer(Modifier.height(16.dp)) }
+        }
+    }
+}
+
+/**
+ * Eigene Seite für Cloud-Speicher: verbundene Konten, Verbindungs-Buttons
+ * je Anbieter und lokale Ordner. Ausgelagert aus [SettingsScreen], um die
+ * Hauptseite kompakt zu halten.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CloudAccountsScreen(
+    onBack: () -> Unit,
+    viewModel: SettingsViewModel = hiltViewModel()
+) {
+    val accounts by viewModel.accounts.collectAsState()
+    val connectingProvider by viewModel.connectingProvider.collectAsState()
+    val isPro by viewModel.isPro.collectAsState()
+    val proPrice by viewModel.proPrice.collectAsState()
+    val showUpgradeDialog by viewModel.showUpgradeDialog.collectAsState()
+    val activity = LocalContext.current as ComponentActivity
+
+    val folderPickerLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri -> uri?.let { viewModel.connectLocalFolder(it) } }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    var showNextcloudDialog by rememberSaveable { mutableStateOf(false) }
+    var showOwnCloudDialog  by rememberSaveable { mutableStateOf(false) }
+    var showMagentaDialog   by rememberSaveable { mutableStateOf(false) }
+    var showStratoDialog    by rememberSaveable { mutableStateOf(false) }
+    var showYandexDialog    by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.errorMessage.collect { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
+
+    if (showNextcloudDialog) {
+        NextcloudConnectDialog(
+            isConnecting = connectingProvider == CloudProvider.NEXTCLOUD,
+            onDismiss    = { showNextcloudDialog = false },
+            onConfirm    = { url, user, pass ->
+                showNextcloudDialog = false
+                viewModel.connectNextcloud(url, user, pass)
+            }
+        )
+    }
+
+    if (showOwnCloudDialog) {
+        OwnCloudConnectDialog(
+            isConnecting = connectingProvider == CloudProvider.OWNCLOUD,
+            onDismiss    = { showOwnCloudDialog = false },
+            onConfirm    = { url, user, pass ->
+                showOwnCloudDialog = false
+                viewModel.connectOwnCloud(url, user, pass)
+            }
+        )
+    }
+
+    if (showMagentaDialog) {
+        WebDavConnectDialog(
+            title          = "MagentaCloud verbinden",
+            hint           = "Verwende ein App-Passwort (MagentaCloud → Einstellungen → Sicherheit).",
+            prefillUrl     = "https://magentacloud.de",
+            isConnecting   = connectingProvider == CloudProvider.MAGENTA_CLOUD,
+            onDismiss      = { showMagentaDialog = false },
+            onConfirm      = { url, user, pass ->
+                showMagentaDialog = false
+                viewModel.connectMagentaCloud(url, user, pass)
+            }
+        )
+    }
+
+    if (showStratoDialog) {
+        StratoConnectDialog(
+            isConnecting = connectingProvider == CloudProvider.STRATO_HIDRIVE,
+            onDismiss    = { showStratoDialog = false },
+            onConfirm    = { user, pass ->
+                showStratoDialog = false
+                viewModel.connectStrato(user, pass)
+            }
+        )
+    }
+
+    if (showYandexDialog) {
+        YandexConnectDialog(
+            isConnecting = connectingProvider == CloudProvider.YANDEX_DISK,
+            onDismiss    = { showYandexDialog = false },
+            onConfirm    = { user, pass ->
+                showYandexDialog = false
+                viewModel.connectYandex(user, pass)
+            }
+        )
+    }
+
+    if (showUpgradeDialog) {
+        AlertDialog(
+            onDismissRequest = viewModel::dismissUpgradeDialog,
+            title = { Text("FullTXT Pro") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Google Drive, OneDrive und Dropbox sind Teil von FullTXT Pro.")
+                    Text(
+                        if (proPrice.isNotEmpty()) "$proPrice · Einmalig"
+                        else "Preis wird geladen…",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = { viewModel.purchasePro(activity) }) {
+                    Text("Jetzt kaufen")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = viewModel::dismissUpgradeDialog) { Text("Abbrechen") }
+            }
+        )
+    }
+
+    val connectedProviders = accounts.map { it.account.provider }.toSet()
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Cloud-Speicher") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zurück")
+                    }
+                }
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier.padding(innerPadding).padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                Spacer(Modifier.height(4.dp))
+                Text("Verbundene Konten", style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.height(8.dp))
+            }
+
+            if (accounts.isEmpty()) {
+                item {
+                    Text(
+                        "Noch kein Account verbunden.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+            }
+
+            items(accounts, key = { it.account.accountId }) { state ->
+                AccountCard(
+                    state = state,
+                    onStartIndexing = { viewModel.startIndexing(state.account) },
+                    onDisconnect = { viewModel.disconnectAccount(state.account.accountId) },
+                    onToggleDailyDelta = { enabled -> viewModel.toggleDailyDelta(state.account, enabled) }
+                )
+            }
+
+            item {
+                Spacer(Modifier.height(4.dp))
+                Text("Anbieter verbinden", style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(vertical = 8.dp))
+            }
+
+            if (CloudProvider.GOOGLE_DRIVE !in connectedProviders) {
+                item {
+                    ConnectButton(
+                        label = "Google Drive verbinden",
+                        isConnecting = connectingProvider == CloudProvider.GOOGLE_DRIVE,
+                        isLocked = !isPro,
+                        onClick = { viewModel.connectAccount(CloudProvider.GOOGLE_DRIVE) }
+                    )
+                }
+            }
+
+            if (CloudProvider.ONE_DRIVE !in connectedProviders) {
+                item {
+                    ConnectButton(
+                        label = "OneDrive verbinden",
+                        isConnecting = connectingProvider == CloudProvider.ONE_DRIVE,
+                        isLocked = !isPro,
+                        onClick = { viewModel.connectAccount(CloudProvider.ONE_DRIVE) }
+                    )
+                }
+            }
+
+            if (CloudProvider.NEXTCLOUD !in connectedProviders) {
+                item {
+                    ConnectButton(
+                        label = "Nextcloud verbinden",
+                        isConnecting = connectingProvider == CloudProvider.NEXTCLOUD,
+                        onClick = { showNextcloudDialog = true }
+                    )
+                }
+            }
+
+            if (CloudProvider.OWNCLOUD !in connectedProviders) {
+                item {
+                    ConnectButton(
+                        label = "ownCloud verbinden",
+                        isConnecting = connectingProvider == CloudProvider.OWNCLOUD,
+                        onClick = { showOwnCloudDialog = true }
+                    )
+                }
+            }
+
+            if (CloudProvider.MAGENTA_CLOUD !in connectedProviders) {
+                item {
+                    ConnectButton(
+                        label = "MagentaCloud verbinden",
+                        isConnecting = connectingProvider == CloudProvider.MAGENTA_CLOUD,
+                        onClick = { showMagentaDialog = true }
+                    )
+                }
+            }
+
+            if (CloudProvider.STRATO_HIDRIVE !in connectedProviders) {
+                item {
+                    ConnectButton(
+                        label = "Strato HiDrive verbinden",
+                        isConnecting = connectingProvider == CloudProvider.STRATO_HIDRIVE,
+                        onClick = { showStratoDialog = true }
+                    )
+                }
+            }
+
+            if (CloudProvider.YANDEX_DISK !in connectedProviders) {
+                item {
+                    ConnectButton(
+                        label = "Yandex Disk verbinden",
+                        isConnecting = connectingProvider == CloudProvider.YANDEX_DISK,
+                        onClick = { showYandexDialog = true }
+                    )
+                }
+            }
+
+            if (CloudProvider.DROPBOX !in connectedProviders) {
+                item {
+                    ConnectButton(
+                        label = "Dropbox verbinden",
+                        isConnecting = connectingProvider == CloudProvider.DROPBOX,
+                        isLocked = !isPro,
+                        onClick = { viewModel.connectAccount(CloudProvider.DROPBOX) }
+                    )
+                }
+            }
+
+            item {
+                Spacer(Modifier.height(8.dp))
+                HorizontalDivider()
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "Lokale Ordner",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                OutlinedButton(
+                    onClick = { folderPickerLauncher.launch(null) },
+                    enabled = connectingProvider == null,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Ordner auswählen…")
+                }
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "Tipp: Android erlaubt aus Sicherheitsgründen keinen Zugriff auf Systemordner wie Downloads oder Dokumente direkt. Lege deine Dateien in einem eigenen Unterordner ab (z. B. Downloads/Rechnungen) und wähle diesen aus.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
 
             item { Spacer(Modifier.height(16.dp)) }

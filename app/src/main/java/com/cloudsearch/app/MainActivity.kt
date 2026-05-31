@@ -20,15 +20,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import me.fulltxt.app.data.cloud.googledrive.GoogleAuthManager
 import me.fulltxt.app.data.cloud.onedrive.MsalAuthManager
 import me.fulltxt.app.data.preferences.AppPreferences
 import me.fulltxt.app.ui.search.SearchScreen
+import me.fulltxt.app.ui.settings.CloudAccountsScreen
 import me.fulltxt.app.ui.settings.SettingsScreen
+import me.fulltxt.app.ui.settings.SettingsViewModel
 import me.fulltxt.app.ui.theme.FulltxtTheme
 import javax.inject.Inject
 
@@ -84,8 +88,28 @@ class MainActivity : ComponentActivity() {
                                 onSettingsClick = { navController.navigate("settings") }
                             )
                         }
-                        composable("settings") {
-                            SettingsScreen(onBack = { navController.popBackStack() })
+                        navigation(startDestination = "settings_home", route = "settings") {
+                            composable("settings_home") { entry ->
+                                val parentEntry = remember(entry) {
+                                    navController.getBackStackEntry("settings")
+                                }
+                                val vm: SettingsViewModel = hiltViewModel(parentEntry)
+                                SettingsScreen(
+                                    onBack = { navController.popBackStack() },
+                                    onCloudAccountsClick = { navController.navigate("cloud_accounts") },
+                                    viewModel = vm
+                                )
+                            }
+                            composable("cloud_accounts") { entry ->
+                                val parentEntry = remember(entry) {
+                                    navController.getBackStackEntry("settings")
+                                }
+                                val vm: SettingsViewModel = hiltViewModel(parentEntry)
+                                CloudAccountsScreen(
+                                    onBack = { navController.popBackStack() },
+                                    viewModel = vm
+                                )
+                            }
                         }
                     }
                 }
