@@ -103,6 +103,9 @@ class SettingsViewModel @Inject constructor(
     private val _allowMeteredIndexing = MutableStateFlow(appPreferences.allowMeteredIndexing)
     val allowMeteredIndexing: StateFlow<Boolean> = _allowMeteredIndexing.asStateFlow()
 
+    private val _recentSearchLimit = MutableStateFlow(appPreferences.recentSearchLimit)
+    val recentSearchLimit: StateFlow<Int> = _recentSearchLimit.asStateFlow()
+
     val isPro: StateFlow<Boolean> = billingManager.isPro
     val proPrice: StateFlow<String> = billingManager.proPrice
 
@@ -142,6 +145,16 @@ class SettingsViewModel @Inject constructor(
         appPreferences.allowMeteredIndexing = allow
         _allowMeteredIndexing.value = allow
     }
+
+    fun setRecentSearchLimit(limit: Int) {
+        appPreferences.recentSearchLimit = limit
+        val applied = appPreferences.recentSearchLimit
+        _recentSearchLimit.value = applied
+        // Trim already-stored history so the search screen reflects the new limit immediately.
+        appPreferences.recentSearches = appPreferences.recentSearches.take(applied)
+    }
+
+    val recentSearchLimitRange = AppPreferences.MIN_RECENT_LIMIT..AppPreferences.MAX_RECENT_LIMIT
 
     init {
         loadAccounts()

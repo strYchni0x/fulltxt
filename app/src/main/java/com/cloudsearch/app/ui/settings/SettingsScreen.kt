@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -63,6 +64,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -80,6 +82,7 @@ fun SettingsScreen(
     val accounts by viewModel.accounts.collectAsState()
     val connectingProvider by viewModel.connectingProvider.collectAsState()
     val allowMeteredIndexing by viewModel.allowMeteredIndexing.collectAsState()
+    val recentSearchLimit by viewModel.recentSearchLimit.collectAsState()
     val dbSizeBytes by viewModel.dbSizeBytes.collectAsState()
     val isPro by viewModel.isPro.collectAsState()
     val proPrice by viewModel.proPrice.collectAsState()
@@ -379,6 +382,49 @@ fun SettingsScreen(
                     "Tipp: Android erlaubt aus Sicherheitsgründen keinen Zugriff auf Systemordner wie Downloads oder Dokumente direkt. Lege deine Dateien in einem eigenen Unterordner ab (z. B. Downloads/Rechnungen) und wähle diesen aus.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            item {
+                Spacer(Modifier.height(8.dp))
+                HorizontalDivider()
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "Suche",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                ListItem(
+                    headlineContent = { Text("Letzte Suchanfragen") },
+                    supportingContent = {
+                        Text(
+                            if (recentSearchLimit == 0) "Werden nicht gespeichert."
+                            else "Es werden bis zu $recentSearchLimit Anfragen angezeigt."
+                        )
+                    },
+                    trailingContent = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(
+                                onClick = { viewModel.setRecentSearchLimit(recentSearchLimit - 1) },
+                                enabled = recentSearchLimit > viewModel.recentSearchLimitRange.first
+                            ) {
+                                Icon(Icons.Default.Remove, contentDescription = "Weniger")
+                            }
+                            Text(
+                                recentSearchLimit.toString(),
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.width(24.dp),
+                                textAlign = TextAlign.Center
+                            )
+                            IconButton(
+                                onClick = { viewModel.setRecentSearchLimit(recentSearchLimit + 1) },
+                                enabled = recentSearchLimit < viewModel.recentSearchLimitRange.last
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = "Mehr")
+                            }
+                        }
+                    }
                 )
             }
 

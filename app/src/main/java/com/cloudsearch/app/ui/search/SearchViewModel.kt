@@ -40,7 +40,8 @@ class SearchViewModel @Inject constructor(
     private val _filter = MutableStateFlow(SearchFilter())
     val filter: StateFlow<SearchFilter> = _filter.asStateFlow()
 
-    private val _recentSearches = MutableStateFlow(appPreferences.recentSearches)
+    private val _recentSearches =
+        MutableStateFlow(appPreferences.recentSearches.take(appPreferences.recentSearchLimit))
     val recentSearches: StateFlow<List<String>> = _recentSearches.asStateFlow()
 
     private val _connectedProviders = MutableStateFlow<List<CloudProvider>>(emptyList())
@@ -76,7 +77,8 @@ class SearchViewModel @Inject constructor(
     fun saveRecentSearch(query: String) {
         val trimmed = query.trim()
         if (trimmed.length < 2) return
-        val updated = (listOf(trimmed) + appPreferences.recentSearches.filter { it != trimmed }).take(3)
+        val updated = (listOf(trimmed) + appPreferences.recentSearches.filter { it != trimmed })
+            .take(appPreferences.recentSearchLimit)
         appPreferences.recentSearches = updated
         _recentSearches.value = updated
     }

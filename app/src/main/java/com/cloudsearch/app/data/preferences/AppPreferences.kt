@@ -43,10 +43,22 @@ class AppPreferences @Inject constructor(
             ?: emptyList()
         set(value) = prefs.edit { putString(KEY_RECENT_SEARCHES, value.joinToString("\n")) }
 
+    /** How many recent searches to remember and show. Clamped to [MIN_RECENT, MAX_RECENT]. */
+    var recentSearchLimit: Int
+        get() = prefs.getInt(KEY_RECENT_LIMIT, DEFAULT_RECENT_LIMIT)
+            .coerceIn(MIN_RECENT_LIMIT, MAX_RECENT_LIMIT)
+        set(value) = prefs.edit {
+            putInt(KEY_RECENT_LIMIT, value.coerceIn(MIN_RECENT_LIMIT, MAX_RECENT_LIMIT))
+        }
+
     companion object {
         private const val KEY_ALLOW_METERED = "allow_metered_indexing"
         private const val KEY_BATTERY_OPT_PROMPT = "battery_opt_prompt_shown"
         private const val KEY_RECENT_SEARCHES = "recent_searches"
+        private const val KEY_RECENT_LIMIT = "recent_search_limit"
+        const val DEFAULT_RECENT_LIMIT = 5
+        const val MIN_RECENT_LIMIT = 0
+        const val MAX_RECENT_LIMIT = 10
         private fun dailyDeltaKey(accountId: String) = "daily_delta_$accountId"
     }
 }
