@@ -428,5 +428,6 @@ private val CloudProvider.label get() = when (this) {
     CloudProvider.DROPBOX        -> "Dropbox"
     CloudProvider.MAGENTA_CLOUD  -> "MagentaCloud"
     CloudProvider.STRATO_HIDRIVE -> "HiDrive"
+    CloudProvider.YANDEX_DISK    -> "Yandex"
     CloudProvider.LOCAL          -> "Lokal"
 }

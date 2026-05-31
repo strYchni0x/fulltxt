@@ -31,6 +31,7 @@ FullTXT indexes files from connected cloud accounts and lets you search their co
 | ownCloud | WebDAV (PROPFIND / GET) | App password |
 | MagentaCloud (Telekom) | WebDAV (Nextcloud backend) | App password |
 | Strato HiDrive | WebDAV (PROPFIND / GET) | Username + password |
+| Yandex Disk | WebDAV (PROPFIND / GET) | Username + password / app password |
 
 Multiple accounts of the same provider are supported.
 
@@ -62,6 +63,7 @@ Open **Settings** (gear icon, top right) and tap the provider you want to connec
 - **Google Drive / OneDrive / Dropbox** — a browser-based OAuth flow opens; sign in and grant read-only access.
 - **Nextcloud / ownCloud / MagentaCloud** — enter your server URL and an *app password* (create one in your cloud's security settings to avoid using your main password).
 - **Strato HiDrive** — enter your Strato username and password.
+- **Yandex Disk** — enter your Yandex username and password (use an app password if two-factor authentication is enabled).
 
 ### 2 — Index files
 
@@ -157,7 +159,8 @@ Disconnecting an account automatically cancels any scheduled daily sync.
 │  ┌──────────────────────────────────────────────┐   │
 │  │           Cloud Connector Layer              │   │
 │  │  Google Drive · OneDrive · Dropbox           │   │
-│  │  Nextcloud · ownCloud · MagentaCloud · Strato│   │
+│  │  Nextcloud · ownCloud · MagentaCloud ·       │   │
+│  │  Strato · Yandex                             │   │
 │  │  (Rate-limit middleware, OAuth, delta tokens)│   │
 │  └──────────────────────────────────────────────┘   │
 └──────────────────────────────────────────────────────┘
@@ -240,7 +243,7 @@ Disconnecting an account automatically cancels any scheduled daily sync.
 
 | Status | Feature |
 |---|---|
-| ✅ | Google Drive, OneDrive, Dropbox, Nextcloud, ownCloud, MagentaCloud, Strato HiDrive |
+| ✅ | Google Drive, OneDrive, Dropbox, Nextcloud, ownCloud, MagentaCloud, Strato HiDrive, Yandex Disk |
 | ✅ | Local FTS5 full-text index |
 | ✅ | PDF, DOCX, XLSX, PPTX support |
 | ✅ | Foreground Service (prevents background kill) |

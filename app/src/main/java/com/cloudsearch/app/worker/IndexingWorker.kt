@@ -23,6 +23,7 @@ import me.fulltxt.app.data.cloud.nextcloud.NextcloudConnector
 import me.fulltxt.app.data.cloud.onedrive.OneDriveConnector
 import me.fulltxt.app.data.cloud.owncloud.OwnCloudConnector
 import me.fulltxt.app.data.cloud.strato.StratoConnector
+import me.fulltxt.app.data.cloud.yandex.YandexConnector
 import me.fulltxt.app.data.repository.IndexRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -39,6 +40,7 @@ class IndexingWorker @AssistedInject constructor(
     private val dropboxConnector: DropboxConnector,
     private val magentaCloudConnector: MagentaCloudConnector,
     private val stratoConnector: StratoConnector,
+    private val yandexConnector: YandexConnector,
     private val localFolderConnector: LocalFolderConnector
 ) : CoroutineWorker(appContext, params) {
 
@@ -69,6 +71,7 @@ class IndexingWorker @AssistedInject constructor(
             "DROPBOX"        -> dropboxConnector
             "MAGENTA_CLOUD"  -> magentaCloudConnector
             "STRATO_HIDRIVE" -> stratoConnector
+            "YANDEX_DISK"    -> yandexConnector
             "LOCAL"          -> localFolderConnector
             else             -> return Result.failure()
         }

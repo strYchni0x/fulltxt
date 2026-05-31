@@ -25,7 +25,7 @@ FullTXT erstellt einen lokalen Volltextindex deiner Cloud-Dokumente direkt auf d
 
 ☁️ UNTERSTÜTZTE DIENSTE
 
-Kostenlos: Nextcloud, ownCloud, MagentaCloud, Strato HiDrive, lokale Ordner
+Kostenlos: Nextcloud, ownCloud, MagentaCloud, Strato HiDrive, Yandex Disk, lokale Ordner
 Mit FullTXT Pro: Google Drive, Microsoft OneDrive, Dropbox
 
 FullTXT Pro ist ein einmaliger In-App-Kauf – kein Abo, keine laufenden Kosten.

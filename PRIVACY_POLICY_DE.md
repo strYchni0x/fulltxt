@@ -25,7 +25,7 @@ Beim Verbinden eines Cloud-Accounts werden folgende Informationen lokal gespeich
 | OAuth-Token / App-Passwort | Zugriff auf die Cloud-API des jeweiligen Anbieters | Android `EncryptedSharedPreferences` (AES-256) |
 | Anzeigename | Anzeige in der App | Verschlüsselte Gerätedatenbank |
 
-Unterstützte Anbieter: Google Drive, Microsoft OneDrive, Nextcloud, ownCloud, Dropbox, MagentaCloud, Strato HiDrive.
+Unterstützte Anbieter: Google Drive, Microsoft OneDrive, Nextcloud, ownCloud, Dropbox, MagentaCloud, Strato HiDrive, Yandex Disk.
 
 ### 2.2 Datei-Index
 
@@ -53,6 +53,7 @@ FULLTXT selbst übermittelt keine Daten an externe Server. Beim Indexieren kommu
 - **Google Drive:** [policies.google.com/privacy](https://policies.google.com/privacy)
 - **Microsoft OneDrive:** [privacy.microsoft.com](https://privacy.microsoft.com/de-de/privacystatement)
 - **Dropbox:** [www.dropbox.com/privacy](https://www.dropbox.com/privacy)
+- **Yandex Disk:** [yandex.com/legal/confidential](https://yandex.com/legal/confidential)
 - **Nextcloud / ownCloud / MagentaCloud / Strato HiDrive:** Richtlinien des jeweiligen Server-Betreibers
 
 ---

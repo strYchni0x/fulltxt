@@ -13,7 +13,7 @@ Diese Nutzungsbedingungen gelten für die Nutzung der Android-App **FULLTXT** (P
 
 ## 2. Leistungsbeschreibung
 
-FULLTXT ermöglicht die Volltextsuche in Dateien, die in verbundenen Cloud-Speicherdiensten (Google Drive, Microsoft OneDrive, Nextcloud, ownCloud, Dropbox, MagentaCloud, Strato HiDrive) gespeichert sind. Die App lädt Dateien lokal auf das Gerät, extrahiert den Textinhalt, erstellt einen lokalen Suchindex und stellt eine Suchoberfläche bereit.
+FULLTXT ermöglicht die Volltextsuche in Dateien, die in verbundenen Cloud-Speicherdiensten (Google Drive, Microsoft OneDrive, Nextcloud, ownCloud, Dropbox, MagentaCloud, Strato HiDrive, Yandex Disk) gespeichert sind. Die App lädt Dateien lokal auf das Gerät, extrahiert den Textinhalt, erstellt einen lokalen Suchindex und stellt eine Suchoberfläche bereit.
 
 ---
 
@@ -86,7 +86,7 @@ Teile der App basieren auf Open-Source-Bibliotheken. Die jeweiligen Lizenzen sin
 
 ## 9. Drittanbieter
 
-Der Anbieter ist nicht verantwortlich für die Dienste, Verfügbarkeit, Sicherheit oder Datenschutzpraktiken der Cloud-Anbieter (Google, Microsoft, Dropbox, Telekom, Strato, Nextcloud-Server-Betreiber). Für deren Nutzung gelten deren eigene Nutzungsbedingungen.
+Der Anbieter ist nicht verantwortlich für die Dienste, Verfügbarkeit, Sicherheit oder Datenschutzpraktiken der Cloud-Anbieter (Google, Microsoft, Dropbox, Telekom, Strato, Yandex, Nextcloud-Server-Betreiber). Für deren Nutzung gelten deren eigene Nutzungsbedingungen.
 
 ---
 

@@ -13,7 +13,7 @@ These Terms of Use apply to the use of the Android app **FULLTXT** (package name
 
 ## 2. Description of Service
 
-FULLTXT enables full-text search across files stored in connected cloud storage services (Google Drive, Microsoft OneDrive, Nextcloud, ownCloud, Dropbox, MagentaCloud, Strato HiDrive). The app downloads files locally to the device, extracts text content, creates a local search index, and provides a search interface.
+FULLTXT enables full-text search across files stored in connected cloud storage services (Google Drive, Microsoft OneDrive, Nextcloud, ownCloud, Dropbox, MagentaCloud, Strato HiDrive, Yandex Disk). The app downloads files locally to the device, extracts text content, creates a local search index, and provides a search interface.
 
 ---
 
@@ -86,7 +86,7 @@ Parts of the app are based on open-source libraries. The respective licences are
 
 ## 9. Third-Party Providers
 
-The provider is not responsible for the services, availability, security, or privacy practices of cloud providers (Google, Microsoft, Dropbox, Telekom, Strato, Nextcloud server operators). Their own terms of service govern their use.
+The provider is not responsible for the services, availability, security, or privacy practices of cloud providers (Google, Microsoft, Dropbox, Telekom, Strato, Yandex, Nextcloud server operators). Their own terms of service govern their use.
 
 ---
 

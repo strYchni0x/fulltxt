@@ -28,5 +28,6 @@ enum class CloudProvider {
     DROPBOX,
     MAGENTA_CLOUD,
     STRATO_HIDRIVE,
+    YANDEX_DISK,
     LOCAL
 }

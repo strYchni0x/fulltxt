@@ -31,6 +31,7 @@ FullTXT indexiert Dateien aus verbundenen Cloud-Accounts und ermöglicht die Suc
 | ownCloud | WebDAV (PROPFIND / GET) | App-Passwort |
 | MagentaCloud (Telekom) | WebDAV (Nextcloud-Backend) | App-Passwort |
 | Strato HiDrive | WebDAV (PROPFIND / GET) | Benutzername + Passwort |
+| Yandex Disk | WebDAV (PROPFIND / GET) | Benutzername + Passwort / App-Passwort |
 
 Mehrere Accounts desselben Anbieters werden unterstützt.
 
@@ -62,6 +63,7 @@ Dateien über **50 MB** werden übersprungen, um Speicherüberlauf zu verhindern
 - **Google Drive / OneDrive / Dropbox** — Ein Browser-OAuth-Flow öffnet sich; anmelden und Lesezugriff erteilen.
 - **Nextcloud / ownCloud / MagentaCloud** — Server-URL und ein *App-Passwort* eingeben (in den Sicherheitseinstellungen der jeweiligen Cloud erstellen, um das Hauptpasswort nicht zu verwenden).
 - **Strato HiDrive** — Strato-Benutzername und Passwort eingeben.
+- **Yandex Disk** — Yandex-Benutzername und Passwort eingeben (bei aktivierter Zwei-Faktor-Authentifizierung ein App-Passwort verwenden).
 
 ### 2 — Dateien indexieren
 
@@ -157,7 +159,8 @@ Beim Trennen eines Accounts wird der tägliche Sync automatisch abgebrochen.
 │  ┌──────────────────────────────────────────────┐   │
 │  │           Cloud-Connector-Schicht            │   │
 │  │  Google Drive · OneDrive · Dropbox           │   │
-│  │  Nextcloud · ownCloud · MagentaCloud · Strato│   │
+│  │  Nextcloud · ownCloud · MagentaCloud ·       │   │
+│  │  Strato · Yandex                             │   │
 │  │  (Rate-Limit-Middleware, OAuth, Delta-Token) │   │
 │  └──────────────────────────────────────────────┘   │
 └──────────────────────────────────────────────────────┘
@@ -240,7 +243,7 @@ Beim Trennen eines Accounts wird der tägliche Sync automatisch abgebrochen.
 
 | Status | Feature |
 |---|---|
-| ✅ | Google Drive, OneDrive, Dropbox, Nextcloud, ownCloud, MagentaCloud, Strato HiDrive |
+| ✅ | Google Drive, OneDrive, Dropbox, Nextcloud, ownCloud, MagentaCloud, Strato HiDrive, Yandex Disk |
 | ✅ | Lokaler FTS5-Volltextindex |
 | ✅ | PDF-, DOCX-, XLSX-, PPTX-Unterstützung |
 | ✅ | Foreground-Service (verhindert Hintergrundabbruch) |

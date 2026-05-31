@@ -41,6 +41,7 @@ Eine Android-App, die es ermöglicht, Dateien in verknüpften Cloud-Accounts zu 
 | ownCloud | WebDAV (PROPFIND/GET) | Basic Auth / App-Passwort |
 | MagentaCloud (Telekom) | WebDAV – Nextcloud-Backend | Basic Auth / App-Passwort |
 | Strato HiDrive | WebDAV (PROPFIND/GET) | Basic Auth |
+| Yandex Disk | WebDAV (PROPFIND/GET) | Basic Auth / App-Passwort |
 | Dropbox | Dropbox API v2 | OAuth 2.0 + PKCE |
 
 ### Geplant (Post-MVP)
@@ -190,6 +191,7 @@ Die App hält die Rate Limits der jeweiligen Cloud-Anbieter **strikt ein**, auch
 - [x] ownCloud Integration (WebDAV + App-Passwort)
 - [x] MagentaCloud Integration (Nextcloud-Backend, WebDAV)
 - [x] Strato HiDrive Integration (WebDAV)
+- [x] Yandex Disk Integration (WebDAV)
 - [x] Dropbox Integration (API v2 + OAuth 2.0 PKCE)
 - [x] Lokale SQLite FTS5 Indexierung
 - [x] Volltext + Metadaten im Index

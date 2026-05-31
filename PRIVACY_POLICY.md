@@ -25,7 +25,7 @@ When you connect a cloud account, the following information is stored locally:
 | OAuth token / app password | Access to the cloud provider's API | Android `EncryptedSharedPreferences` (AES-256) |
 | Display name | Display in the app | Encrypted on-device database |
 
-Supported providers: Google Drive, Microsoft OneDrive, Nextcloud, ownCloud, Dropbox, MagentaCloud, Strato HiDrive.
+Supported providers: Google Drive, Microsoft OneDrive, Nextcloud, ownCloud, Dropbox, MagentaCloud, Strato HiDrive, Yandex Disk.
 
 ### 2.2 File Index
 
@@ -53,6 +53,7 @@ FULLTXT itself does not transmit any data to external servers. During indexing, 
 - **Google Drive:** [policies.google.com/privacy](https://policies.google.com/privacy)
 - **Microsoft OneDrive:** [privacy.microsoft.com](https://privacy.microsoft.com/en-us/privacystatement)
 - **Dropbox:** [www.dropbox.com/privacy](https://www.dropbox.com/privacy)
+- **Yandex Disk:** [yandex.com/legal/confidential](https://yandex.com/legal/confidential)
 - **Nextcloud / ownCloud / MagentaCloud / Strato HiDrive:** Privacy policy of the respective server operator
 
 ---

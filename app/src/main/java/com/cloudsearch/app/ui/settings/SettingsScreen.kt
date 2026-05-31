@@ -107,6 +107,7 @@ fun SettingsScreen(
     var showOwnCloudDialog    by rememberSaveable { mutableStateOf(false) }
     var showMagentaDialog     by rememberSaveable { mutableStateOf(false) }
     var showStratoDialog      by rememberSaveable { mutableStateOf(false) }
+    var showYandexDialog      by rememberSaveable { mutableStateOf(false) }
     var showMeteredWarning    by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -164,6 +165,17 @@ fun SettingsScreen(
             onConfirm    = { user, pass ->
                 showStratoDialog = false
                 viewModel.connectStrato(user, pass)
+            }
+        )
+    }
+
+    if (showYandexDialog) {
+        YandexConnectDialog(
+            isConnecting = connectingProvider == CloudProvider.YANDEX_DISK,
+            onDismiss    = { showYandexDialog = false },
+            onConfirm    = { user, pass ->
+                showYandexDialog = false
+                viewModel.connectYandex(user, pass)
             }
         )
     }
@@ -343,6 +355,16 @@ fun SettingsScreen(
                         label = "Strato HiDrive verbinden",
                         isConnecting = connectingProvider == CloudProvider.STRATO_HIDRIVE,
                         onClick = { showStratoDialog = true }
+                    )
+                }
+            }
+
+            if (CloudProvider.YANDEX_DISK !in connectedProviders) {
+                item {
+                    ConnectButton(
+                        label = "Yandex Disk verbinden",
+                        isConnecting = connectingProvider == CloudProvider.YANDEX_DISK,
+                        onClick = { showYandexDialog = true }
                     )
                 }
             }
@@ -808,6 +830,71 @@ private fun StratoConnectDialog(
     )
 }
 
+/**
+ * Yandex-spezifischer Dialog: Server-URL ist fix (webdav.yandex.com),
+ * daher werden nur Benutzername und Passwort abgefragt.
+ */
+@Composable
+private fun YandexConnectDialog(
+    isConnecting: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (username: String, password: String) -> Unit
+) {
+    var username        by rememberSaveable { mutableStateOf("") }
+    var password        by rememberSaveable { mutableStateOf("") }
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
+
+    val canConfirm = username.isNotBlank() && password.isNotBlank()
+
+    AlertDialog(
+        onDismissRequest = { if (!isConnecting) onDismiss() },
+        title = { Text("Yandex Disk verbinden") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    "Server: webdav.yandex.com. Bei aktivierter Zwei-Faktor-Authentifizierung ein App-Passwort verwenden (Yandex ID → Sicherheit → App-Passwörter).",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                OutlinedTextField(
+                    value = username, onValueChange = { username = it },
+                    label = { Text("Yandex-Benutzername") }, singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = password, onValueChange = { password = it },
+                    label = { Text("Passwort") }, singleLine = true,
+                    visualTransformation = if (passwordVisible) VisualTransformation.None
+                                          else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    trailingIcon = {
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(
+                                if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = null
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onConfirm(username.trim(), password) },
+                   enabled = canConfirm && !isConnecting) {
+                if (isConnecting) {
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                    Spacer(Modifier.width(8.dp))
+                }
+                Text(if (isConnecting) "Verbinde…" else "Verbinden")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !isConnecting) { Text("Abbrechen") }
+        }
+    )
+}
+
 @Composable
 private fun OwnCloudConnectDialog(
     isConnecting: Boolean,
@@ -989,5 +1076,6 @@ private val CloudProvider.displayName get() = when (this) {
     CloudProvider.DROPBOX        -> "Dropbox"
     CloudProvider.MAGENTA_CLOUD  -> "MagentaCloud"
     CloudProvider.STRATO_HIDRIVE -> "Strato HiDrive"
+    CloudProvider.YANDEX_DISK    -> "Yandex Disk"
     CloudProvider.LOCAL          -> "Lokaler Ordner"
 }

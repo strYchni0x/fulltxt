@@ -41,6 +41,9 @@ import me.fulltxt.app.data.cloud.owncloud.OwnCloudCredentials
 import me.fulltxt.app.data.cloud.strato.StratoAuthManager
 import me.fulltxt.app.data.cloud.strato.StratoConnector
 import me.fulltxt.app.data.cloud.strato.StratoCredentials
+import me.fulltxt.app.data.cloud.yandex.YandexAuthManager
+import me.fulltxt.app.data.cloud.yandex.YandexConnector
+import me.fulltxt.app.data.cloud.yandex.YandexCredentials
 import me.fulltxt.app.data.preferences.AppPreferences
 import me.fulltxt.app.data.repository.IndexRepository
 import me.fulltxt.app.domain.model.CloudAccount
@@ -77,6 +80,7 @@ class SettingsViewModel @Inject constructor(
     private val dropboxConnector: DropboxConnector,
     private val magentaCloudConnector: MagentaCloudConnector,
     private val stratoConnector: StratoConnector,
+    private val yandexConnector: YandexConnector,
     private val googleAuthManager: GoogleAuthManager,
     private val msalAuthManager: MsalAuthManager,
     private val nextcloudAuthManager: NextcloudAuthManager,
@@ -84,6 +88,7 @@ class SettingsViewModel @Inject constructor(
     private val dropboxAuthManager: DropboxAuthManager,
     private val magentaCloudAuthManager: MagentaCloudAuthManager,
     private val stratoAuthManager: StratoAuthManager,
+    private val yandexAuthManager: YandexAuthManager,
     private val localFolderConnector: LocalFolderConnector,
     private val localFolderAuthManager: LocalFolderAuthManager,
     private val billingManager: BillingManager,
@@ -245,6 +250,8 @@ class SettingsViewModel @Inject constructor(
                     CloudProvider.OWNCLOUD       -> null
                     CloudProvider.MAGENTA_CLOUD  -> null
                     CloudProvider.STRATO_HIDRIVE -> null
+                    // Yandex Disk uses a dedicated connect function with a credential dialog.
+                    CloudProvider.YANDEX_DISK    -> null
                     // Local folders are connected via connectLocalFolder() with a URI.
                     CloudProvider.LOCAL -> null
                     // Dropbox uses a browser OAuth flow triggered via connectDropbox().
@@ -399,6 +406,42 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    /** Validates Yandex Disk credentials via a test PROPFIND, then persists the account. */
+    fun connectYandex(username: String, password: String) {
+        viewModelScope.launch {
+            _connectingProvider.value = CloudProvider.YANDEX_DISK
+            try {
+                val accountId = "$username@yandex"
+
+                yandexAuthManager.saveCredentials(accountId, YandexCredentials(username, password))
+                try {
+                    yandexConnector.authenticate(accountId)
+                } catch (e: Exception) {
+                    yandexAuthManager.removeCredentials(accountId)
+                    throw e
+                }
+
+                val account = CloudAccount(
+                    accountId   = accountId,
+                    provider    = CloudProvider.YANDEX_DISK,
+                    displayName = username,
+                    email       = username
+                )
+                indexRepository.saveAccount(account)
+                if (_accounts.value.none { it.account.accountId == accountId }) {
+                    _accounts.update { it + AccountUiState(account = account) }
+                    observeWork(accountId)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _errorMessage.emit("Yandex Disk-Verbindung fehlgeschlagen: ${e.localizedMessage ?: e.javaClass.simpleName}")
+            } finally {
+                _connectingProvider.value = null
+            }
+        }
+    }
+
     /**
      * Validates Nextcloud credentials via a test PROPFIND, then persists the account.
      * Called from the settings dialog after the user enters server URL, username and app password.
@@ -505,6 +548,7 @@ class SettingsViewModel @Inject constructor(
                 CloudProvider.DROPBOX        -> dropboxConnector.signOut(accountId)
                 CloudProvider.MAGENTA_CLOUD  -> magentaCloudConnector.signOut(accountId)
                 CloudProvider.STRATO_HIDRIVE -> stratoConnector.signOut(accountId)
+                CloudProvider.YANDEX_DISK    -> yandexConnector.signOut(accountId)
                 CloudProvider.LOCAL          -> localFolderConnector.signOut(accountId)
             }
             indexRepository.deleteAllByAccount(accountId)
