@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>FullTXT – Feature-Grafik 1024×500</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0c0c0c;
+    --surface: #141414;
+    --primary: #22c55e;
+    --primary-dark: #16a34a;
+    --text: #f0f0f0;
+    --muted: #9aa0a6;
+  }
+
+  body {
+    background: #1b1b1b;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 40px 20px;
+  }
+
+  /* ---- EXACT PLAY FEATURE GRAPHIC CANVAS: 1024 x 500 ---- */
+  .canvas {
+    width: 1024px;
+    height: 500px;
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 60% 90% at 82% 50%, rgba(34,197,94,.16) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 60% at 12% -10%, rgba(34,197,94,.10) 0%, transparent 55%),
+      linear-gradient(160deg, #0e0e0e 0%, #0a0a0a 100%);
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  /* subtle grid texture */
+  .canvas::before {
+    content: "";
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, #000 30%, transparent 75%);
+  }
+
+  /* LEFT: text block. Kept well inside the safe area (Play may overlay edges). */
+  .left {
+    position: relative;
+    z-index: 2;
+    padding: 0 56px 0 72px;
+    max-width: 600px;
+  }
+  .badge {
+    display: inline-block;
+    background: rgba(34,197,94,.15);
+    color: var(--primary);
+    border: 1px solid rgba(34,197,94,.35);
+    border-radius: 99px;
+    padding: 6px 16px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 22px;
+  }
+  .wordmark {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -.5px;
+    color: var(--primary);
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -1px;
+    margin-bottom: 20px;
+  }
+  h1 .accent { color: var(--primary); }
+  p.tag {
+    font-size: 20px;
+    line-height: 1.45;
+    color: var(--muted);
+    max-width: 460px;
+  }
+  .pills {
+    display: flex;
+    gap: 10px;
+    margin-top: 26px;
+    flex-wrap: wrap;
+  }
+  .pill {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 8px;
+    padding: 7px 13px;
+  }
+
+  /* RIGHT: app icon mark */
+  .right {
+    position: relative;
+    z-index: 2;
+    margin-left: auto;
+    margin-right: 96px;
+    flex-shrink: 0;
+  }
+  .icon-tile {
+    width: 240px;
+    height: 240px;
+    border-radius: 54px;
+    background: linear-gradient(155deg, #1e1e1e 0%, #121212 100%);
+    border: 1px solid rgba(34,197,94,.25);
+    box-shadow:
+      0 24px 70px rgba(0,0,0,.6),
+      0 0 0 10px rgba(34,197,94,.06),
+      inset 0 1px 0 rgba(255,255,255,.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ---- export helpers (not part of the graphic) ---- */
+  .toolbar {
+    font-size: 14px; color: #bbb; text-align: center; line-height: 1.7;
+    max-width: 1024px;
+  }
+  .toolbar code { background:#000; color:#5ee08a; padding:2px 7px; border-radius:5px; font-size:13px; }
+  .toolbar b { color:#fff; }
+  @media print { body { background:#fff; padding:0; } .toolbar { display:none; } }
+
+  /* export mode (#export): show only the 1024x500 canvas, flush to 0,0 */
+  body.export { padding: 0; gap: 0; background: #0c0c0c; align-items: flex-start; }
+  body.export .toolbar { display: none; }
+</style>
+</head>
+<body>
+
+  <div class="toolbar">
+    <b>FullTXT – Play-Store-Feature-Grafik (1024 × 500 px)</b><br>
+    Export: Diese Datei im Browser öffnen → DevTools (F12) → das Element <code>.canvas</code> auswählen →
+    Rechtsklick → <b>„Capture node screenshot"</b>. Ergebnis ist exakt 1024×500 px.<br>
+    Alternativ headless: <code>chrome --headless --screenshot=feature.png --window-size=1024,500 --hide-scrollbars feature-graphic.html</code>
+  </div>
+
+  <!-- ====== THE GRAPHIC ====== -->
+  <div class="canvas" id="canvas">
+    <div class="left">
+      <span class="badge">Android · Privat &amp; Offline</span>
+      <div class="wordmark">FullTXT</div>
+      <h1>Volltextsuche für<br><span class="accent">deine Cloud.</span></h1>
+      <p class="tag">Durchsuche Google Drive, OneDrive, Dropbox, Nextcloud &amp; Co. – in Sekunden, komplett auf deinem Gerät.</p>
+      <div class="pills">
+        <span class="pill">🔍 Volltext</span>
+        <span class="pill">⚡ Offline</span>
+        <span class="pill">🔒 Kein Tracking</span>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="icon-tile">
+        <!-- Brand mark: document + cloud + magnifier, matching the app theme -->
+        <svg width="150" height="150" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- document -->
+          <path d="M6 2.5h7.5L19 8v11.5A2 2 0 0 1 17 21.5H6A2 2 0 0 1 4 19.5V4.5A2 2 0 0 1 6 2.5Z"
+                fill="#1d2b22" stroke="#22c55e" stroke-width="1.1"/>
+          <path d="M13.5 2.5V8H19" fill="none" stroke="#22c55e" stroke-width="1.1" stroke-linejoin="round"/>
+          <!-- text lines -->
+          <path d="M7 11h6M7 13.6h6M7 16.2h3.2" stroke="#3a7d5b" stroke-width="1" stroke-linecap="round"/>
+          <!-- magnifier -->
+          <circle cx="15.4" cy="15" r="4.1" fill="#0c0c0c" stroke="#22c55e" stroke-width="1.5"/>
+          <circle cx="15.4" cy="15" r="4.1" fill="rgba(34,197,94,.12)"/>
+          <path d="M18.5 18.1 L21.5 21.1" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Append #export to the URL to strip the toolbar/padding for a clean 1024x500 capture.
+  if (location.hash === '#export') document.body.classList.add('export');
+</script>
+</body>
+</html>
