@@ -44,6 +44,9 @@ class SearchViewModel @Inject constructor(
         MutableStateFlow(appPreferences.recentSearches.take(appPreferences.recentSearchLimit))
     val recentSearches: StateFlow<List<String>> = _recentSearches.asStateFlow()
 
+    /** Whether search results show a colored per-file-type icon (toggled in settings). */
+    val fileTypeIcons: StateFlow<Boolean> = appPreferences.fileTypeIconsFlow
+
     private val _connectedProviders = MutableStateFlow<List<CloudProvider>>(emptyList())
     val connectedProviders: StateFlow<List<CloudProvider>> = _connectedProviders.asStateFlow()
 

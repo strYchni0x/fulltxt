@@ -91,6 +91,7 @@ fun SettingsScreen(
     val allowMeteredIndexing by viewModel.allowMeteredIndexing.collectAsState()
     val recentSearchLimit by viewModel.recentSearchLimit.collectAsState()
     val themeMode by viewModel.themeMode.collectAsState()
+    val fileTypeIcons by viewModel.fileTypeIcons.collectAsState()
     val dbSizeBytes by viewModel.dbSizeBytes.collectAsState()
 
     val exportLauncher = rememberLauncherForActivityResult(
@@ -270,6 +271,18 @@ fun SettingsScreen(
                                 Icon(Icons.Default.Add, contentDescription = "Mehr")
                             }
                         }
+                    }
+                )
+                ListItem(
+                    headlineContent = { Text("Farbige Dateityp-Symbole") },
+                    supportingContent = {
+                        Text("Suchergebnisse zeigen ein nach Dateityp eingefärbtes Symbol.")
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = fileTypeIcons,
+                            onCheckedChange = { viewModel.setFileTypeIcons(it) }
+                        )
                     }
                 )
             }

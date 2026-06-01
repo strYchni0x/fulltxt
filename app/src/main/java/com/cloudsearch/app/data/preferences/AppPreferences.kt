@@ -39,6 +39,19 @@ class AppPreferences @Inject constructor(
             _themeMode.value = value
         }
 
+    private val _fileTypeIcons = MutableStateFlow(prefs.getBoolean(KEY_FILE_TYPE_ICONS, true))
+
+    /** Reactive flag so the search screen updates live when toggled in settings. */
+    val fileTypeIconsFlow: StateFlow<Boolean> = _fileTypeIcons.asStateFlow()
+
+    /** When true, search results show a colored icon per file type instead of a generic one. */
+    var fileTypeIcons: Boolean
+        get() = _fileTypeIcons.value
+        set(value) {
+            prefs.edit { putBoolean(KEY_FILE_TYPE_ICONS, value) }
+            _fileTypeIcons.value = value
+        }
+
     /**
      * When true, the indexing WorkManager job runs on any network (including mobile data).
      * When false (default), the job is restricted to unmetered networks (WiFi / Ethernet).
@@ -80,6 +93,7 @@ class AppPreferences @Inject constructor(
         private const val KEY_RECENT_SEARCHES = "recent_searches"
         private const val KEY_RECENT_LIMIT = "recent_search_limit"
         private const val KEY_THEME_MODE = "theme_mode"
+        private const val KEY_FILE_TYPE_ICONS = "file_type_icons"
         const val DEFAULT_RECENT_LIMIT = 5
         const val MIN_RECENT_LIMIT = 0
         const val MAX_RECENT_LIMIT = 10

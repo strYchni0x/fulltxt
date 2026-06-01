@@ -118,6 +118,12 @@ class SettingsViewModel @Inject constructor(
         appPreferences.themeMode = mode
     }
 
+    val fileTypeIcons: StateFlow<Boolean> = appPreferences.fileTypeIconsFlow
+
+    fun setFileTypeIcons(enabled: Boolean) {
+        appPreferences.fileTypeIcons = enabled
+    }
+
     val isPro: StateFlow<Boolean> = billingManager.isPro
     val proPrice: StateFlow<String> = billingManager.proPrice
 

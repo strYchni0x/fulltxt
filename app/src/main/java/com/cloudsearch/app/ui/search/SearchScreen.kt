@@ -20,13 +20,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Article
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.InsertDriveFile
+import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Slideshow
+import androidx.compose.material.icons.filled.TableChart
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -83,6 +89,7 @@ fun SearchScreen(
     val filter by viewModel.filter.collectAsState()
     val recentSearches by viewModel.recentSearches.collectAsState()
     val connectedProviders by viewModel.connectedProviders.collectAsState()
+    val fileTypeIcons by viewModel.fileTypeIcons.collectAsState()
     val focusManager = LocalFocusManager.current
     val context = LocalContext.current
     var showFilterSheet by remember { mutableStateOf(false) }
@@ -231,10 +238,24 @@ fun SearchScreen(
                 }
             }
 
+            if (query.trim().length >= 2) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = when (results.size) {
+                        0 -> "Keine Ergebnisse"
+                        1 -> "1 Ergebnis"
+                        else -> "${results.size} Ergebnisse"
+                    },
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
             LazyColumn(modifier = Modifier.padding(top = 8.dp)) {
                 items(results, key = { it.file.fileId }) { result ->
                     SearchResultItem(
                         result = result,
+                        coloredIcon = fileTypeIcons,
                         onClick = {
                             focusManager.clearFocus()
                             viewModel.openFile(result.file)
@@ -336,15 +357,16 @@ private fun FilterSheetContent(
 }
 
 @Composable
-private fun SearchResultItem(result: SearchResult, onClick: () -> Unit) {
+private fun SearchResultItem(result: SearchResult, coloredIcon: Boolean, onClick: () -> Unit) {
     val snippet = result.snippet.trim()
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         leadingContent = {
+            val visual = fileTypeVisual(result.file.fileName)
             Icon(
-                imageVector = Icons.Default.Description,
+                imageVector = if (coloredIcon) visual.icon else Icons.Default.Description,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
+                tint = if (coloredIcon) visual.color else MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp)
             )
         },
@@ -419,6 +441,20 @@ private fun buildSnippetAnnotated(raw: String, highlightColor: Color): Annotated
         if (cursor < raw.length) append(raw.substring(cursor))
     }
 }
+
+private data class FileVisual(val icon: ImageVector, val color: Color)
+
+/** Maps a file name's extension to a colored type icon for search results. */
+@Composable
+private fun fileTypeVisual(fileName: String): FileVisual =
+    when (fileName.substringAfterLast('.', "").lowercase()) {
+        "pdf" -> FileVisual(Icons.Default.PictureAsPdf, Color(0xFFD32F2F))
+        "doc", "docx", "odt", "rtf" -> FileVisual(Icons.Default.Description, Color(0xFF1565C0))
+        "xls", "xlsx", "ods" -> FileVisual(Icons.Default.TableChart, Color(0xFF2E7D32))
+        "ppt", "pptx", "odp" -> FileVisual(Icons.Default.Slideshow, Color(0xFFE64A19))
+        "txt", "md", "csv", "log" -> FileVisual(Icons.Default.Article, Color(0xFF546E7A))
+        else -> FileVisual(Icons.Default.InsertDriveFile, MaterialTheme.colorScheme.onSurfaceVariant)
+    }
 
 private val CloudProvider.label get() = when (this) {
     CloudProvider.GOOGLE_DRIVE   -> "Drive"
