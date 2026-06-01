@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Google Picker configuration for the public (drive.file) edition.
+         picker_base_url: the hosted picker page (docs/drive-picker.html on fulltxt.me).
+         picker_app_id:   the Google Cloud project NUMBER of project A.
+         picker_api_key:  a browser API key with the Picker API enabled, restricted to fulltxt.me.
+         Fill in the project-specific values before publishing. -->
+    <string name="picker_base_url" translatable="false">https://fulltxt.me/drive-picker.html</string>
+    <string name="picker_app_id" translatable="false">REPLACE_WITH_CLOUD_PROJECT_NUMBER</string>
+    <string name="picker_api_key" translatable="false">REPLACE_WITH_BROWSER_API_KEY</string>
+</resources>

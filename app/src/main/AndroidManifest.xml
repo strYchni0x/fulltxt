@@ -61,6 +61,21 @@
             </intent-filter>
         </activity>
 
+        <!-- Google Picker redirect (fulltxt://drive-picker?folders=…&files=…) — playstore flavor -->
+        <activity
+            android:name=".data.cloud.googledrive.DrivePickerCallbackActivity"
+            android:exported="true"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="fulltxt"
+                    android:host="drive-picker" />
+            </intent-filter>
+        </activity>
+
         <!-- Declare foreground service type for WorkManager's SystemForegroundService.
              Required on Android 10+ when setForeground(ForegroundInfo(…, DATA_SYNC)) is used. -->
         <service

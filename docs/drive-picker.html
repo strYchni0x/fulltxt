@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FullTXT – Google Drive auswählen</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0c0c0c; color: #f0f0f0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    text-align: center; padding: 24px;
+  }
+  .box { max-width: 420px; }
+  .spinner {
+    width: 38px; height: 38px; margin: 0 auto 20px;
+    border: 3px solid rgba(34,197,94,.25); border-top-color: #22c55e; border-radius: 50%;
+    animation: spin .9s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  h1 { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
+  p { color: #9aa0a6; font-size: .95rem; line-height: 1.5; }
+  .err { color: #f87171; }
+  a.btn { display: inline-block; margin-top: 18px; background: #22c55e; color: #000;
+          font-weight: 600; padding: 10px 20px; border-radius: 8px; text-decoration: none; }
+</style>
+</head>
+<body>
+  <div class="box">
+    <div class="spinner" id="spinner"></div>
+    <h1 id="title">Google Drive wird geöffnet …</h1>
+    <p id="msg">Wähle Ordner und Dateien aus, die FullTXT durchsuchen soll.</p>
+  </div>
+
+<script>
+  // Supported document MIME types (must match GoogleDriveConnector.SUPPORTED_MIME_TYPES).
+  var MIMES = [
+    "text/plain", "text/csv", "text/markdown",
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+  ].join(",");
+  var FOLDER_MIME = "application/vnd.google-apps.folder";
+
+  var params = new URLSearchParams(location.search);
+  var token  = params.get("token");
+  var appId  = params.get("appId");
+  var apiKey = params.get("apiKey");
+
+  function fail(text) {
+    document.getElementById("spinner").style.display = "none";
+    document.getElementById("title").textContent = "Fehler";
+    var m = document.getElementById("msg");
+    m.className = "err";
+    m.textContent = text;
+  }
+
+  function back(query) { location.href = "fulltxt://drive-picker" + query; }
+
+  function createPicker() {
+    if (!token || !appId || !apiKey) { fail("Fehlende Parameter (token/appId/apiKey)."); return; }
+    try {
+      var filesView = new google.picker.DocsView(google.picker.ViewId.DOCS)
+        .setIncludeFolders(true)
+        .setSelectFolderEnabled(false)
+        .setMimeTypes(MIMES);
+      var foldersView = new google.picker.DocsView(google.picker.ViewId.FOLDERS)
+        .setIncludeFolders(true)
+        .setSelectFolderEnabled(true);
+
+      var picker = new google.picker.PickerBuilder()
+        .setOAuthToken(token)
+        .setDeveloperKey(apiKey)
+        .setAppId(appId)
+        .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
+        .addView(filesView)
+        .addView(foldersView)
+        .setTitle("Für FullTXT freigeben")
+        .setCallback(pickerCallback)
+        .build();
+      picker.setVisible(true);
+    } catch (e) {
+      fail("Picker konnte nicht geladen werden: " + e);
+    }
+  }
+
+  function pickerCallback(data) {
+    var action = data[google.picker.Response.ACTION];
+    if (action === google.picker.Action.PICKED) {
+      var folders = [], files = [];
+      (data[google.picker.Response.DOCUMENTS] || []).forEach(function (doc) {
+        var id   = doc[google.picker.Document.ID];
+        var mime = doc[google.picker.Document.MIME_TYPE];
+        if (mime === FOLDER_MIME) folders.push(id); else files.push(id);
+      });
+      back("?folders=" + encodeURIComponent(folders.join(",")) +
+           "&files="   + encodeURIComponent(files.join(",")));
+    } else if (action === google.picker.Action.CANCEL) {
+      back("?cancel=1");
+    }
+  }
+</script>
+<script src="https://apis.google.com/js/api.js"
+        onload="gapi.load('picker', { callback: createPicker })"
+        onerror="fail('Google-Picker-Skript konnte nicht geladen werden.')"></script>
+</body>
+</html>

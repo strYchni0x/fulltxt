@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The dev edition uses the drive.readonly scope and never opens the picker, so these are
+         empty placeholders that exist only so the shared code in main compiles. -->
+    <string name="picker_base_url" translatable="false"></string>
+    <string name="picker_app_id" translatable="false"></string>
+    <string name="picker_api_key" translatable="false"></string>
+</resources>

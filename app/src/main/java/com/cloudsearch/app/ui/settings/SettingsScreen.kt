@@ -554,7 +554,11 @@ fun CloudAccountsScreen(
                     state = state,
                     onStartIndexing = { viewModel.startIndexing(state.account) },
                     onDisconnect = { viewModel.disconnectAccount(state.account.accountId) },
-                    onToggleDailyDelta = { enabled -> viewModel.toggleDailyDelta(state.account, enabled) }
+                    onToggleDailyDelta = { enabled -> viewModel.toggleDailyDelta(state.account, enabled) },
+                    onSelectContent =
+                        if (viewModel.isPlaystoreEdition && state.account.provider == CloudProvider.GOOGLE_DRIVE)
+                            { { viewModel.reselectGoogleDriveContent(state.account) } }
+                        else null
                 )
             }
 
@@ -685,7 +689,8 @@ private fun AccountCard(
     state: AccountUiState,
     onStartIndexing: () -> Unit,
     onDisconnect: () -> Unit,
-    onToggleDailyDelta: (Boolean) -> Unit
+    onToggleDailyDelta: (Boolean) -> Unit,
+    onSelectContent: (() -> Unit)? = null
 ) {
     ElevatedCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -786,6 +791,14 @@ private fun AccountCard(
                 }
 
                 Spacer(Modifier.height(12.dp))
+
+                // playstore (drive.file): choose which Drive folders/files to grant access to.
+                if (onSelectContent != null) {
+                    OutlinedButton(onClick = onSelectContent, modifier = Modifier.fillMaxWidth()) {
+                        Text("Ordner/Dateien auswählen")
+                    }
+                    Spacer(Modifier.height(8.dp))
+                }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = onStartIndexing, modifier = Modifier.weight(1f)) {
