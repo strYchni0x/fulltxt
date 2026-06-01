@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <set name="acct_ids">
+        <string>gd</string>
+        <string>od</string>
+        <string>db</string>
+    </set>
+    <string name="acct_gd">GOOGLE_DRIVE|gd|max.mustermann@gmail.com|Max Mustermann</string>
+    <string name="acct_od">ONE_DRIVE|od|max.mustermann@outlook.de|Max Mustermann</string>
+    <string name="acct_db">DROPBOX|db|max.mustermann@dropbox.com|Max Mustermann</string>
+    <boolean name="fi_gd" value="true" />
+    <boolean name="fi_od" value="true" />
+    <boolean name="fi_db" value="true" />
+</map>
