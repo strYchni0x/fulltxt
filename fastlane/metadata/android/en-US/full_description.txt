@@ -1,0 +1,32 @@
+FullTXT searches the contents of your cloud files – full-text, in seconds, entirely on your device. No backend, no server, no tracking.
+
+How it works: FullTXT indexes the files in your connected cloud storage and builds a local search index. After that you search across all accounts at once – offline and with no waiting. Matches are highlighted in the text snippet.
+
+FEATURES
+• Full-text search across all connected cloud accounts at once
+• Results from just two characters, with highlighted matches
+• Local index as a SQLite FTS database – searches run offline
+• Delta sync: after the first indexing, only changed files are updated
+• Search filters by cloud provider, file type and modification date
+• Configurable maximum result count and saved recent searches
+• Colored file-type icons in the results
+• Indexing runs as a foreground service with a progress notification
+• Duplicate detection across multiple providers
+• Index backup: export and restore on a new device
+• Light and dark theme (System/Light/Dark), Material You on Android 12+
+
+SUPPORTED SERVICES
+Free: Nextcloud, ownCloud, MagentaCloud, Strato HiDrive, Yandex Disk and local folders on the device.
+With FullTXT Pro (one-time purchase): Google Drive, Microsoft OneDrive, Dropbox.
+
+FILE FORMATS
+PDF, Word (.docx), Excel (.xlsx), PowerPoint (.pptx), OpenDocument (.odt, .ods, .odp) and text formats (.txt, .md, .csv, .log).
+
+YOUR DATA STAYS WITH YOU
+FullTXT has no server of its own and transmits no data to the developer. The search index, your credentials and all file contents remain exclusively on your phone.
+• No analytics, no tracking, no crash reporting
+• OAuth tokens encrypted in the Android Keystore (AES-256)
+• Temporarily downloaded files are deleted immediately
+• Open source on GitHub
+
+Questions or feedback: info@fulltxt.me

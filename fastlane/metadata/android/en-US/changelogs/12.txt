@@ -1,0 +1,4 @@
+New in 1.2.2:
+• Configurable maximum result count (50/100/200/500) under Settings → Search
+• Result snippet is now centered on the match so the highlighted term stays visible
+• Google Drive's meaningless path (internal folder IDs) is no longer shown in results

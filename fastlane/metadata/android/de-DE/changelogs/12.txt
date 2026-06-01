@@ -1,0 +1,4 @@
+Neu in 1.2.2:
+• Einstellbare maximale Trefferanzahl (50/100/200/500) unter Einstellungen → Suche
+• Treffer-Vorschau wird auf die Fundstelle zentriert, damit der hervorgehobene Begriff sichtbar bleibt
+• Der nichtssagende Google-Drive-Pfad (interne Ordner-IDs) wird in den Ergebnissen nicht mehr angezeigt
