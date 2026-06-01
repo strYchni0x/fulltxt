@@ -379,15 +379,22 @@ private fun SearchResultItem(result: SearchResult, coloredIcon: Boolean, onClick
         },
         supportingContent = {
             Column {
-                Text(
-                    text = result.file.cloudPath,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                // Google Drive's cloudPath is built from opaque folder IDs (e.g. "/1-h577…/name"),
+                // which has no value for the user, so we hide it for that provider. Other providers
+                // expose a readable path worth showing.
+                val showPath = result.file.cloudProvider != CloudProvider.GOOGLE_DRIVE &&
+                    result.file.cloudPath.isNotBlank()
+                if (showPath) {
+                    Text(
+                        text = result.file.cloudPath,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
                 if (snippet.isNotEmpty()) {
-                    Spacer(Modifier.height(2.dp))
+                    if (showPath) Spacer(Modifier.height(2.dp))
                     SnippetText(raw = snippet)
                 }
             }
@@ -429,17 +436,33 @@ private fun SnippetText(raw: String, modifier: Modifier = Modifier) {
 
 private fun buildSnippetAnnotated(raw: String, highlightColor: Color): AnnotatedString {
     val pattern = Regex("""\[\[(.+?)]]""")
+    val framed = reframeSnippet(raw)
     return buildAnnotatedString {
         var cursor = 0
-        pattern.findAll(raw).forEach { match ->
-            append(raw.substring(cursor, match.range.first))
+        pattern.findAll(framed).forEach { match ->
+            append(framed.substring(cursor, match.range.first))
             withStyle(SpanStyle(fontWeight = FontWeight.Bold, color = highlightColor)) {
                 append(match.groupValues[1])
             }
             cursor = match.range.last + 1
         }
-        if (cursor < raw.length) append(raw.substring(cursor))
+        if (cursor < framed.length) append(framed.substring(cursor))
     }
+}
+
+/**
+ * FTS' snippet() often places the matched term at the end of the fragment, with a lot of
+ * leading context. Since the snippet is truncated to two lines, that pushes the highlighted
+ * match out of view. Move the first match near the start by trimming excess leading context.
+ */
+private fun reframeSnippet(raw: String): String {
+    val maxLead = 24
+    val markerStart = raw.indexOf("[[")
+    if (markerStart <= maxLead) return raw
+    val start = markerStart - maxLead
+    val space = raw.indexOf(' ', start)
+    val cut = if (space in (start + 1) until markerStart) space + 1 else start
+    return "… " + raw.substring(cut)
 }
 
 private data class FileVisual(val icon: ImageVector, val color: Color)

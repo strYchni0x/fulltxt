@@ -92,6 +92,7 @@ fun SettingsScreen(
     val recentSearchLimit by viewModel.recentSearchLimit.collectAsState()
     val themeMode by viewModel.themeMode.collectAsState()
     val fileTypeIcons by viewModel.fileTypeIcons.collectAsState()
+    val searchResultLimit by viewModel.searchResultLimit.collectAsState()
     val dbSizeBytes by viewModel.dbSizeBytes.collectAsState()
 
     val exportLauncher = rememberLauncherForActivityResult(
@@ -285,6 +286,31 @@ fun SettingsScreen(
                         )
                     }
                 )
+                Text(
+                    "Maximale Trefferanzahl",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(start = 16.dp, top = 8.dp)
+                )
+                Text(
+                    "Begrenzt, wie viele Ergebnisse eine Suche höchstens liefert.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+                )
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    val options = viewModel.searchResultLimitOptions
+                    options.forEachIndexed { index, value ->
+                        SegmentedButton(
+                            selected = searchResultLimit == value,
+                            onClick = { viewModel.setSearchResultLimit(value) },
+                            shape = SegmentedButtonDefaults.itemShape(index, options.size)
+                        ) { Text(value.toString()) }
+                    }
+                }
             }
 
             item {

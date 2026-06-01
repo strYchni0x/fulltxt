@@ -52,6 +52,23 @@ class AppPreferences @Inject constructor(
             _fileTypeIcons.value = value
         }
 
+    private val _searchResultLimit = MutableStateFlow(
+        prefs.getInt(KEY_SEARCH_LIMIT, DEFAULT_SEARCH_LIMIT).let {
+            if (it in SEARCH_LIMIT_OPTIONS) it else DEFAULT_SEARCH_LIMIT
+        }
+    )
+
+    /** Reactive max number of search results; search re-runs when this changes. */
+    val searchResultLimitFlow: StateFlow<Int> = _searchResultLimit.asStateFlow()
+
+    var searchResultLimit: Int
+        get() = _searchResultLimit.value
+        set(value) {
+            val applied = if (value in SEARCH_LIMIT_OPTIONS) value else DEFAULT_SEARCH_LIMIT
+            prefs.edit { putInt(KEY_SEARCH_LIMIT, applied) }
+            _searchResultLimit.value = applied
+        }
+
     /**
      * When true, the indexing WorkManager job runs on any network (including mobile data).
      * When false (default), the job is restricted to unmetered networks (WiFi / Ethernet).
@@ -94,6 +111,9 @@ class AppPreferences @Inject constructor(
         private const val KEY_RECENT_LIMIT = "recent_search_limit"
         private const val KEY_THEME_MODE = "theme_mode"
         private const val KEY_FILE_TYPE_ICONS = "file_type_icons"
+        private const val KEY_SEARCH_LIMIT = "search_result_limit"
+        const val DEFAULT_SEARCH_LIMIT = 100
+        val SEARCH_LIMIT_OPTIONS = listOf(50, 100, 200, 500)
         const val DEFAULT_RECENT_LIMIT = 5
         const val MIN_RECENT_LIMIT = 0
         const val MAX_RECENT_LIMIT = 10

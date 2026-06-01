@@ -60,12 +60,15 @@ class SearchViewModel @Inject constructor(
     val errorMessage = _errorMessage.asSharedFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val results: StateFlow<List<SearchResult>> = combine(_query, _filter) { q, f -> q to f }
-        .debounce(300L)
-        .flatMapLatest { (q, f) ->
-            if (q.length < 2) flowOf(emptyList()) else searchFilesUseCase(q, f)
+    val results: StateFlow<List<SearchResult>> =
+        combine(_query, _filter, appPreferences.searchResultLimitFlow) { q, f, limit ->
+            Triple(q, f, limit)
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+            .debounce(300L)
+            .flatMapLatest { (q, f, limit) ->
+                if (q.length < 2) flowOf(emptyList()) else searchFilesUseCase(q, f, limit)
+            }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     init {
         _connectedProviders.value = indexRepository.getConnectedAccounts()

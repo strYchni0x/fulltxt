@@ -124,6 +124,13 @@ class SettingsViewModel @Inject constructor(
         appPreferences.fileTypeIcons = enabled
     }
 
+    val searchResultLimit: StateFlow<Int> = appPreferences.searchResultLimitFlow
+    val searchResultLimitOptions = AppPreferences.SEARCH_LIMIT_OPTIONS
+
+    fun setSearchResultLimit(limit: Int) {
+        appPreferences.searchResultLimit = limit
+    }
+
     val isPro: StateFlow<Boolean> = billingManager.isPro
     val proPrice: StateFlow<String> = billingManager.proPrice
 

@@ -23,9 +23,15 @@ class SearchRepository @Inject constructor(
         // Parsed by SnippetText in the UI layer to render matches in bold.
         const val SNIPPET_START = "[["
         const val SNIPPET_END = "]]"
+
+        const val DEFAULT_RESULT_LIMIT = 100
     }
 
-    fun search(query: String, filter: SearchFilter = SearchFilter()): Flow<List<SearchResult>> = flow {
+    fun search(
+        query: String,
+        filter: SearchFilter = SearchFilter(),
+        limit: Int = DEFAULT_RESULT_LIMIT
+    ): Flow<List<SearchResult>> = flow {
         val sanitized = sanitizeQuery(query)
         if (sanitized.isEmpty()) {
             emit(emptyList())
@@ -36,9 +42,13 @@ class SearchRepository @Inject constructor(
             dao.searchSnippets(
                 SimpleSQLiteQuery(
                     "SELECT fileId," +
-                    " snippet(file_content_fts, '[[', ']]', ' … ', 2, 20) AS snippet" +
-                    " FROM file_content_fts WHERE file_content_fts MATCH ? LIMIT 100",
-                    arrayOf(sanitized)
+                    // FTS4 snippet(table, start, end, ellipsis, column, tokens).
+                    // column = -1 lets FTS pick the column that actually contains the match
+                    // (e.g. a hit in the file name, not just the content), and a negative
+                    // token count centers the fragment on the match instead of the column start.
+                    " snippet(file_content_fts, '[[', ']]', ' … ', -1, -20) AS snippet" +
+                    " FROM file_content_fts WHERE file_content_fts MATCH ? LIMIT ?",
+                    arrayOf(sanitized, limit)
                 )
             )
         }.getOrElse {

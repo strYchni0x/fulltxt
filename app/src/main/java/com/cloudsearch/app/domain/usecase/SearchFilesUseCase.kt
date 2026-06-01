@@ -9,6 +9,10 @@ import javax.inject.Inject
 class SearchFilesUseCase @Inject constructor(
     private val repository: SearchRepository
 ) {
-    operator fun invoke(query: String, filter: SearchFilter = SearchFilter()): Flow<List<SearchResult>> =
-        repository.search(query, filter)
+    operator fun invoke(
+        query: String,
+        filter: SearchFilter = SearchFilter(),
+        limit: Int = SearchRepository.DEFAULT_RESULT_LIMIT
+    ): Flow<List<SearchResult>> =
+        repository.search(query, filter, limit)
 }
