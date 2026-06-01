@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>FullTXT – Screenshot-Vorlagen 1080×1920</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0c0c0c;
+    --primary: #22c55e;
+    --text: #f4f4f4;
+    --muted: #9aa0a6;
+  }
+
+  body {
+    background: #1b1b1b;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    padding: 40px 20px;
+  }
+
+  .toolbar {
+    font-size: 14px; color: #bbb; text-align: center; line-height: 1.8;
+    max-width: 900px;
+  }
+  .toolbar code { background:#000; color:#5ee08a; padding:2px 7px; border-radius:5px; font-size:13px; }
+  .toolbar b { color:#fff; }
+
+  /* ---- EXACT PLAY PHONE SCREENSHOT CANVAS: 1080 x 1920 (9:16) ---- */
+  .canvas {
+    width: 1080px;
+    height: 1920px;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background:
+      radial-gradient(ellipse 90% 50% at 50% 0%, rgba(34,197,94,.18) 0%, transparent 55%),
+      radial-gradient(ellipse 70% 40% at 50% 100%, rgba(34,197,94,.10) 0%, transparent 60%),
+      linear-gradient(165deg, #0f0f0f 0%, #090909 100%);
+  }
+  .canvas::before {
+    content: "";
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 40%, #000 30%, transparent 80%);
+  }
+
+  /* caption */
+  .caption {
+    position: relative; z-index: 2;
+    text-align: center;
+    padding: 130px 90px 0;
+  }
+  .caption .wordmark {
+    font-size: 34px; font-weight: 800; letter-spacing: 2px;
+    color: var(--primary); text-transform: uppercase; margin-bottom: 26px;
+  }
+  .caption h2 {
+    font-size: 76px; font-weight: 800; line-height: 1.08; letter-spacing: -1.5px;
+  }
+  .caption h2 .accent { color: var(--primary); }
+  .caption p {
+    font-size: 32px; color: var(--muted); margin-top: 22px; line-height: 1.4;
+  }
+
+  /* phone mockup */
+  .phone {
+    position: relative; z-index: 2;
+    margin-top: 90px;
+    width: 600px;
+    height: 1240px;
+    background: #050505;
+    border-radius: 70px;
+    padding: 16px;
+    box-shadow:
+      0 40px 120px rgba(0,0,0,.7),
+      0 0 0 2px #2a2a2a,
+      0 0 0 12px #141414,
+      inset 0 0 0 1px rgba(255,255,255,.05);
+  }
+  .phone .screen {
+    position: relative;
+    width: 100%; height: 100%;
+    border-radius: 56px;
+    overflow: hidden;
+    background: #111;
+  }
+  .phone .screen img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  /* punch-hole camera */
+  .phone .camera {
+    position: absolute; top: 26px; left: 50%; transform: translateX(-50%);
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #000; box-shadow: 0 0 0 3px rgba(255,255,255,.04);
+    z-index: 3;
+  }
+  /* placeholder shown when no real screenshot is dropped in */
+  .phone .placeholder {
+    width:100%; height:100%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
+    background: linear-gradient(160deg, #16201a 0%, #0e0e0e 100%);
+    color:#3a7d5b; text-align:center; padding:40px;
+  }
+  .phone .placeholder .ph-title { font-size:30px; font-weight:700; color:#5ee08a; }
+  .phone .placeholder .ph-sub { font-size:21px; color:#6b7280; line-height:1.5; }
+  .phone img:not([src]), .phone img[src=""] { display:none; }
+
+  /* export mode: show only the targeted slide flush at 0,0 */
+  body.export { padding: 0; gap: 0; background: var(--bg); align-items: flex-start; }
+  body.export .toolbar { display: none; }
+  body.export .canvas { display: none; }
+  body.export .canvas.export-active { display: flex; }
+
+  @media print { body { background:#fff; padding:0; } .toolbar { display:none; } }
+</style>
+</head>
+<body>
+
+  <div class="toolbar">
+    <b>FullTXT – Play-Store Phone-Screenshots (1080 × 1920 px)</b><br>
+    1) Lege deine echten App-Screenshots als <code>marketing/screenshots/raw/1.png … 4.png</code> ab (Hochformat).<br>
+    2) Export einzeln: DevTools (F12) → ein <code>.canvas</code>-Element wählen → Rechtsklick → <b>„Capture node screenshot"</b>.<br>
+    2b) Oder headless je Slide: <code>msedge --headless --window-size=1080,1920 --screenshot=s1.png "screenshots.html#export=1"</code> (1…4).
+  </div>
+
+  <!-- ====== SLIDES ====== -->
+
+  <div class="canvas" data-slide="1">
+    <div class="caption">
+      <div class="wordmark">FullTXT</div>
+      <h2>Durchsuche deine<br><span class="accent">ganze Cloud.</span></h2>
+      <p>Ein Suchfeld für alle verbundenen Konten.</p>
+    </div>
+    <div class="phone">
+      <div class="camera"></div>
+      <div class="screen">
+        <img src="screenshots/raw/1.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <div class="placeholder" style="display:none;">
+          <div class="ph-title">Screenshot 1</div>
+          <div class="ph-sub">Suchbildschirm<br>screenshots/raw/1.png</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="canvas" data-slide="2">
+    <div class="caption">
+      <div class="wordmark">FullTXT</div>
+      <h2>Treffer <span class="accent">sofort</span><br>hervorgehoben.</h2>
+      <p>Ergebnisse schon ab zwei Zeichen.</p>
+    </div>
+    <div class="phone">
+      <div class="camera"></div>
+      <div class="screen">
+        <img src="screenshots/raw/2.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <div class="placeholder" style="display:none;">
+          <div class="ph-title">Screenshot 2</div>
+          <div class="ph-sub">Suchergebnisse<br>screenshots/raw/2.png</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="canvas" data-slide="3">
+    <div class="caption">
+      <div class="wordmark">FullTXT</div>
+      <h2>Filtere nach Typ,<br><span class="accent">Datum &amp; Anbieter.</span></h2>
+      <p>Finde genau die richtige Datei.</p>
+    </div>
+    <div class="phone">
+      <div class="camera"></div>
+      <div class="screen">
+        <img src="screenshots/raw/3.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <div class="placeholder" style="display:none;">
+          <div class="ph-title">Screenshot 3</div>
+          <div class="ph-sub">Suchfilter<br>screenshots/raw/3.png</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="canvas" data-slide="4">
+    <div class="caption">
+      <div class="wordmark">FullTXT</div>
+      <h2>Alles <span class="accent">offline</span><br>auf deinem Gerät.</h2>
+      <p>Kein Server, kein Tracking.</p>
+    </div>
+    <div class="phone">
+      <div class="camera"></div>
+      <div class="screen">
+        <img src="screenshots/raw/4.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <div class="placeholder" style="display:none;">
+          <div class="ph-title">Screenshot 4</div>
+          <div class="ph-sub">Einstellungen / Datenschutz<br>screenshots/raw/4.png</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // #export=N -> show only slide N, flush at 0,0, ready for a 1080x1920 headless capture.
+  var m = location.hash.match(/export=(\d+)/);
+  if (m) {
+    document.body.classList.add('export');
+    var el = document.querySelector('.canvas[data-slide="' + m[1] + '"]');
+    if (el) el.classList.add('export-active');
+  }
+</script>
+</body>
+</html>
