@@ -46,6 +46,27 @@ android {
         }
     }
 
+    // Two editions that differ only in the Google Drive OAuth scope they request.
+    // - playstore: drive.file (non-sensitive, no OAuth verification / CASA needed)
+    // - dev:       drive.readonly (restricted scope) for the private build that stays
+    //              in the OAuth consent screen's "Testing" mode with manual test users.
+    // Each edition uses its own Google Cloud project / Android OAuth client
+    // (matched by applicationId + signing SHA-1), so verification status is independent.
+    flavorDimensions += "edition"
+    productFlavors {
+        create("playstore") {
+            dimension = "edition"
+            // applicationId stays "me.fulltxt.app"
+            buildConfigField("String", "DRIVE_SCOPE", "\"https://www.googleapis.com/auth/drive.file\"")
+        }
+        create("dev") {
+            dimension = "edition"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            buildConfigField("String", "DRIVE_SCOPE", "\"https://www.googleapis.com/auth/drive.readonly\"")
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

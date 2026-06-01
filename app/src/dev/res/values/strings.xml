@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Overrides app_name for the dev edition so it is distinguishable from the
+         Play Store build and can be installed side by side. -->
+    <string name="app_name">FullTXT Dev</string>
+</resources>
