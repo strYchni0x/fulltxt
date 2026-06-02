@@ -24,10 +24,16 @@ nötig (das Projekt der öffentlichen App; das `dev`-Projekt mit `drive.readonly
 - Auf **HTTP-Referrer** `https://fulltxt.me/*` einschränken.
 
 ## 4. Werte eintragen
-In `app/src/playstore/res/values/drive.xml` die Platzhalter ersetzen:
-- `picker_app_id`  → **Projektnummer** von Projekt A (Cloud Console → Projekteinstellungen).
-- `picker_api_key` → der Browser-API-Key aus Schritt 3.
-- `picker_base_url` → bleibt `https://fulltxt.me/drive-picker.html` (über GitHub Pages live).
+`app/src/playstore/res/values/drive.xml` ist **gitignored** (enthält den API-Key, Repo ist
+öffentlich). Lokal aus der Vorlage anlegen:
+1. `app/src/playstore/drive.xml.example` → nach `app/src/playstore/res/values/drive.xml` kopieren.
+2. Platzhalter ersetzen:
+   - `picker_app_id`  → **Projektnummer** (= Zahl vor dem Bindestrich der OAuth-Client-ID).
+   - `picker_api_key` → der Browser-API-Key aus Schritt 3.
+   - `picker_base_url` → bleibt `https://fulltxt.me/drive-picker.html`.
+
+Ohne diese Datei baut der `playstore`-Flavor nicht (analog zu `keystore.properties`). Der
+`dev`-Flavor ist davon unberührt.
 
 ## 5. Hosting
 `docs/drive-picker.html` wird über dieselbe GitHub-Pages-Quelle wie `docs/index.html` unter

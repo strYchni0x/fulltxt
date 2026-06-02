@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  TEMPLATE — copy this file to app/src/playstore/res/values/drive.xml and fill in the values.
+  The real file is gitignored (it contains the browser API key) so it never enters the public
+  repo. See docs/DRIVE_PICKER_SETUP.md.
+
+  picker_base_url: the hosted picker page (docs/drive-picker.html on fulltxt.me).
+  picker_app_id:   the Google Cloud project NUMBER of the public (drive.file) project.
+  picker_api_key:  a browser API key with the Picker API enabled, restricted to fulltxt.me.
+-->
+<resources>
+    <string name="picker_base_url" translatable="false">https://fulltxt.me/drive-picker.html</string>
+    <string name="picker_app_id" translatable="false">REPLACE_WITH_CLOUD_PROJECT_NUMBER</string>
+    <string name="picker_api_key" translatable="false">REPLACE_WITH_BROWSER_API_KEY</string>
+</resources>
