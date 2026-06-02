@@ -17,7 +17,7 @@ FUNKTIONEN
 
 UNTERSTÜTZTE DIENSTE
 Gratis: Nextcloud, ownCloud, MagentaCloud, Strato HiDrive, Yandex Disk und lokale Ordner auf dem Gerät.
-Mit FullTXT Pro (Einmalkauf): Google Drive, Microsoft OneDrive, Dropbox.
+Mit FullTXT Pro (Einmalkauf): Microsoft OneDrive, Dropbox.
 
 DATEIFORMATE
 PDF, Word (.docx), Excel (.xlsx), PowerPoint (.pptx), OpenDocument (.odt, .ods, .odp) sowie Text-Formate (.txt, .md, .csv, .log).
