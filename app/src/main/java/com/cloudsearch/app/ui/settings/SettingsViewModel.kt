@@ -19,11 +19,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import me.fulltxt.app.BuildConfig
 import me.fulltxt.app.data.cloud.googledrive.GoogleAuthManager
 import me.fulltxt.app.data.cloud.googledrive.GoogleDriveConnector
-import me.fulltxt.app.data.cloud.googledrive.GoogleDrivePickerManager
-import me.fulltxt.app.data.cloud.googledrive.GoogleDriveSelectionStore
 import me.fulltxt.app.data.backup.BackupManager
 import me.fulltxt.app.data.billing.BillingManager
 import me.fulltxt.app.data.cloud.local.LocalFolderAuthManager
@@ -86,8 +83,6 @@ class SettingsViewModel @Inject constructor(
     private val stratoConnector: StratoConnector,
     private val yandexConnector: YandexConnector,
     private val googleAuthManager: GoogleAuthManager,
-    private val googleDrivePickerManager: GoogleDrivePickerManager,
-    private val googleDriveSelectionStore: GoogleDriveSelectionStore,
     private val msalAuthManager: MsalAuthManager,
     private val nextcloudAuthManager: NextcloudAuthManager,
     private val ownCloudAuthManager: OwnCloudAuthManager,
@@ -302,12 +297,6 @@ class SettingsViewModel @Inject constructor(
                         _accounts.update { it + AccountUiState(account = account) }
                         observeWork(account.accountId)
                     }
-
-                    // playstore (drive.file): the app only sees what the user grants via the
-                    // Google Picker, so prompt for folders/files right after connecting.
-                    if (provider == CloudProvider.GOOGLE_DRIVE && BuildConfig.FLAVOR == "playstore") {
-                        runDrivePicker(account)
-                    }
                 }
             } catch (e: CancellationException) {
                 throw e
@@ -317,29 +306,6 @@ class SettingsViewModel @Inject constructor(
                 _connectingProvider.value = null
             }
         }
-    }
-
-    /** True for the public (drive.file) edition, where Google Drive content is chosen via the picker. */
-    val isPlaystoreEdition: Boolean = BuildConfig.FLAVOR == "playstore"
-
-    /** Re-opens the Google Picker so the user can change which folders/files are indexed. */
-    fun reselectGoogleDriveContent(account: CloudAccount) {
-        viewModelScope.launch {
-            try {
-                runDrivePicker(account)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                _errorMessage.emit("Auswahl fehlgeschlagen: ${e.localizedMessage ?: e.javaClass.simpleName}")
-            }
-        }
-    }
-
-    /** Opens the picker, persists the selection and (re-)starts indexing. Cancelling keeps the old selection. */
-    private suspend fun runDrivePicker(account: CloudAccount) {
-        val result = googleDrivePickerManager.pickSelection(account.accountId) ?: return
-        googleDriveSelectionStore.setSelection(account.accountId, result.folders, result.files)
-        startIndexing(account)
     }
 
     /** Validates ownCloud credentials and persists the account. */
@@ -595,10 +561,7 @@ class SettingsViewModel @Inject constructor(
             indexFilesUseCase.cancelDailyDelta(accountId)
             appPreferences.setDailyDeltaEnabled(accountId, false)
             when (state.account.provider) {
-                CloudProvider.GOOGLE_DRIVE -> {
-                    googleDriveConnector.signOut(accountId)
-                    googleDriveSelectionStore.clear(accountId)
-                }
+                CloudProvider.GOOGLE_DRIVE -> googleDriveConnector.signOut(accountId)
                 CloudProvider.ONE_DRIVE    -> oneDriveConnector.signOut(accountId)
                 CloudProvider.NEXTCLOUD    -> nextcloudConnector.signOut(accountId)
                 CloudProvider.OWNCLOUD       -> ownCloudConnector.signOut(accountId)

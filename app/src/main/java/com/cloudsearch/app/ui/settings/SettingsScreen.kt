@@ -76,6 +76,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import me.fulltxt.app.BuildConfig
 import me.fulltxt.app.data.preferences.ThemeMode
 import me.fulltxt.app.domain.model.CloudAccount
 import me.fulltxt.app.domain.model.CloudProvider
@@ -554,11 +555,7 @@ fun CloudAccountsScreen(
                     state = state,
                     onStartIndexing = { viewModel.startIndexing(state.account) },
                     onDisconnect = { viewModel.disconnectAccount(state.account.accountId) },
-                    onToggleDailyDelta = { enabled -> viewModel.toggleDailyDelta(state.account, enabled) },
-                    onSelectContent =
-                        if (viewModel.isPlaystoreEdition && state.account.provider == CloudProvider.GOOGLE_DRIVE)
-                            { { viewModel.reselectGoogleDriveContent(state.account) } }
-                        else null
+                    onToggleDailyDelta = { enabled -> viewModel.toggleDailyDelta(state.account, enabled) }
                 )
             }
 
@@ -569,7 +566,9 @@ fun CloudAccountsScreen(
                     modifier = Modifier.padding(vertical = 8.dp))
             }
 
-            if (CloudProvider.GOOGLE_DRIVE !in connectedProviders) {
+            // Google Drive is only offered in the dev edition (drive.readonly). The public
+            // playstore edition omits it — see the flavor comment in app/build.gradle.kts.
+            if (BuildConfig.DRIVE_ENABLED && CloudProvider.GOOGLE_DRIVE !in connectedProviders) {
                 item {
                     ConnectButton(
                         label = "Google Drive verbinden",
@@ -689,8 +688,7 @@ private fun AccountCard(
     state: AccountUiState,
     onStartIndexing: () -> Unit,
     onDisconnect: () -> Unit,
-    onToggleDailyDelta: (Boolean) -> Unit,
-    onSelectContent: (() -> Unit)? = null
+    onToggleDailyDelta: (Boolean) -> Unit
 ) {
     ElevatedCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -791,14 +789,6 @@ private fun AccountCard(
                 }
 
                 Spacer(Modifier.height(12.dp))
-
-                // playstore (drive.file): choose which Drive folders/files to grant access to.
-                if (onSelectContent != null) {
-                    OutlinedButton(onClick = onSelectContent, modifier = Modifier.fillMaxWidth()) {
-                        Text("Ordner/Dateien auswählen")
-                    }
-                    Spacer(Modifier.height(8.dp))
-                }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = onStartIndexing, modifier = Modifier.weight(1f)) {

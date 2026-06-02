@@ -10,8 +10,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Scope
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
+import com.google.api.services.drive.DriveScopes
 import dagger.hilt.android.qualifiers.ApplicationContext
-import me.fulltxt.app.BuildConfig
 import kotlinx.coroutines.CompletableDeferred
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -20,8 +20,7 @@ import javax.inject.Singleton
 class GoogleAuthManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-    // drive.file (playstore) or drive.readonly (dev) — chosen per product flavor.
-    private val driveScope = Scope(BuildConfig.DRIVE_SCOPE)
+    private val driveScope = Scope(DriveScopes.DRIVE_READONLY)
 
     private val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
         .requestEmail()
@@ -88,6 +87,6 @@ class GoogleAuthManager @Inject constructor(
 
     fun getCredential(accountName: String): GoogleAccountCredential =
         GoogleAccountCredential
-            .usingOAuth2(context, listOf(BuildConfig.DRIVE_SCOPE))
+            .usingOAuth2(context, listOf(DriveScopes.DRIVE_READONLY))
             .also { it.selectedAccountName = accountName }
 }
