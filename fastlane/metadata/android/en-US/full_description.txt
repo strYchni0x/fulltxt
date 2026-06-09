@@ -16,8 +16,7 @@ FEATURES
 • Light and dark theme (System/Light/Dark), Material You on Android 12+
 
 SUPPORTED SERVICES
-Free: Nextcloud, ownCloud, MagentaCloud, Strato HiDrive, Yandex Disk and local folders on the device.
-With FullTXT Pro (one-time purchase): Microsoft OneDrive, Dropbox.
+Microsoft OneDrive, Dropbox, Nextcloud, ownCloud, MagentaCloud, Strato HiDrive, Yandex Disk and local folders on the device. All features are free.
 
 FILE FORMATS
 PDF, Word (.docx), Excel (.xlsx), PowerPoint (.pptx), OpenDocument (.odt, .ods, .odp) and text formats (.txt, .md, .csv, .log).

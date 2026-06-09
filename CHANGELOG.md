@@ -5,6 +5,12 @@ Alle nennenswerten Änderungen an FullTXT werden in dieser Datei dokumentiert.
 Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 und das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.2.3] – 2026-06-09
+
+### Preismodell
+- Alle Funktionen sind jetzt kostenlos. Das frühere FullTXT Pro (Einmalkauf) und sämtliche In-App-Käufe wurden entfernt.
+- OneDrive und Dropbox lassen sich ohne Freischaltung verbinden.
+
 ## [1.2.2] – 2026-06-01
 
 ### Suche

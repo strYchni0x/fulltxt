@@ -1,6 +1,5 @@
 package me.fulltxt.app.ui.settings
 
-import android.app.Activity
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
@@ -22,7 +21,6 @@ import kotlinx.coroutines.launch
 import me.fulltxt.app.data.cloud.googledrive.GoogleAuthManager
 import me.fulltxt.app.data.cloud.googledrive.GoogleDriveConnector
 import me.fulltxt.app.data.backup.BackupManager
-import me.fulltxt.app.data.billing.BillingManager
 import me.fulltxt.app.data.cloud.local.LocalFolderAuthManager
 import me.fulltxt.app.data.cloud.local.LocalFolderConnector
 import me.fulltxt.app.data.cloud.dropbox.DropboxAuthManager
@@ -49,7 +47,6 @@ import me.fulltxt.app.data.preferences.ThemeMode
 import me.fulltxt.app.data.repository.IndexRepository
 import me.fulltxt.app.domain.model.CloudAccount
 import me.fulltxt.app.domain.model.CloudProvider
-import me.fulltxt.app.domain.model.requiresPro
 import me.fulltxt.app.domain.usecase.IndexFilesUseCase
 import me.fulltxt.app.worker.IndexingWorker
 import java.net.URI
@@ -92,7 +89,6 @@ class SettingsViewModel @Inject constructor(
     private val yandexAuthManager: YandexAuthManager,
     private val localFolderConnector: LocalFolderConnector,
     private val localFolderAuthManager: LocalFolderAuthManager,
-    private val billingManager: BillingManager,
     private val backupManager: BackupManager,
     private val indexFilesUseCase: IndexFilesUseCase
 ) : ViewModel() {
@@ -129,19 +125,6 @@ class SettingsViewModel @Inject constructor(
 
     fun setSearchResultLimit(limit: Int) {
         appPreferences.searchResultLimit = limit
-    }
-
-    val isPro: StateFlow<Boolean> = billingManager.isPro
-    val proPrice: StateFlow<String> = billingManager.proPrice
-
-    private val _showUpgradeDialog = MutableStateFlow(false)
-    val showUpgradeDialog: StateFlow<Boolean> = _showUpgradeDialog.asStateFlow()
-
-    fun showUpgradeDialog() { _showUpgradeDialog.value = true }
-    fun dismissUpgradeDialog() { _showUpgradeDialog.value = false }
-    fun purchasePro(activity: Activity) {
-        dismissUpgradeDialog()
-        billingManager.launchBillingFlow(activity)
     }
 
     private val _exportSuccess = MutableSharedFlow<Unit>()
@@ -235,10 +218,6 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun connectAccount(provider: CloudProvider) {
-        if (provider.requiresPro && !isPro.value) {
-            showUpgradeDialog()
-            return
-        }
         viewModelScope.launch {
             _connectingProvider.value = provider
             try {

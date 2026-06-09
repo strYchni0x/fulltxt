@@ -16,8 +16,7 @@ FUNKTIONEN
 • Helles und dunkles Design (System/Hell/Dunkel), Material You auf Android 12+
 
 UNTERSTÜTZTE DIENSTE
-Gratis: Nextcloud, ownCloud, MagentaCloud, Strato HiDrive, Yandex Disk und lokale Ordner auf dem Gerät.
-Mit FullTXT Pro (Einmalkauf): Microsoft OneDrive, Dropbox.
+Microsoft OneDrive, Dropbox, Nextcloud, ownCloud, MagentaCloud, Strato HiDrive, Yandex Disk und lokale Ordner auf dem Gerät. Alle Funktionen sind kostenlos.
 
 DATEIFORMATE
 PDF, Word (.docx), Excel (.xlsx), PowerPoint (.pptx), OpenDocument (.odt, .ods, .odp) sowie Text-Formate (.txt, .md, .csv, .log).

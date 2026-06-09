@@ -1,0 +1,3 @@
+Neu in 1.2.3:
+• Alle Funktionen sind jetzt kostenlos – kein FullTXT Pro und keine In-App-Käufe mehr
+• OneDrive und Dropbox lassen sich ohne Freischaltung verbinden

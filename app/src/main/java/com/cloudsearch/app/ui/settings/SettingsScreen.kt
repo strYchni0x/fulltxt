@@ -14,7 +14,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import java.text.SimpleDateFormat
@@ -27,15 +26,12 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOpen
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -406,10 +402,6 @@ fun CloudAccountsScreen(
 ) {
     val accounts by viewModel.accounts.collectAsState()
     val connectingProvider by viewModel.connectingProvider.collectAsState()
-    val isPro by viewModel.isPro.collectAsState()
-    val proPrice by viewModel.proPrice.collectAsState()
-    val showUpgradeDialog by viewModel.showUpgradeDialog.collectAsState()
-    val activity = LocalContext.current as ComponentActivity
 
     val folderPickerLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocumentTree()
@@ -486,33 +478,6 @@ fun CloudAccountsScreen(
         )
     }
 
-    if (showUpgradeDialog) {
-        AlertDialog(
-            onDismissRequest = viewModel::dismissUpgradeDialog,
-            title = { Text("FullTXT Pro") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Google Drive, OneDrive und Dropbox sind Teil von FullTXT Pro.")
-                    Text(
-                        if (proPrice.isNotEmpty()) "$proPrice · Einmalig"
-                        else "Preis wird geladen…",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            },
-            confirmButton = {
-                Button(onClick = { viewModel.purchasePro(activity) }) {
-                    Text("Jetzt kaufen")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::dismissUpgradeDialog) { Text("Abbrechen") }
-            }
-        )
-    }
-
     val connectedProviders = accounts.map { it.account.provider }.toSet()
 
     Scaffold(
@@ -573,7 +538,6 @@ fun CloudAccountsScreen(
                     ConnectButton(
                         label = "Google Drive verbinden",
                         isConnecting = connectingProvider == CloudProvider.GOOGLE_DRIVE,
-                        isLocked = !isPro,
                         onClick = { viewModel.connectAccount(CloudProvider.GOOGLE_DRIVE) }
                     )
                 }
@@ -584,7 +548,6 @@ fun CloudAccountsScreen(
                     ConnectButton(
                         label = "OneDrive verbinden",
                         isConnecting = connectingProvider == CloudProvider.ONE_DRIVE,
-                        isLocked = !isPro,
                         onClick = { viewModel.connectAccount(CloudProvider.ONE_DRIVE) }
                     )
                 }
@@ -645,7 +608,6 @@ fun CloudAccountsScreen(
                     ConnectButton(
                         label = "Dropbox verbinden",
                         isConnecting = connectingProvider == CloudProvider.DROPBOX,
-                        isLocked = !isPro,
                         onClick = { viewModel.connectAccount(CloudProvider.DROPBOX) }
                     )
                 }
@@ -812,7 +774,6 @@ private fun AccountCard(
 private fun ConnectButton(
     label: String,
     isConnecting: Boolean,
-    isLocked: Boolean = false,
     onClick: () -> Unit
 ) {
     OutlinedButton(
@@ -826,24 +787,12 @@ private fun ConnectButton(
             Text("Verbinde…")
         } else {
             Icon(
-                if (isLocked) Icons.Default.Lock else Icons.Default.Add,
+                Icons.Default.Add,
                 contentDescription = null,
                 modifier = Modifier.size(18.dp)
             )
             Spacer(Modifier.width(8.dp))
             Text(label, modifier = Modifier.weight(1f))
-            if (isLocked) {
-                Spacer(Modifier.width(8.dp))
-                Badge(
-                    containerColor = MaterialTheme.colorScheme.primary
-                ) {
-                    Text(
-                        "PRO",
-                        style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.padding(horizontal = 4.dp)
-                    )
-                }
-            }
         }
     }
 }
