@@ -3,6 +3,7 @@ package me.fulltxt.app.data.repository
 import android.content.Context
 import me.fulltxt.app.data.cloud.CloudConnector
 import me.fulltxt.app.data.extractor.TextExtractor
+import me.fulltxt.app.data.preferences.AppPreferences
 import me.fulltxt.app.data.local.dao.FileIndexDao
 import me.fulltxt.app.data.local.entity.FileContentEntity
 import me.fulltxt.app.data.local.entity.FileMetadataEntity
@@ -17,7 +18,8 @@ import javax.inject.Singleton
 @Singleton
 class IndexRepository @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val dao: FileIndexDao
+    private val dao: FileIndexDao,
+    private val appPreferences: AppPreferences
 ) {
     private val syncPrefs = context.getSharedPreferences("fulltxt_sync", Context.MODE_PRIVATE)
 
@@ -101,7 +103,7 @@ class IndexRepository @Inject constructor(
         val tempFile = File.createTempFile("idx_", ".tmp", context.cacheDir)
         try {
             tempFile.writeBytes(connector.downloadFile(file.fileId, file.accountId))
-            val text = TextExtractor.extract(tempFile, file.mimeType)
+            val text = TextExtractor.extract(tempFile, file.mimeType, appPreferences.ocrEnabled)
             dao.upsertFile(
                 metadata = file.toMetadataEntity(),
                 content = FileContentEntity(

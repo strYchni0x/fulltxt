@@ -89,6 +89,7 @@ fun SettingsScreen(
     val recentSearchLimit by viewModel.recentSearchLimit.collectAsState()
     val themeMode by viewModel.themeMode.collectAsState()
     val fileTypeIcons by viewModel.fileTypeIcons.collectAsState()
+    val ocrEnabled by viewModel.ocrEnabled.collectAsState()
     val searchResultLimit by viewModel.searchResultLimit.collectAsState()
     val dbSizeBytes by viewModel.dbSizeBytes.collectAsState()
 
@@ -337,6 +338,23 @@ fun SettingsScreen(
                                 if (enabled) showMeteredWarning = true
                                 else viewModel.setAllowMeteredIndexing(false)
                             }
+                        )
+                    }
+                )
+                ListItem(
+                    headlineContent = { Text("Texterkennung (OCR)") },
+                    supportingContent = {
+                        Text(
+                            if (ocrEnabled)
+                                "Gescannte PDFs ohne Textebene werden per OCR erkannt – deutlich langsamer und mit höherem Akku-/CPU-Verbrauch. Läuft vollständig offline."
+                            else
+                                "Gescannte PDFs (reine Bilder) werden nicht durchsucht. Einschalten aktiviert Offline-OCR – langsamer und akkuintensiver."
+                        )
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = ocrEnabled,
+                            onCheckedChange = { viewModel.setOcrEnabled(it) }
                         )
                     }
                 )

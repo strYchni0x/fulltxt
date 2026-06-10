@@ -1,0 +1,2 @@
+New in 1.2.4:
+• Optional offline text recognition (OCR) for scanned PDFs – off by default, enable under Settings → Indexing

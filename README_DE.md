@@ -43,7 +43,7 @@ Mehrere Accounts desselben Anbieters werden unterstützt.
 | Format | Erweiterungen | Hinweis |
 |---|---|---|
 | Nur-Text | `.txt` `.md` `.csv` `.log` | Direkt lesbar, keine Bibliothek nötig |
-| PDF | `.pdf` | Nur durchsuchbare PDFs — kein OCR für gescannte Seiten |
+| PDF | `.pdf` | Durchsuchbare PDFs via PDFBox; gescannte PDFs optional per Offline-OCR (ML Kit, in Einstellungen aktivierbar, standardmäßig aus) |
 | Word | `.docx` | Apache POI |
 | Excel | `.xlsx` | Apache POI |
 | PowerPoint | `.pptx` | Apache POI |

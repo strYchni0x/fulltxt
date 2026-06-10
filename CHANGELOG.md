@@ -5,6 +5,11 @@ Alle nennenswerten Änderungen an FullTXT werden in dieser Datei dokumentiert.
 Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 und das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.2.4] – 2026-06-10
+
+### Indexierung
+- Optionale Texterkennung (OCR) für gescannte PDFs – vollständig offline (ML Kit), standardmäßig deaktiviert. Einschaltbar unter Einstellungen → Indexierung; greift nur bei PDFs ohne Textebene und ist deutlich langsamer und akkuintensiver.
+
 ## [1.2.3] – 2026-06-09
 
 ### Preismodell

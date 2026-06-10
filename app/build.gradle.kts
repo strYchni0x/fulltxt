@@ -20,8 +20,8 @@ android {
         applicationId = "me.fulltxt.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 13
-        versionName = "1.2.3"
+        versionCode = 14
+        versionName = "1.2.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -150,6 +150,9 @@ dependencies {
         exclude(group = "org.apache.xmlbeans")
         exclude(group = "com.github.virtuald")
     }
+
+    // OCR for scanned PDFs (on-device, bundled model — fully offline)
+    implementation(libs.mlkit.text.recognition)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

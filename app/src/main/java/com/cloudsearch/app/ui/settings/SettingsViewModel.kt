@@ -120,6 +120,12 @@ class SettingsViewModel @Inject constructor(
         appPreferences.fileTypeIcons = enabled
     }
 
+    val ocrEnabled: StateFlow<Boolean> = appPreferences.ocrEnabledFlow
+
+    fun setOcrEnabled(enabled: Boolean) {
+        appPreferences.ocrEnabled = enabled
+    }
+
     val searchResultLimit: StateFlow<Int> = appPreferences.searchResultLimitFlow
     val searchResultLimitOptions = AppPreferences.SEARCH_LIMIT_OPTIONS
 

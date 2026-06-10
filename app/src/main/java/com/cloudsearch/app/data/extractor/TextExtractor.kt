@@ -18,10 +18,13 @@ import java.util.zip.ZipFile
 
 object TextExtractor {
 
-    fun extract(file: File, mimeType: String): String = runCatching {
+    /** A PDF with fewer than this many non-whitespace characters is treated as having no text layer. */
+    private const val OCR_TEXT_LAYER_THRESHOLD = 16
+
+    fun extract(file: File, mimeType: String, ocrEnabled: Boolean = false): String = runCatching {
         when {
             isPlainText(mimeType) -> extractPlainText(file)
-            isPdf(mimeType)       -> extractPdf(file)
+            isPdf(mimeType)       -> extractPdf(file, ocrEnabled)
             isDocx(mimeType)      -> extractDocx(file)
             isXlsx(mimeType)      -> extractXlsx(file)
             isPptx(mimeType)      -> extractPptx(file)
@@ -41,8 +44,15 @@ object TextExtractor {
         runCatching { file.readText(Charsets.UTF_8) }
             .getOrElse { file.readText(Charsets.ISO_8859_1) }
 
-    private fun extractPdf(file: File): String =
-        PDDocument.load(file).use { PDFTextStripper().getText(it) }
+    private fun extractPdf(file: File, ocrEnabled: Boolean): String {
+        val embedded = PDDocument.load(file).use { PDFTextStripper().getText(it) }
+        // Scanned/image-only PDFs have little or no embedded text. Fall back to OCR only when
+        // the user opted in — OCR is far slower and more battery-intensive than text extraction.
+        if (ocrEnabled && embedded.count { !it.isWhitespace() } < OCR_TEXT_LAYER_THRESHOLD) {
+            return PdfOcr.extract(file)
+        }
+        return embedded
+    }
 
     private fun extractDocx(file: File): String =
         XWPFDocument(file.inputStream()).use { doc ->

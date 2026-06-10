@@ -77,6 +77,22 @@ class AppPreferences @Inject constructor(
         get() = prefs.getBoolean(KEY_ALLOW_METERED, false)
         set(value) = prefs.edit { putBoolean(KEY_ALLOW_METERED, value) }
 
+    private val _ocrEnabled = MutableStateFlow(prefs.getBoolean(KEY_OCR_ENABLED, false))
+
+    /** Reactive flag so settings reflects the OCR toggle live. */
+    val ocrEnabledFlow: StateFlow<Boolean> = _ocrEnabled.asStateFlow()
+
+    /**
+     * When true, scanned/image-only PDFs are run through on-device OCR during indexing.
+     * Off by default: OCR is significantly slower and more battery-intensive.
+     */
+    var ocrEnabled: Boolean
+        get() = _ocrEnabled.value
+        set(value) {
+            prefs.edit { putBoolean(KEY_OCR_ENABLED, value) }
+            _ocrEnabled.value = value
+        }
+
     /** Returns true if the daily automatic delta sync is enabled for the given account. */
     fun isDailyDeltaEnabled(accountId: String): Boolean =
         prefs.getBoolean(dailyDeltaKey(accountId), false)
@@ -112,6 +128,7 @@ class AppPreferences @Inject constructor(
         private const val KEY_THEME_MODE = "theme_mode"
         private const val KEY_FILE_TYPE_ICONS = "file_type_icons"
         private const val KEY_SEARCH_LIMIT = "search_result_limit"
+        private const val KEY_OCR_ENABLED = "ocr_enabled"
         const val DEFAULT_SEARCH_LIMIT = 100
         val SEARCH_LIMIT_OPTIONS = listOf(50, 100, 200, 500)
         const val DEFAULT_RECENT_LIMIT = 5

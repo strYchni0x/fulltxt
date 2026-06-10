@@ -11,6 +11,7 @@ FUNKTIONEN
 • Einstellbare maximale Trefferanzahl und gespeicherte letzte Suchbegriffe
 • Farbige Dateityp-Symbole in den Ergebnissen
 • Indexierung als Foreground-Service mit Fortschrittsanzeige
+• Optionale Offline-Texterkennung (OCR) für gescannte PDFs – standardmäßig aus
 • Erkennung von Duplikaten über mehrere Anbieter hinweg
 • Index-Backup: exportieren und auf einem neuen Gerät wiederherstellen
 • Helles und dunkles Design (System/Hell/Dunkel), Material You auf Android 12+

@@ -11,6 +11,7 @@ FEATURES
 • Configurable maximum result count and saved recent searches
 • Colored file-type icons in the results
 • Indexing runs as a foreground service with a progress notification
+• Optional offline text recognition (OCR) for scanned PDFs – off by default
 • Duplicate detection across multiple providers
 • Index backup: export and restore on a new device
 • Light and dark theme (System/Light/Dark), Material You on Android 12+
