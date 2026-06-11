@@ -5,6 +5,11 @@ Alle nennenswerten Änderungen an FullTXT werden in dieser Datei dokumentiert.
 Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 und das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.2.5] – 2026-06-11
+
+### Indexierung
+- Texterkennung (OCR) läuft jetzt als eigener, fortsetzbarer Hintergrund-Lauf. Die normale Indexierung bleibt dadurch schnell und bricht nicht mehr ab; gescannte PDFs werden anschließend nach und nach nachgezogen – auch wenn das System die Verarbeitung zwischendurch unterbricht.
+
 ## [1.2.4] – 2026-06-10
 
 ### Indexierung

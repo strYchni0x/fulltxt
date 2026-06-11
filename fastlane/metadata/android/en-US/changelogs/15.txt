@@ -1,0 +1,2 @@
+New in 1.2.5:
+• OCR now runs as a separate, resumable background pass – indexing stays fast and no longer stalls

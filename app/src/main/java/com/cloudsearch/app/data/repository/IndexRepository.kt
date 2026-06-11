@@ -2,7 +2,9 @@ package me.fulltxt.app.data.repository
 
 import android.content.Context
 import me.fulltxt.app.data.cloud.CloudConnector
+import me.fulltxt.app.data.extractor.PdfOcr
 import me.fulltxt.app.data.extractor.TextExtractor
+import me.fulltxt.app.data.ocr.OcrQueue
 import me.fulltxt.app.data.preferences.AppPreferences
 import me.fulltxt.app.data.local.dao.FileIndexDao
 import me.fulltxt.app.data.local.entity.FileContentEntity
@@ -19,7 +21,8 @@ import javax.inject.Singleton
 class IndexRepository @Inject constructor(
     @ApplicationContext private val context: Context,
     private val dao: FileIndexDao,
-    private val appPreferences: AppPreferences
+    private val appPreferences: AppPreferences,
+    private val ocrQueue: OcrQueue
 ) {
     private val syncPrefs = context.getSharedPreferences("fulltxt_sync", Context.MODE_PRIVATE)
 
@@ -103,7 +106,7 @@ class IndexRepository @Inject constructor(
         val tempFile = File.createTempFile("idx_", ".tmp", context.cacheDir)
         try {
             tempFile.writeBytes(connector.downloadFile(file.fileId, file.accountId))
-            val text = TextExtractor.extract(tempFile, file.mimeType, appPreferences.ocrEnabled)
+            val text = TextExtractor.extract(tempFile, file.mimeType)
             dao.upsertFile(
                 metadata = file.toMetadataEntity(),
                 content = FileContentEntity(
@@ -112,9 +115,49 @@ class IndexRepository @Inject constructor(
                     content = text
                 )
             )
+            // Scanned PDFs (no text layer) are queued for a separate, resumable OCR pass instead
+            // of being OCR'd inline here — that keeps the main indexing pass fast.
+            if (appPreferences.ocrEnabled && TextExtractor.pdfNeedsOcr(file.mimeType, text)) {
+                ocrQueue.add(file.fileId)
+            } else {
+                ocrQueue.remove(file.fileId)
+            }
         } finally {
             tempFile.delete()
         }
+        return true
+    }
+
+    /**
+     * Downloads a single queued file, runs OCR on it and replaces its stored content.
+     * [connectorFor] resolves a [CloudConnector] for the file's provider (the worker owns the
+     * connector instances). Returns false if the file is gone or its provider is unavailable;
+     * the file is removed from the OCR queue on success so the pass can resume after interruption.
+     */
+    suspend fun ocrPendingFile(fileId: String, connectorFor: (String) -> CloudConnector?): Boolean {
+        val meta = dao.getMetadata(fileId)
+        if (meta == null) {
+            ocrQueue.remove(fileId)
+            return false
+        }
+        val connector = connectorFor(meta.cloudProvider) ?: return false
+
+        val tempFile = File.createTempFile("ocr_", ".tmp", context.cacheDir)
+        try {
+            tempFile.writeBytes(connector.downloadFile(meta.fileId, meta.accountId))
+            val text = PdfOcr.extract(tempFile)
+            dao.upsertFile(
+                metadata = meta,
+                content = FileContentEntity(
+                    fileId = meta.fileId,
+                    fileName = meta.fileName,
+                    content = text
+                )
+            )
+        } finally {
+            tempFile.delete()
+        }
+        ocrQueue.remove(fileId)
         return true
     }
 

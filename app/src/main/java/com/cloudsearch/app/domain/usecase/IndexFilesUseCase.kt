@@ -13,6 +13,7 @@ import androidx.work.workDataOf
 import me.fulltxt.app.data.preferences.AppPreferences
 import me.fulltxt.app.domain.model.CloudProvider
 import me.fulltxt.app.worker.IndexingWorker
+import me.fulltxt.app.worker.OcrWorker
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -24,6 +25,29 @@ class IndexFilesUseCase @Inject constructor(
     companion object {
         fun workTag(accountId: String)  = "indexing_$accountId"
         fun dailyTag(accountId: String) = "daily_delta_$accountId"
+        const val OCR_WORK = "ocr_processing"
+    }
+
+    /**
+     * Schedules the resumable OCR pass that drains the OcrQueue. Unique + KEEP so a single OCR
+     * worker runs at a time; it reschedules itself while files remain. Requires network because
+     * queued files are re-downloaded for rendering.
+     */
+    fun scheduleOcr() {
+        val networkType = if (appPreferences.allowMeteredIndexing) NetworkType.CONNECTED
+                          else NetworkType.UNMETERED
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(networkType)
+            .build()
+
+        val request = OneTimeWorkRequestBuilder<OcrWorker>()
+            .setConstraints(constraints)
+            .addTag(OCR_WORK)
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 1, TimeUnit.MINUTES)
+            .build()
+
+        WorkManager.getInstance(context)
+            .enqueueUniqueWork(OCR_WORK, ExistingWorkPolicy.KEEP, request)
     }
 
     fun scheduleInitialIndexing(accountId: String, provider: CloudProvider) {

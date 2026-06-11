@@ -24,7 +24,9 @@ import me.fulltxt.app.data.cloud.onedrive.OneDriveConnector
 import me.fulltxt.app.data.cloud.owncloud.OwnCloudConnector
 import me.fulltxt.app.data.cloud.strato.StratoConnector
 import me.fulltxt.app.data.cloud.yandex.YandexConnector
+import me.fulltxt.app.data.ocr.OcrQueue
 import me.fulltxt.app.data.repository.IndexRepository
+import me.fulltxt.app.domain.usecase.IndexFilesUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 
@@ -41,7 +43,9 @@ class IndexingWorker @AssistedInject constructor(
     private val magentaCloudConnector: MagentaCloudConnector,
     private val stratoConnector: StratoConnector,
     private val yandexConnector: YandexConnector,
-    private val localFolderConnector: LocalFolderConnector
+    private val localFolderConnector: LocalFolderConnector,
+    private val ocrQueue: OcrQueue,
+    private val indexFilesUseCase: IndexFilesUseCase
 ) : CoroutineWorker(appContext, params) {
 
     companion object {
@@ -125,6 +129,10 @@ class IndexingWorker @AssistedInject constructor(
             }
 
             indexRepository.markFullyIndexed(accountId)
+
+            // Scanned PDFs found during this pass are OCR'd by a separate, resumable worker so
+            // this (potentially long) OCR work no longer blocks or restarts the main index.
+            if (ocrQueue.size() > 0) indexFilesUseCase.scheduleOcr()
 
             if (errors > 0 && current == errors) Result.failure() else Result.success()
         } catch (e: Exception) {

@@ -1,0 +1,2 @@
+Neu in 1.2.5:
+• OCR läuft jetzt als separater, fortsetzbarer Hintergrund-Lauf – die Indexierung bleibt schnell und bricht nicht mehr ab

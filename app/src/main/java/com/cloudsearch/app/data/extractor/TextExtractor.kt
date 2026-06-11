@@ -21,10 +21,10 @@ object TextExtractor {
     /** A PDF with fewer than this many non-whitespace characters is treated as having no text layer. */
     private const val OCR_TEXT_LAYER_THRESHOLD = 16
 
-    fun extract(file: File, mimeType: String, ocrEnabled: Boolean = false): String = runCatching {
+    fun extract(file: File, mimeType: String): String = runCatching {
         when {
             isPlainText(mimeType) -> extractPlainText(file)
-            isPdf(mimeType)       -> extractPdf(file, ocrEnabled)
+            isPdf(mimeType)       -> extractPdf(file)
             isDocx(mimeType)      -> extractDocx(file)
             isXlsx(mimeType)      -> extractXlsx(file)
             isPptx(mimeType)      -> extractPptx(file)
@@ -44,15 +44,16 @@ object TextExtractor {
         runCatching { file.readText(Charsets.UTF_8) }
             .getOrElse { file.readText(Charsets.ISO_8859_1) }
 
-    private fun extractPdf(file: File, ocrEnabled: Boolean): String {
-        val embedded = PDDocument.load(file).use { PDFTextStripper().getText(it) }
-        // Scanned/image-only PDFs have little or no embedded text. Fall back to OCR only when
-        // the user opted in — OCR is far slower and more battery-intensive than text extraction.
-        if (ocrEnabled && embedded.count { !it.isWhitespace() } < OCR_TEXT_LAYER_THRESHOLD) {
-            return PdfOcr.extract(file)
-        }
-        return embedded
-    }
+    private fun extractPdf(file: File): String =
+        PDDocument.load(file).use { PDFTextStripper().getText(it) }
+
+    /**
+     * True for a scanned/image-only PDF: the file is a PDF but [extractedText] (from [extract])
+     * has essentially no embedded text layer. Such files are queued for OCR instead of being
+     * OCR'd inline, so the main indexing pass stays fast and the OCR pass can run separately.
+     */
+    fun pdfNeedsOcr(mimeType: String, extractedText: String): Boolean =
+        isPdf(mimeType) && extractedText.count { !it.isWhitespace() } < OCR_TEXT_LAYER_THRESHOLD
 
     private fun extractDocx(file: File): String =
         XWPFDocument(file.inputStream()).use { doc ->
