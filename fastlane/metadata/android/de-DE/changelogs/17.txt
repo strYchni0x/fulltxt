@@ -1,0 +1,2 @@
+Neu in 1.2.7:
+• Behebt einen Out-of-Memory-Absturz beim Indexieren großer Dateien (größerer Arbeitsspeicher-Heap)

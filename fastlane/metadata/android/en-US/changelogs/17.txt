@@ -1,0 +1,2 @@
+New in 1.2.7:
+• Fixes an out-of-memory crash when indexing large files (larger memory heap)
