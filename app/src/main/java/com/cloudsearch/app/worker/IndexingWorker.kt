@@ -29,6 +29,11 @@ import me.fulltxt.app.data.repository.IndexRepository
 import me.fulltxt.app.domain.usecase.IndexFilesUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CancellationException
+import java.io.IOException
+import java.net.ConnectException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 @HiltWorker
 class IndexingWorker @AssistedInject constructor(
@@ -54,7 +59,12 @@ class IndexingWorker @AssistedInject constructor(
         const val PROGRESS_CURRENT = "progress_current"
         const val PROGRESS_TOTAL   = "progress_total"
         const val PROGRESS_ERRORS  = "progress_errors"
+        /** Human-readable failure reason, set in the worker's output data on Result.failure(). */
+        const val KEY_ERROR        = "error_message"
         private const val NOTIFICATION_ID = 1001
+        private const val MAX_RETRIES = 3
+        private const val AUTH_MESSAGE =
+            "Anmeldung fehlgeschlagen – Benutzername, Passwort und Server-URL prüfen."
 
         /** Files larger than this limit are skipped to avoid OOM. */
         private const val MAX_FILE_BYTES = 50L * 1024 * 1024  // 50 MB
@@ -134,10 +144,46 @@ class IndexingWorker @AssistedInject constructor(
             // this (potentially long) OCR work no longer blocks or restarts the main index.
             if (ocrQueue.size() > 0) indexFilesUseCase.scheduleOcr()
 
-            if (errors > 0 && current == errors) Result.failure() else Result.success()
+            if (total > 0 && current == errors) {
+                Result.failure(workDataOf(KEY_ERROR to
+                    "Keine Datei konnte verarbeitet werden – bitte Verbindung und Zugangsdaten prüfen."))
+            } else {
+                Result.success()
+            }
+        } catch (e: CancellationException) {
+            // The system stopped the worker (e.g. FGS time limit). Let WorkManager handle the
+            // reschedule itself — don't turn a stop into a user-visible failure.
+            throw e
         } catch (e: Exception) {
-            if (runAttemptCount < 3) Result.retry() else Result.failure()
+            // Wrong credentials/URL will never succeed on retry, so fail fast with a clear message
+            // instead of looping (the silent retry loop also got the app flagged as "buggy").
+            if (isAuthError(e)) {
+                Result.failure(workDataOf(KEY_ERROR to AUTH_MESSAGE))
+            } else if (runAttemptCount < MAX_RETRIES) {
+                Result.retry()
+            } else {
+                Result.failure(workDataOf(KEY_ERROR to transientMessage(e)))
+            }
         }
+    }
+
+    /** Auth failures (bad username/password, missing or rejected credentials) — not retryable. */
+    private fun isAuthError(e: Throwable): Boolean {
+        if (e is IllegalStateException) return true   // connectors throw this for missing creds
+        val msg = e.message ?: return false
+        return msg.contains("401") || msg.contains("403") ||
+            msg.contains("Authentifiz", ignoreCase = true) ||
+            msg.contains("Zugangsdaten", ignoreCase = true) ||
+            msg.contains("unauthorized", ignoreCase = true) ||
+            msg.contains("forbidden", ignoreCase = true)
+    }
+
+    private fun transientMessage(e: Throwable): String = when (e) {
+        is UnknownHostException ->
+            "Server nicht erreichbar – Server-URL und Internetverbindung prüfen."
+        is ConnectException, is SocketTimeoutException, is IOException ->
+            "Verbindung zum Server fehlgeschlagen – bitte später erneut versuchen."
+        else -> "Indexierung fehlgeschlagen: ${e.message ?: e.javaClass.simpleName}"
     }
 
     private fun buildForegroundInfo(current: Int, total: Int, errors: Int): ForegroundInfo {

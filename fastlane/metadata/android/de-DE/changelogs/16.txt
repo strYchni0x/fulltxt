@@ -1,0 +1,3 @@
+Neu in 1.2.6:
+• Fehlgeschlagene Indexierungen zeigen jetzt eine klare Fehlermeldung (z. B. falsche Zugangsdaten/URL) statt still abzubrechen
+• Keine Endlos-Wiederholung mehr bei Anmeldefehlern

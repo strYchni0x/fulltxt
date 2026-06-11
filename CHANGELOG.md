@@ -5,6 +5,12 @@ Alle nennenswerten Änderungen an FullTXT werden in dieser Datei dokumentiert.
 Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 und das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.2.6] – 2026-06-11
+
+### Indexierung
+- Fehlgeschlagene Indexierungen zeigen jetzt eine **Klartext-Fehlermeldung** auf der Konto-Karte (z. B. falsche Anmeldedaten oder Server-URL) statt still abzubrechen.
+- Bei **Anmeldefehlern** wird nicht mehr endlos wiederholt – das verhindert eine Dauerschleife aus Fehlversuchen.
+
 ## [1.2.5] – 2026-06-11
 
 ### Indexierung

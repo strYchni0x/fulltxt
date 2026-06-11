@@ -60,7 +60,8 @@ data class AccountUiState(
     val workState: WorkInfo.State? = null,
     val progressCurrent: Int = 0,
     val progressTotal: Int = 0,
-    val progressErrors: Int = 0
+    val progressErrors: Int = 0,
+    val error: String? = null
 ) {
     val isRunning get() = workState == WorkInfo.State.RUNNING || workState == WorkInfo.State.ENQUEUED
     val progressFraction get() = if (progressTotal > 0) progressCurrent.toFloat() / progressTotal else 0f
@@ -206,6 +207,13 @@ class SettingsViewModel @Inject constructor(
                 val isFullyIndexed = if (active == null) indexRepository.isFullyIndexed(accountId)
                                      else false
 
+                // Surface a failed index (e.g. wrong credentials/URL) instead of failing silently.
+                // Cleared once running again or once a full index succeeds.
+                val error = if (active == null && !isFullyIndexed) {
+                    workInfos.lastOrNull { it.state == WorkInfo.State.FAILED }
+                        ?.outputData?.getString(IndexingWorker.KEY_ERROR)
+                } else null
+
                 _accounts.update { list ->
                     list.map { state ->
                         if (state.account.accountId != accountId) state
@@ -215,7 +223,8 @@ class SettingsViewModel @Inject constructor(
                             workState = active?.state,
                             progressCurrent = active?.progress?.getInt(IndexingWorker.PROGRESS_CURRENT, 0) ?: 0,
                             progressTotal = active?.progress?.getInt(IndexingWorker.PROGRESS_TOTAL, 0) ?: 0,
-                            progressErrors = active?.progress?.getInt(IndexingWorker.PROGRESS_ERRORS, 0) ?: 0
+                            progressErrors = active?.progress?.getInt(IndexingWorker.PROGRESS_ERRORS, 0) ?: 0,
+                            error = error
                         )
                     }
                 }
