@@ -1,0 +1,2 @@
+Neu in 1.2.8:
+• Akku-Optimierungs-Dialog führt jetzt zu den System-Einstellungen (entfernt eine nicht mehr benötigte Berechtigung)

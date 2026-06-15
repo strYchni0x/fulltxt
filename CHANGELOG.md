@@ -5,6 +5,11 @@ Alle nennenswerten Änderungen an FullTXT werden in dieser Datei dokumentiert.
 Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 und das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.2.8] – 2026-06-14
+
+### Berechtigungen
+- Die Berechtigung `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` wurde entfernt (von Google Play nur für eng definierte App-Kategorien erlaubt). Der Akku-Optimierungs-Dialog öffnet jetzt die System-Einstellungsseite, in der FullTXT ausgenommen werden kann.
+
 ## [1.2.7] – 2026-06-11
 
 ### Stabilität

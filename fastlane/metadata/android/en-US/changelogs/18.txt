@@ -1,0 +1,2 @@
+New in 1.2.8:
+• Battery-optimization dialog now opens the system settings (removes a permission that is no longer needed)

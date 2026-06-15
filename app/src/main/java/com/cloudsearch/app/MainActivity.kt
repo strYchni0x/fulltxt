@@ -1,7 +1,6 @@
 package me.fulltxt.app
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
@@ -76,11 +75,11 @@ class MainActivity : ComponentActivity() {
                         onConfirm = {
                             appPreferences.batteryOptimizationPromptShown = true
                             showBatteryDialog = false
-                            startActivity(
-                                Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                                    data = Uri.parse("package:$packageName")
-                                }
-                            )
+                            // Open the system battery-optimization settings list (no special
+                            // permission required). The direct ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+                            // intent needs REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, which Google Play
+                            // restricts to a narrow set of app categories, so we avoid it.
+                            startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
                         },
                         onDismiss = {
                             appPreferences.batteryOptimizationPromptShown = true
