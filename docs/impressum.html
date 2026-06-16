@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FullTXT – Impressum / Legal Notice</title>
+  <link rel="icon" href="assets/icon-192.png" type="image/png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg:#0c0c0c; --surface:#161616; --border:#2a2a2a; --primary:#22c55e; --text:#f0f0f0; --muted:#888; }
+    body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; line-height:1.7; }
+    nav { display:flex; align-items:center; justify-content:space-between; padding:0 24px; height:60px; background:rgba(12,12,12,.9); border-bottom:1px solid var(--border); }
+    .nav-logo { font-size:1.1rem; font-weight:700; color:var(--primary); text-decoration:none; }
+    .lang-switcher { display:flex; gap:4px; }
+    .lang-btn { background:none; border:1px solid var(--border); color:var(--muted); padding:4px 10px; border-radius:6px; cursor:pointer; font-size:.85rem; transition:all .15s; }
+    .lang-btn.active, .lang-btn:hover { border-color:var(--primary); color:var(--primary); }
+    .content { max-width:780px; margin:0 auto; padding:60px 24px; }
+    h1 { font-size:2rem; font-weight:800; margin-bottom:8px; }
+    .meta { color:var(--muted); font-size:.9rem; margin-bottom:48px; }
+    h2 { font-size:1.15rem; font-weight:700; margin:36px 0 12px; color:var(--primary); }
+    p { color:#ccc; margin-bottom:14px; }
+    a { color:var(--primary); }
+    .back-link { display:inline-flex; align-items:center; gap:6px; color:var(--muted); text-decoration:none; font-size:.9rem; margin-bottom:32px; transition:color .15s; }
+    .back-link:hover { color:var(--primary); }
+    [data-lang] { display:none; }
+    body.lang-de [data-lang="de"] { display:block; }
+    body.lang-en [data-lang="en"] { display:block; }
+  </style>
+</head>
+<body class="lang-de">
+<nav>
+  <a class="nav-logo" href="index.html">← FullTXT</a>
+  <div class="lang-switcher">
+    <button class="lang-btn active" id="btn-de" onclick="setLang('de')">DE</button>
+    <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+  </div>
+</nav>
+
+<div class="content">
+
+<!-- DEUTSCH -->
+<div data-lang="de">
+  <h1>Impressum</h1>
+  <p class="meta">Angaben gemäß § 5 DDG</p>
+
+  <h2>Anbieter</h2>
+  <p>
+    Florian Willnat<br>
+    Luisenstraße 1<br>
+    49356 Diepholz<br>
+    Deutschland
+  </p>
+
+  <h2>Kontakt</h2>
+  <p>E-Mail: <a href="mailto:info@fulltxt.me">info@fulltxt.me</a></p>
+
+  <h2>Verantwortlich für den Inhalt (§ 18 Abs. 2 MStV)</h2>
+  <p>
+    Florian Willnat<br>
+    Luisenstraße 1<br>
+    49356 Diepholz
+  </p>
+</div>
+
+<!-- ENGLISH -->
+<div data-lang="en">
+  <h1>Legal Notice</h1>
+  <p class="meta">Information pursuant to § 5 DDG (German Digital Services Act)</p>
+
+  <h2>Provider</h2>
+  <p>
+    Florian Willnat<br>
+    Luisenstraße 1<br>
+    49356 Diepholz<br>
+    Germany
+  </p>
+
+  <h2>Contact</h2>
+  <p>Email: <a href="mailto:info@fulltxt.me">info@fulltxt.me</a></p>
+
+  <h2>Responsible for content (§ 18 (2) MStV)</h2>
+  <p>
+    Florian Willnat<br>
+    Luisenstraße 1<br>
+    49356 Diepholz
+  </p>
+</div>
+
+</div><!-- .content -->
+
+<script>
+  function setLang(lang) {
+    document.body.className = 'lang-' + lang;
+    document.documentElement.lang = lang;
+    document.getElementById('btn-de').classList.toggle('active', lang === 'de');
+    document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+    localStorage.setItem('fulltxt-lang', lang);
+  }
+  (function() {
+    const saved = localStorage.getItem('fulltxt-lang');
+    const browser = navigator.language?.startsWith('de') ? 'de' : 'en';
+    setLang(saved || browser);
+  })();
+</script>
+</body>
+</html>
