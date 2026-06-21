@@ -134,7 +134,8 @@ Verbundene Konten und die Verbinden-Buttons je Anbieter liegen auf einer eigenen
 
 | Aspekt | Detail |
 |---|---|
-| Index-Speicherung | Ausschließlich im privaten internen App-Speicher — für andere Apps nicht zugänglich |
+| Index-Speicherung | Verschlüsselt gespeichert mit SQLCipher (AES-256) im privaten internen App-Speicher; der Schlüssel wird auf dem Gerät erzeugt und im Android Keystore verwahrt |
+| Index-Backups | Mit einem selbst gewählten Passwort verschlüsselt (AES-256-GCM, PBKDF2) — die exportierte Datei ist außerhalb der App nicht lesbar |
 | Heruntergeladene Dateien | Werden sofort nach der Textextraktion gelöscht; keine dauerhafte Speicherung |
 | OAuth-Token | Gespeichert in Android `EncryptedSharedPreferences` |
 | Telemetrie | Keine — kein Analytics, kein Crash-Reporting, keine Drittanbieter-SDKs |

@@ -134,7 +134,8 @@ Connected accounts and the per-provider connect buttons live on their own page, 
 
 | Aspect | Detail |
 |---|---|
-| Index storage | Exclusively in the app's private internal storage — inaccessible to other apps |
+| Index storage | Encrypted at rest with SQLCipher (AES-256) in the app's private internal storage; the key is generated on-device and kept in the Android Keystore |
+| Index backups | Encrypted with a user-chosen passphrase (AES-256-GCM, PBKDF2) so the exported file is unreadable outside the app |
 | Downloaded files | Deleted immediately after text extraction; never stored permanently |
 | OAuth tokens | Stored in Android `EncryptedSharedPreferences` |
 | Telemetry | None — no analytics, no crash reporting, no third-party SDKs |

@@ -17,6 +17,11 @@
 -keep class com.google.apis.** { *; }
 -dontwarn com.google.api.**
 
+# SQLCipher (loads native methods via JNI)
+-keep class net.zetetic.** { *; }
+-keep class net.zetetic.database.** { *; }
+-dontwarn net.zetetic.**
+
 # R8 missing classes (generated)
 -dontwarn aQute.bnd.annotation.baseline.BaselineIgnore
 -dontwarn aQute.bnd.annotation.spi.ServiceConsumer

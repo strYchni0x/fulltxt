@@ -5,6 +5,22 @@ Alle nennenswerten Änderungen an FullTXT werden in dieser Datei dokumentiert.
 Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 und das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.3.0] – 2026-06-21
+
+### Sicherheit
+- **Der Suchindex auf dem Gerät wird jetzt verschlüsselt gespeichert (SQLCipher, AES-256).** Die Index-Datenbank enthält den extrahierten Klartext aller indexierten Dokumente; sie ist nun auch bei Root-Zugriff oder forensischem Auslesen des Geräts nicht mehr lesbar. Der Schlüssel wird einmalig zufällig erzeugt und im hardware-gestützten Android Keystore (via `EncryptedSharedPreferences`) verwahrt – er verlässt das Gerät nie.
+  - **Hinweis:** Ein bereits vorhandener (unverschlüsselter) Index wird beim ersten Start dieser Version verworfen; die verbundenen Konten müssen **einmal neu indexiert** werden.
+- **Index-Backups werden jetzt verschlüsselt.** Beim Export wird ein Passwort abgefragt; die Backup-Datei (`.ftxt`) wird damit per AES-256-GCM verschlüsselt (Schlüsselableitung via PBKDF2). Der exportierte Index ist damit auch außerhalb der App (Downloads-Ordner, Cloud) nicht mehr lesbar. Zum Import wird dasselbe Passwort benötigt. Ein falsches Passwort lässt den vorhandenen Index unangetastet, da zunächst in eine temporäre Datei entschlüsselt wird. Backups bleiben geräteübergreifend wiederherstellbar (eigenes Passwort statt des geräte­gebundenen Index-Schlüssels).
+- **Hinweis:** Unverschlüsselte `.db`-Backups früherer Versionen können nicht mehr importiert werden.
+
+### Build
+- SQLCipher nutzt jetzt das Artefakt `net.zetetic:sqlcipher-android` (4.6.1) mit **16-KB-Page-Size-Unterstützung**, wie von Google Play für neue Apps auf Android 15+ gefordert. Die nativen Bibliotheken sind auf 16 KB ausgerichtet (verifiziert: alle `LOAD`-Segmente `p_align = 0x4000`).
+
+## [1.2.9] – 2026-06-20
+
+### Build
+- Release-Bundles betten jetzt native Debug-Symbole ein (`ndk.debugSymbolLevel = "FULL"`), damit die Play Console Abstürze/ANRs aus nativem Code symbolisieren kann. Hinweis: Der enthaltene native Code stammt ausschließlich aus vorgefertigten, bereits gestrippten Drittanbieter-Bibliotheken (ML Kit OCR, androidx.graphics.path); für diese liegen keine Symboltabellen vor, sodass Google weiterhin die Symbol-Warnung anzeigt. Die Einstellung greift automatisch, falls künftig eigener nativer Code hinzukommt.
+
 ## [1.2.8] – 2026-06-14
 
 ### Berechtigungen

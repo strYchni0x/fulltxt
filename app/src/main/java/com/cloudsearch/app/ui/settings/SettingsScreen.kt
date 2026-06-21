@@ -31,7 +31,11 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.Surface
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -94,15 +98,28 @@ fun SettingsScreen(
     val searchResultLimit by viewModel.searchResultLimit.collectAsState()
     val dbSizeBytes by viewModel.dbSizeBytes.collectAsState()
 
+    // Passwords are held only in memory (not rememberSaveable) so they are not written to the
+    // saved-instance-state bundle. They are passed to the picker callback, then cleared.
+    var pendingExportPassword by remember { mutableStateOf("") }
+    var pendingImportPassword by remember { mutableStateOf("") }
+
     val exportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/octet-stream")
-    ) { uri -> uri?.let { viewModel.exportIndex(it) } }
+    ) { uri ->
+        uri?.let { viewModel.exportIndex(it, pendingExportPassword) }
+        pendingExportPassword = ""
+    }
 
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
-    ) { uri -> uri?.let { viewModel.importIndex(it) } }
+    ) { uri ->
+        uri?.let { viewModel.importIndex(it, pendingImportPassword) }
+        pendingImportPassword = ""
+    }
 
     var showImportConfirm by rememberSaveable { mutableStateOf(false) }
+    var showExportPassword by rememberSaveable { mutableStateOf(false) }
+    var showImportPassword by rememberSaveable { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     var showMeteredWarning    by rememberSaveable { mutableStateOf(false) }
 
@@ -128,11 +145,47 @@ fun SettingsScreen(
             confirmButton = {
                 Button(onClick = {
                     showImportConfirm = false
-                    importLauncher.launch(arrayOf("application/octet-stream", "*/*"))
-                }) { Text("Importieren") }
+                    showImportPassword = true
+                }) { Text("Weiter") }
             },
             dismissButton = {
                 TextButton(onClick = { showImportConfirm = false }) { Text("Abbrechen") }
+            }
+        )
+    }
+
+    if (showExportPassword) {
+        BackupPasswordDialog(
+            title = "Backup verschlüsseln",
+            description = "Wähle ein Passwort, mit dem das Backup verschlüsselt wird. " +
+                "Du benötigst es zum Wiederherstellen — ohne das Passwort ist das Backup " +
+                "nicht lesbar und kann nicht wiederhergestellt werden.",
+            confirmLabel = "Exportieren",
+            requireConfirmation = true,
+            onDismiss = { showExportPassword = false },
+            onConfirm = { password ->
+                showExportPassword = false
+                pendingExportPassword = password
+                val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                exportLauncher.launch("fulltxt_backup_$date.ftxt")
+            }
+        )
+    }
+
+    if (showImportPassword) {
+        BackupPasswordDialog(
+            title = "Backup entschlüsseln",
+            description = "Gib das Passwort ein, mit dem dieses Backup verschlüsselt wurde.",
+            confirmLabel = "Datei wählen",
+            requireConfirmation = false,
+            onDismiss = { showImportPassword = false },
+            onConfirm = { password ->
+                showImportPassword = false
+                pendingImportPassword = password
+                // Single "*/*" (no EXTRA_MIME_TYPES) makes the picker show ALL files. Passing a
+                // specific type alongside "*/*" puts documentsui in category-filter mode, which
+                // hides the .ftxt backup (unknown extension → no matching category).
+                importLauncher.launch(arrayOf("*/*"))
             }
         )
     }
@@ -390,10 +443,7 @@ fun SettingsScreen(
                 Spacer(Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(
-                        onClick = {
-                            val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-                            exportLauncher.launch("fulltxt_backup_$date.db")
-                        },
+                        onClick = { showExportPassword = true },
                         modifier = Modifier.weight(1f)
                     ) { Text("Exportieren") }
                     OutlinedButton(
@@ -407,6 +457,101 @@ fun SettingsScreen(
         }
     }
 }
+
+/**
+ * Passwort-Dialog für verschlüsselte Index-Backups. Beim Export wird das Passwort zur
+ * Bestätigung zweimal abgefragt ([requireConfirmation]); beim Import genügt eine Eingabe.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BackupPasswordDialog(
+    title: String,
+    description: String,
+    confirmLabel: String,
+    requireConfirmation: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    var password by remember { mutableStateOf("") }
+    var repeat by remember { mutableStateOf("") }
+    var visible by remember { mutableStateOf(false) }
+
+    val tooShort = password.length < MIN_BACKUP_PASSWORD_LENGTH
+    val mismatch = requireConfirmation && repeat.isNotEmpty() && password != repeat
+    val canConfirm = !tooShort && (!requireConfirmation || password == repeat)
+
+    val transformation = if (visible) VisualTransformation.None else PasswordVisualTransformation()
+    val trailingToggle: @Composable () -> Unit = {
+        IconButton(onClick = { visible = !visible }) {
+            Icon(
+                if (visible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                contentDescription = if (visible) "Passwort verbergen" else "Passwort anzeigen"
+            )
+        }
+    }
+
+    // BasicAlertDialog + decorFitsSystemWindows=false + imePadding() lets the dialog slide
+    // smoothly above the soft keyboard, instead of the window panning up/down on field focus.
+    BasicAlertDialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(decorFitsSystemWindows = false)
+    ) {
+        Surface(
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 6.dp,
+            modifier = Modifier.imePadding()
+        ) {
+            Column(Modifier.padding(24.dp)) {
+                Text(title, style = MaterialTheme.typography.headlineSmall)
+                Spacer(Modifier.height(16.dp))
+                Text(description, style = MaterialTheme.typography.bodyMedium)
+                Spacer(Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Passwort") },
+                    singleLine = true,
+                    visualTransformation = transformation,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    trailingIcon = trailingToggle,
+                    isError = password.isNotEmpty() && tooShort,
+                    supportingText = if (password.isNotEmpty() && tooShort) {
+                        { Text("Mindestens $MIN_BACKUP_PASSWORD_LENGTH Zeichen.") }
+                    } else null,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                if (requireConfirmation) {
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = repeat,
+                        onValueChange = { repeat = it },
+                        label = { Text("Passwort wiederholen") },
+                        singleLine = true,
+                        visualTransformation = transformation,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        isError = mismatch,
+                        supportingText = if (mismatch) {
+                            { Text("Passwörter stimmen nicht überein.") }
+                        } else null,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                Spacer(Modifier.height(24.dp))
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) { Text("Abbrechen") }
+                    Spacer(Modifier.width(8.dp))
+                    Button(onClick = { onConfirm(password) }, enabled = canConfirm) { Text(confirmLabel) }
+                }
+            }
+        }
+    }
+}
+
+private const val MIN_BACKUP_PASSWORD_LENGTH = 8
 
 /**
  * Eigene Seite für Cloud-Speicher: verbundene Konten, Verbindungs-Buttons

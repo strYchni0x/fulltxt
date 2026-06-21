@@ -20,8 +20,8 @@ android {
         applicationId = "me.fulltxt.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 18
-        versionName = "1.2.8"
+        versionCode = 20
+        versionName = "1.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -43,6 +43,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Bundle native debug symbols so Play Console can symbolicate
+            // crashes/ANRs from native libs (ML Kit, Play Services, MSAL).
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
         }
     }
 
@@ -131,6 +136,9 @@ dependencies {
 
     // Security (EncryptedSharedPreferences)
     implementation(libs.security.crypto)
+
+    // SQLCipher — encrypts the on-device FTS5 index at rest
+    implementation(libs.sqlcipher)
 
     // Google Drive
     implementation(libs.google.api.drive)
