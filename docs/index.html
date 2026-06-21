@@ -227,8 +227,8 @@
         <div class="feature-icon">📦</div>
         <h3 data-lang="de">Lokaler Index</h3>
         <h3 data-lang="en">Local index</h3>
-        <p data-lang="de">Der Index wird als SQLite-FTS5-Datenbank lokal gespeichert. Suchen laufen offline – ohne Wartezeit und ohne Internetzugang.</p>
-        <p data-lang="en">The index is stored locally as a SQLite FTS5 database. Searches run offline – no waiting, no internet required.</p>
+        <p data-lang="de">Der Index wird als verschlüsselte SQLite-FTS5-Datenbank (SQLCipher, AES-256) lokal gespeichert. Suchen laufen offline – ohne Wartezeit und ohne Internetzugang.</p>
+        <p data-lang="en">The index is stored locally as an encrypted SQLite FTS5 database (SQLCipher, AES-256). Searches run offline – no waiting, no internet required.</p>
       </div>
 
       <div class="feature-card">
@@ -275,8 +275,8 @@
         <div class="feature-icon">💾</div>
         <h3 data-lang="de">Index-Backup</h3>
         <h3 data-lang="en">Index backup</h3>
-        <p data-lang="de">Den Suchindex exportieren und auf einem neuen Gerät oder nach einer Neuinstallation wiederherstellen – keine erneute Indexierung nötig.</p>
-        <p data-lang="en">Export the search index and restore it on a new device or after reinstalling – no re-indexing required.</p>
+        <p data-lang="de">Den Suchindex passwortgeschützt (AES-256) exportieren und auf einem neuen Gerät oder nach einer Neuinstallation wiederherstellen – keine erneute Indexierung nötig.</p>
+        <p data-lang="en">Export the search index as a password-protected backup (AES-256) and restore it on a new device or after reinstalling – no re-indexing required.</p>
       </div>
 
       <div class="feature-card">
@@ -414,6 +414,8 @@
           <li data-lang="en">No analytics, no tracking, no crash reporting</li>
           <li data-lang="de">OAuth-Token verschlüsselt im Android Keystore (AES-256)</li>
           <li data-lang="en">OAuth tokens encrypted in Android Keystore (AES-256)</li>
+          <li data-lang="de">Suchindex auf dem Gerät verschlüsselt (SQLCipher, AES-256)</li>
+          <li data-lang="en">On-device search index encrypted (SQLCipher, AES-256)</li>
           <li data-lang="de">Temporär heruntergeladene Dateien werden sofort gelöscht</li>
           <li data-lang="en">Temporarily downloaded files are deleted immediately</li>
           <li data-lang="de">Open Source auf GitHub</li>

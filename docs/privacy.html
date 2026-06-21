@@ -68,7 +68,7 @@
     <li>Dateiname, Dateigröße, Änderungsdatum, Dateipfad</li>
     <li>Textinhalt der Datei (für Office-Dokumente und PDFs)</li>
   </ul>
-  <p>Der Index wird in einer SQLite-Datenbank auf dem Gerät gespeichert und <strong>verlässt das Gerät nicht</strong>.</p>
+  <p>Der Index wird in einer verschlüsselten SQLite-Datenbank (SQLCipher, AES-256) auf dem Gerät gespeichert und <strong>verlässt das Gerät nicht</strong>.</p>
 
   <p><strong>2.3 Temporäre Dateien</strong><br>Zur Textextraktion werden Dateien vorübergehend in den internen Cache des Geräts heruntergeladen. Die temporären Dateien werden unmittelbar nach der Textextraktion gelöscht.</p>
 
@@ -103,6 +103,8 @@
   <h2>6. Datensicherheit</h2>
   <ul>
     <li>OAuth-Token und Passwörter: <code>EncryptedSharedPreferences</code> (AES-256-GCM, Android Keystore)</li>
+    <li>Suchindex auf dem Gerät: verschlüsselt mit SQLCipher (AES-256); der Schlüssel wird auf dem Gerät erzeugt und im Android Keystore verwahrt</li>
+    <li>Index-Backups: mit einem selbst gewählten Passwort verschlüsselt (AES-256-GCM, PBKDF2)</li>
     <li>Netzwerkverbindungen in Release-Builds: ausschließlich HTTPS</li>
     <li>Kein Klartext-Logging in Release-Builds</li>
   </ul>
@@ -148,7 +150,7 @@
     <li>File name, file size, modification date, file path</li>
     <li>Text content of the file (for Office documents and PDFs)</li>
   </ul>
-  <p>The index is stored in an SQLite database on the device and <strong>never leaves the device</strong>.</p>
+  <p>The index is stored in an encrypted SQLite database (SQLCipher, AES-256) on the device and <strong>never leaves the device</strong>.</p>
 
   <p><strong>2.3 Temporary Files</strong><br>Files are temporarily downloaded to the device's internal cache for text extraction and deleted immediately afterwards.</p>
 
@@ -183,6 +185,8 @@
   <h2>6. Data Security</h2>
   <ul>
     <li>OAuth tokens and passwords: <code>EncryptedSharedPreferences</code> (AES-256-GCM, Android Keystore)</li>
+    <li>On-device search index: encrypted with SQLCipher (AES-256); the key is generated on-device and kept in the Android Keystore</li>
+    <li>Index backups: encrypted with a user-chosen passphrase (AES-256-GCM, PBKDF2)</li>
     <li>Network connections in release builds: HTTPS only</li>
     <li>No plaintext logging in release builds</li>
   </ul>
