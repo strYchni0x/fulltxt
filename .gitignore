@@ -8,6 +8,8 @@
 /captures
 .externalNativeBuild
 .cxx
+.kotlin/
+*.log
 local.properties
 
 # Signing

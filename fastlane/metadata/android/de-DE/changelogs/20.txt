@@ -1,0 +1,4 @@
+Neu in 1.3.0:
+• Der Suchindex auf dem Gerät wird jetzt verschlüsselt gespeichert (SQLCipher, AES-256)
+• Index-Backups werden mit einem selbst gewählten Passwort verschlüsselt
+• Hinweis: Ein vorhandener Index wird beim ersten Start verworfen – bitte einmal neu indexieren

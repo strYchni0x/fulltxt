@@ -26,6 +26,8 @@ DEINE DATEN BLEIBEN BEI DIR
 FullTXT hat keinen eigenen Server und überträgt keinerlei Daten an den Entwickler. Suchindex, Zugangsdaten und Dateiinhalte verbleiben ausschließlich auf deinem Smartphone.
 • Kein Analytics, kein Tracking, keine Crash-Reports
 • OAuth-Token verschlüsselt im Android Keystore (AES-256)
+• Lokaler Suchindex verschlüsselt gespeichert (SQLCipher, AES-256)
+• Index-Backups passwortgeschützt verschlüsselt (AES-256)
 • Temporär heruntergeladene Dateien werden sofort gelöscht
 • Open Source auf GitHub
 

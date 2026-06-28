@@ -5,6 +5,11 @@ Alle nennenswerten Änderungen an FullTXT werden in dieser Datei dokumentiert.
 Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 und das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.3.1] – 2026-06-28
+
+### Behoben
+- **Die Indexierungs-Benachrichtigung wird auf Android 13+ jetzt wieder angezeigt.** Die App deklarierte die Berechtigung `POST_NOTIFICATIONS`, fragte sie aber nie zur Laufzeit ab – dadurch blieb die Fortschritts-Benachrichtigung des Vordergrunddiensts unsichtbar. Beim ersten Start wird die Berechtigung nun einmalig angefragt. (Auf älteren Android-Versionen war die Benachrichtigung nicht betroffen.)
+
 ## [1.3.0] – 2026-06-21
 
 ### Sicherheit

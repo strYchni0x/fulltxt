@@ -1,6 +1,9 @@
 package me.fulltxt.app
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
@@ -8,6 +11,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.AlertDialog
@@ -51,10 +55,17 @@ class MainActivity : ComponentActivity() {
         googleAuthManager.handleSignInResult(result.resultCode, result.data)
     }
 
+    // Result is intentionally ignored: the indexing foreground service runs either way;
+    // if the user denies, the progress notification is simply not shown.
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { /* no-op */ }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         googleAuthManager.setSignInLauncher(googleSignInLauncher)
         enableEdgeToEdge()
+        maybeRequestNotificationPermission()
 
         val powerManager = getSystemService(PowerManager::class.java)
         val isIgnoring = powerManager.isIgnoringBatteryOptimizations(packageName)
@@ -122,6 +133,21 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * On Android 13+ the foreground-service progress notification is only visible if the
+     * POST_NOTIFICATIONS runtime permission is granted. Request it once on startup; on older
+     * versions the permission is implicit, so nothing happens.
+     */
+    private fun maybeRequestNotificationPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        val granted = ContextCompat.checkSelfPermission(
+            this, Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+        if (!granted) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
 

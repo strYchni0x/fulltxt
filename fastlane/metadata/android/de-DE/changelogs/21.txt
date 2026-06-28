@@ -1,0 +1,3 @@
+Neu in 1.3.1:
+• Behoben: Die Fortschritts-Benachrichtigung beim Indexieren wird auf Android 13+ wieder angezeigt
+• Die Benachrichtigungs-Berechtigung wird beim ersten Start einmalig angefragt
