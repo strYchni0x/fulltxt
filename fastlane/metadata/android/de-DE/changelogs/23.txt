@@ -1,3 +1,5 @@
-Neu in 1.3.2:
-• Behoben: OneDrive-Anmeldung schlug in der Play-Store-Version fehl ("redirect URI"-Fehler).
-• Behoben: OneDrive-Indexierung brach mit einem Fehler ab (Broker/Token-Erneuerung). Bitte OneDrive einmalig neu verbinden.
+Neu in 1.3.3:
+• OneDrive: Anmeldung und Indexierung funktionieren jetzt zuverlässig. Bitte OneDrive einmalig neu verbinden.
+• Nextcloud & weitere WebDAV-Dienste: Indexierung findet jetzt alle Dateien (auch in Unterordnern); Namen mit Umlauten werden korrekt angezeigt.
+• Indexierungs-Benachrichtigung wird auf Android 13+ wieder angezeigt.
+• Maximale Dateigröße ist jetzt einstellbar; zu große Dateien werden als „übersprungen" angezeigt statt als Fehler.

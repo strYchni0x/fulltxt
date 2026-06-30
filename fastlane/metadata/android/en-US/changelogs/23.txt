@@ -1,3 +1,5 @@
-New in 1.3.2:
-• Fixed: OneDrive sign-in failed in the Play Store version (a "redirect URI" error).
-• Fixed: OneDrive indexing aborted with an error (broker/token refresh). Please reconnect OneDrive once.
+New in 1.3.3:
+• OneDrive: sign-in and indexing now work reliably. Please reconnect OneDrive once.
+• Nextcloud and other WebDAV services: indexing now finds all files (including in subfolders); names with umlauts/spaces are shown correctly.
+• The indexing notification is shown again on Android 13+.
+• The maximum file size is now configurable; files over the limit are shown as "skipped" instead of errors.

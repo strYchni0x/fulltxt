@@ -5,7 +5,7 @@ Alle nennenswerten Änderungen an FullTXT werden in dieser Datei dokumentiert.
 Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 und das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
-## [1.3.2] – 2026-06-29
+## [1.3.3] – 2026-06-30
 
 ### Verbessert
 - **Übersprungene große Dateien werden nicht mehr als „Fehler" gezählt.** Dateien über dem Größen-Limit werden jetzt separat als „übersprungen" angezeigt (Benachrichtigung und Konto-Karte), statt verwirrend als Fehler.
