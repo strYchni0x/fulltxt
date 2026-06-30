@@ -1,5 +1,6 @@
 package me.fulltxt.app.data.cloud.nextcloud
 
+import android.net.Uri
 import me.fulltxt.app.data.cloud.CloudConnector
 import me.fulltxt.app.data.cloud.SyncChanges
 import me.fulltxt.app.domain.model.CloudFile
@@ -69,15 +70,17 @@ class NextcloudConnector @Inject constructor(
             ?: throw IllegalStateException("Keine Nextcloud-Zugangsdaten für Account $accountId")
 
     private fun WebDavFile.toCloudFile(accountId: String, serverUrl: String): CloudFile {
-        // Strip the WebDAV prefix to get a user-visible cloud path
-        val cloudPath = href
+        // Strip the WebDAV prefix to get the cloud path. Keep the percent-encoded form for the
+        // web deep-link URL, and decode a human-readable form for display.
+        val encodedPath = href
             .substringAfter("/remote.php/dav/files/")
             .substringAfter("/")   // remove username segment
             .let { "/$it" }
             .substringBeforeLast('/').ifEmpty { "/" }
+        val cloudPath = Uri.decode(encodedPath)
 
         // Deep-link into Nextcloud web UI
-        val webUrl = "${serverUrl.trimEnd('/')}/apps/files?dir=${cloudPath}"
+        val webUrl = "${serverUrl.trimEnd('/')}/apps/files?dir=$encodedPath"
 
         return CloudFile(
             fileId        = href,

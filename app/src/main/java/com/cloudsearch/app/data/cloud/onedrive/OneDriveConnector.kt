@@ -1,5 +1,6 @@
 package me.fulltxt.app.data.cloud.onedrive
 
+import android.net.Uri
 import me.fulltxt.app.data.cloud.CloudConnector
 import me.fulltxt.app.data.cloud.SyncChanges
 import me.fulltxt.app.domain.model.CloudFile
@@ -88,8 +89,11 @@ class OneDriveConnector @Inject constructor(
 
     private fun GraphDriveItem.toCloudFile(accountId: String): CloudFile? {
         val mimeType = file?.mimeType ?: return null
+        // Microsoft Graph returns parentReference.path percent-encoded (e.g. ".../B%C3%BCro"),
+        // so decode it for a human-readable cloud path.
         val path = parentReference?.path
             ?.removePrefix("/drive/root:")
+            ?.let { Uri.decode(it) }
             ?.ifEmpty { "/" }
             ?: "/"
         return CloudFile(

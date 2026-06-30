@@ -1,0 +1,3 @@
+New in 1.3.2:
+• Fixed: OneDrive sign-in failed in the Play Store version (a "redirect URI" error).
+• Fixed: OneDrive indexing aborted with an error (broker/token refresh). Please reconnect OneDrive once.

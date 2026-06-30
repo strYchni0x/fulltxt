@@ -2,6 +2,7 @@
   "client_id": "dc50994a-bc9d-438e-a071-044c75fb4fac",
   "authorization_user_agent": "DEFAULT",
   "redirect_uri": "msauth://me.fulltxt.app/ENmRZbMS%2BnI3dUj24HeciuB8d9I%3D",
+  "broker_redirect_uri_registered": false,
   "account_mode": "MULTIPLE",
   "authorities": [
     {

@@ -1,5 +1,6 @@
 package me.fulltxt.app.data.cloud.strato
 
+import android.net.Uri
 import me.fulltxt.app.data.cloud.CloudConnector
 import me.fulltxt.app.data.cloud.SyncChanges
 import me.fulltxt.app.data.cloud.nextcloud.NextcloudWebDavClient
@@ -67,9 +68,10 @@ class StratoConnector @Inject constructor(
 
     private fun WebDavFile.toCloudFile(accountId: String, username: String): CloudFile {
         // href: /users/<username>/folder/file.pdf  →  cloudPath: /folder
-        val cloudPath = href
-            .substringAfter("/users/$username")
-            .substringBeforeLast('/').ifEmpty { "/" }
+        val cloudPath = Uri.decode(
+            href.substringAfter("/users/$username")
+                .substringBeforeLast('/').ifEmpty { "/" }
+        )
 
         return CloudFile(
             fileId        = href,

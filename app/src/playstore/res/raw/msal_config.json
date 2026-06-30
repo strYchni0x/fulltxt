@@ -1,0 +1,16 @@
+{
+  "client_id": "dc50994a-bc9d-438e-a071-044c75fb4fac",
+  "authorization_user_agent": "DEFAULT",
+  "redirect_uri": "msauth://me.fulltxt.app/wzrOgRBLvcXQHtKSOYrk5JMqRiU%3D",
+  "broker_redirect_uri_registered": false,
+  "account_mode": "MULTIPLE",
+  "authorities": [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADandPersonalMicrosoftAccount",
+        "tenant_id": "common"
+      }
+    }
+  ]
+}

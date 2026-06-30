@@ -59,8 +59,27 @@ interface FileIndexDao {
         deleteMetadataByAccount(accountId)
     }
 
-    @Query("SELECT COUNT(*) FROM file_metadata WHERE accountId = :accountId")
+    @Query("SELECT COUNT(*) FROM file_metadata WHERE accountId = :accountId AND skipped = 0")
     suspend fun getIndexedFileCount(accountId: String): Int
+
+    /** Count of files marked skipped (too large) for an account. */
+    @Query("SELECT COUNT(*) FROM file_metadata WHERE accountId = :accountId AND skipped = 1")
+    suspend fun getSkippedCount(accountId: String): Int
+
+    /** Skipped files now at or below the current limit — candidates to index. */
+    @Query("SELECT * FROM file_metadata WHERE accountId = :accountId AND skipped = 1 AND fileSizeBytes <= :maxBytes")
+    suspend fun getSkippedAtOrBelow(accountId: String, maxBytes: Long): List<FileMetadataEntity>
+
+    /** Indexed files now above the current limit — must drop content and become skipped. */
+    @Query("SELECT * FROM file_metadata WHERE accountId = :accountId AND skipped = 0 AND fileSizeBytes > :maxBytes")
+    suspend fun getIndexedAbove(accountId: String, maxBytes: Long): List<FileMetadataEntity>
+
+    /** Records a known-but-not-indexed (too large) file: metadata only, no FTS content row. */
+    @Transaction
+    suspend fun markSkipped(metadata: FileMetadataEntity) {
+        upsertMetadata(metadata.copy(skipped = true))
+        deleteContent(metadata.fileId)
+    }
 
     @Transaction
     suspend fun upsertFile(metadata: FileMetadataEntity, content: FileContentEntity) {

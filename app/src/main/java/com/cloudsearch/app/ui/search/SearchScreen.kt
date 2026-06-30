@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Article
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.History
@@ -35,6 +37,7 @@ import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
@@ -67,10 +70,13 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import me.fulltxt.app.domain.model.CloudFile
 import me.fulltxt.app.domain.model.CloudProvider
 import me.fulltxt.app.domain.model.DateFilter
@@ -104,6 +110,12 @@ fun SearchScreen(
                 )
             }
         }
+    }
+
+    // Re-check connected accounts on resume so the empty-state hint disappears right after
+    // the user links an account or local folder in settings.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.refreshConnectedProviders()
     }
 
     if (showFilterSheet) {
@@ -176,94 +188,137 @@ fun SearchScreen(
                 }
             }
 
-            if (query.isEmpty() && recentSearches.isNotEmpty()) {
-                Spacer(Modifier.height(4.dp))
-                recentSearches.forEach { term ->
-                    ListItem(
-                        modifier = Modifier.clickable {
-                            viewModel.onQueryChange(term)
-                            focusManager.clearFocus()
-                        },
-                        leadingContent = {
-                            Icon(
-                                Icons.Default.History,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            if (connectedProviders.isEmpty()) {
+                NoAccountsHint(onSettingsClick = onSettingsClick)
+            } else {
+                if (query.isEmpty() && recentSearches.isNotEmpty()) {
+                    Spacer(Modifier.height(4.dp))
+                    recentSearches.forEach { term ->
+                        ListItem(
+                            modifier = Modifier.clickable {
+                                viewModel.onQueryChange(term)
+                                focusManager.clearFocus()
+                            },
+                            leadingContent = {
+                                Icon(
+                                    Icons.Default.History,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            headlineContent = { Text(term) }
+                        )
+                    }
+                    HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
+                }
+
+                if (filter.isActive) {
+                    Spacer(Modifier.height(6.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        filter.providers.forEach { provider ->
+                            InputChip(
+                                selected = true,
+                                onClick = { viewModel.updateFilter(filter.copy(providers = filter.providers - provider)) },
+                                label = { Text(provider.label) },
+                                trailingIcon = {
+                                    Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp))
+                                }
                             )
-                        },
-                        headlineContent = { Text(term) }
-                    )
-                }
-                HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
-            }
-
-            if (filter.isActive) {
-                Spacer(Modifier.height(6.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    filter.providers.forEach { provider ->
-                        InputChip(
-                            selected = true,
-                            onClick = { viewModel.updateFilter(filter.copy(providers = filter.providers - provider)) },
-                            label = { Text(provider.label) },
-                            trailingIcon = {
-                                Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp))
-                            }
-                        )
-                    }
-                    filter.fileTypes.forEach { ft ->
-                        InputChip(
-                            selected = true,
-                            onClick = { viewModel.updateFilter(filter.copy(fileTypes = filter.fileTypes - ft)) },
-                            label = { Text(ft.label) },
-                            trailingIcon = {
-                                Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp))
-                            }
-                        )
-                    }
-                    filter.dateFilter?.let { df ->
-                        InputChip(
-                            selected = true,
-                            onClick = { viewModel.updateFilter(filter.copy(dateFilter = null)) },
-                            label = { Text(df.label) },
-                            trailingIcon = {
-                                Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp))
-                            }
-                        )
-                    }
-                }
-            }
-
-            if (query.trim().length >= 2) {
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = when (results.size) {
-                        0 -> "Keine Ergebnisse"
-                        1 -> "1 Ergebnis"
-                        else -> "${results.size} Ergebnisse"
-                    },
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            LazyColumn(modifier = Modifier.padding(top = 8.dp)) {
-                items(results, key = { it.file.fileId }) { result ->
-                    SearchResultItem(
-                        result = result,
-                        coloredIcon = fileTypeIcons,
-                        onClick = {
-                            focusManager.clearFocus()
-                            viewModel.openFile(result.file)
                         }
+                        filter.fileTypes.forEach { ft ->
+                            InputChip(
+                                selected = true,
+                                onClick = { viewModel.updateFilter(filter.copy(fileTypes = filter.fileTypes - ft)) },
+                                label = { Text(ft.label) },
+                                trailingIcon = {
+                                    Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp))
+                                }
+                            )
+                        }
+                        filter.dateFilter?.let { df ->
+                            InputChip(
+                                selected = true,
+                                onClick = { viewModel.updateFilter(filter.copy(dateFilter = null)) },
+                                label = { Text(df.label) },
+                                trailingIcon = {
+                                    Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp))
+                                }
+                            )
+                        }
+                    }
+                }
+
+                if (query.trim().length >= 2) {
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = when (results.size) {
+                            0 -> "Keine Ergebnisse"
+                            1 -> "1 Ergebnis"
+                            else -> "${results.size} Ergebnisse"
+                        },
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 4.dp))
+                }
+
+                LazyColumn(modifier = Modifier.padding(top = 8.dp)) {
+                    items(results, key = { it.file.fileId }) { result ->
+                        SearchResultItem(
+                            result = result,
+                            coloredIcon = fileTypeIcons,
+                            onClick = {
+                                focusManager.clearFocus()
+                                viewModel.openFile(result.file)
+                            }
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 4.dp))
+                    }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun NoAccountsHint(onSettingsClick: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            Icons.Default.CloudOff,
+            contentDescription = null,
+            modifier = Modifier.size(56.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(16.dp))
+        Text(
+            text = "Noch nichts zum Durchsuchen",
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = "Verknüpfe zuerst in den Einstellungen einen Cloud-Account oder einen " +
+                "lokalen Ordner und starte eine Indexierung. Danach kannst du deine Dateien " +
+                "durchsuchen.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(24.dp))
+        Button(onClick = onSettingsClick) {
+            Icon(Icons.Default.Settings, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text("Zu den Einstellungen")
         }
     }
 }

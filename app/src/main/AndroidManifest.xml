@@ -39,9 +39,13 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <!-- msauth://me.fulltxt.app/ENmRZbMS+nI3dUj24HeciuB8d9I= -->
+                <!-- Host must equal the applicationId so the redirect works for every
+                     flavor (me.fulltxt.app / me.fulltxt.app.dev). The signature hash in
+                     the path depends on the signing key and is set per-variant in the
+                     msal_config.json source sets (playstore = Google Play App Signing,
+                     dev = upload key, *Debug = debug keystore). -->
                 <data
-                    android:host="me.fulltxt.app"
+                    android:host="${applicationId}"
                     android:scheme="msauth" />
             </intent-filter>
         </activity>

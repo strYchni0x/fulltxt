@@ -5,6 +5,7 @@ import androidx.room.Room
 import me.fulltxt.app.data.local.DatabaseKeyManager
 import me.fulltxt.app.data.local.FulltxtDatabase
 import me.fulltxt.app.data.local.MIGRATION_1_2
+import me.fulltxt.app.data.local.MIGRATION_2_3
 import me.fulltxt.app.data.local.SqlCipherUtils
 import me.fulltxt.app.data.local.dao.FileIndexDao
 import dagger.Module
@@ -41,7 +42,7 @@ object DatabaseModule {
         val factory = SupportOpenHelperFactory(keyManager.passphrase().toByteArray(Charsets.UTF_8))
         return Room.databaseBuilder(context, FulltxtDatabase::class.java, "fulltxt.db")
             .openHelperFactory(factory)
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .build()
     }
 

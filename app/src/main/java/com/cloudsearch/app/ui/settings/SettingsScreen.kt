@@ -96,6 +96,7 @@ fun SettingsScreen(
     val fileTypeIcons by viewModel.fileTypeIcons.collectAsState()
     val ocrEnabled by viewModel.ocrEnabled.collectAsState()
     val searchResultLimit by viewModel.searchResultLimit.collectAsState()
+    val maxFileSizeMb by viewModel.maxFileSizeMb.collectAsState()
     val dbSizeBytes by viewModel.dbSizeBytes.collectAsState()
 
     // Passwords are held only in memory (not rememberSaveable) so they are not written to the
@@ -412,6 +413,32 @@ fun SettingsScreen(
                         )
                     }
                 )
+                Text(
+                    "Maximale Dateigröße",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(start = 16.dp, top = 8.dp)
+                )
+                Text(
+                    "Dateien über dieser Größe (in MB) werden beim Indexieren übersprungen. " +
+                        "Höhere Werte brauchen mehr Arbeitsspeicher.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+                )
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    val options = viewModel.maxFileSizeOptions
+                    options.forEachIndexed { index, value ->
+                        SegmentedButton(
+                            selected = maxFileSizeMb == value,
+                            onClick = { viewModel.setMaxFileSizeMb(value) },
+                            shape = SegmentedButtonDefaults.itemShape(index, options.size)
+                        ) { Text("$value") }
+                    }
+                }
             }
 
             item {
@@ -851,8 +878,11 @@ private fun AccountCard(
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "${state.progressCurrent} / ${state.progressTotal} Dateien" +
-                            if (state.progressErrors > 0) " (${state.progressErrors} Fehler)" else "",
+                        buildString {
+                            append("${state.progressCurrent} / ${state.progressTotal} Dateien")
+                            if (state.progressErrors > 0) append(" · ${state.progressErrors} Fehler")
+                            if (state.progressSkipped > 0) append(" · ${state.progressSkipped} übersprungen")
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -883,6 +913,14 @@ private fun AccountCard(
                 }
                 Text(statusText, style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+                if (state.lastSkipped > 0) {
+                    Text(
+                        "${state.lastSkipped} Datei(en) übersprungen (über der maximalen Dateigröße)",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
                 if (state.error != null) {
                     Spacer(Modifier.height(8.dp))

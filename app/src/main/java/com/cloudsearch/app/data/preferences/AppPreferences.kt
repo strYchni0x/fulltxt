@@ -93,6 +93,27 @@ class AppPreferences @Inject constructor(
             _ocrEnabled.value = value
         }
 
+    private val _maxFileSizeMb = MutableStateFlow(
+        prefs.getInt(KEY_MAX_FILE_SIZE_MB, DEFAULT_MAX_FILE_SIZE_MB).let {
+            if (it in MAX_FILE_SIZE_OPTIONS) it else DEFAULT_MAX_FILE_SIZE_MB
+        }
+    )
+
+    /** Reactive max file size (in MB) for indexing; larger files are skipped. */
+    val maxFileSizeMbFlow: StateFlow<Int> = _maxFileSizeMb.asStateFlow()
+
+    /**
+     * Files larger than this (in MB) are skipped during indexing to avoid loading huge files
+     * into memory. User-configurable; higher values use more RAM during indexing.
+     */
+    var maxFileSizeMb: Int
+        get() = _maxFileSizeMb.value
+        set(value) {
+            val applied = if (value in MAX_FILE_SIZE_OPTIONS) value else DEFAULT_MAX_FILE_SIZE_MB
+            prefs.edit { putInt(KEY_MAX_FILE_SIZE_MB, applied) }
+            _maxFileSizeMb.value = applied
+        }
+
     /** Returns true if the daily automatic delta sync is enabled for the given account. */
     fun isDailyDeltaEnabled(accountId: String): Boolean =
         prefs.getBoolean(dailyDeltaKey(accountId), false)
@@ -129,8 +150,11 @@ class AppPreferences @Inject constructor(
         private const val KEY_FILE_TYPE_ICONS = "file_type_icons"
         private const val KEY_SEARCH_LIMIT = "search_result_limit"
         private const val KEY_OCR_ENABLED = "ocr_enabled"
+        private const val KEY_MAX_FILE_SIZE_MB = "max_file_size_mb"
         const val DEFAULT_SEARCH_LIMIT = 100
         val SEARCH_LIMIT_OPTIONS = listOf(50, 100, 200, 500)
+        const val DEFAULT_MAX_FILE_SIZE_MB = 50
+        val MAX_FILE_SIZE_OPTIONS = listOf(25, 50, 100, 250, 500)
         const val DEFAULT_RECENT_LIMIT = 5
         const val MIN_RECENT_LIMIT = 0
         const val MAX_RECENT_LIMIT = 10

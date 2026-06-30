@@ -1,0 +1,3 @@
+Neu in 1.3.2:
+• Behoben: OneDrive-Anmeldung schlug in der Play-Store-Version fehl ("redirect URI"-Fehler).
+• Behoben: OneDrive-Indexierung brach mit einem Fehler ab (Broker/Token-Erneuerung). Bitte OneDrive einmalig neu verbinden.

@@ -10,7 +10,7 @@ import me.fulltxt.app.data.local.entity.FileMetadataEntity
 
 @Database(
     entities = [FileMetadataEntity::class, FileContentEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class FulltxtDatabase : RoomDatabase() {
@@ -20,5 +20,11 @@ abstract class FulltxtDatabase : RoomDatabase() {
 val MIGRATION_1_2 = object : Migration(1, 2) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE file_metadata ADD COLUMN webUrl TEXT")
+    }
+}
+
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE file_metadata ADD COLUMN skipped INTEGER NOT NULL DEFAULT 0")
     }
 }

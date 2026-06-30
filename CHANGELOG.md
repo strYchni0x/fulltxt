@@ -5,6 +5,24 @@ Alle nennenswerten Änderungen an FullTXT werden in dieser Datei dokumentiert.
 Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/),
 und das Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## [1.3.2] – 2026-06-29
+
+### Verbessert
+- **Übersprungene große Dateien werden nicht mehr als „Fehler" gezählt.** Dateien über dem Größen-Limit werden jetzt separat als „übersprungen" angezeigt (Benachrichtigung und Konto-Karte), statt verwirrend als Fehler.
+- **Maximale Dateigröße ist jetzt einstellbar** (Einstellungen → Indexierung; 25/50/100/250/500 MB, Standard 50 MB). Größere Dateien werden übersprungen, um Speicherprobleme zu vermeiden. Übersprungene Dateien werden mit ihrer Größe vorgehalten und bei jedem Index-Lauf neu gegen das Limit geprüft: Wird das Limit erhöht, werden passende Dateien nachindexiert; wird es gesenkt, fallen zu große Dateien wieder heraus – ohne dass die Cloud komplett neu durchsucht werden muss.
+- **Schnellere WebDAV-Synchronisierung bei Servern ohne `Depth: infinity`.** Lehnt ein Server den infinity-Versuch ab (z. B. Nextcloud mit Timeout, Yandex generell), wird das pro Server gemerkt – künftige Syncs starten direkt mit der `Depth:1`-Auflistung und sparen den ~9 s langen Fehlversuch.
+- **Hinweis auf der Startseite, wenn noch nichts verbunden ist.** Ist kein Cloud-Konto und kein lokaler Ordner verknüpft, zeigt die Suchseite jetzt einen Empty-State („Noch nichts zum Durchsuchen") mit Erklärung und einem Button direkt in die Einstellungen, statt eine leere Suche anzubieten.
+
+### Behoben
+- **OneDrive-Anmeldung im Play-Store- und GitHub-Build repariert.** Die MSAL-Redirect-URI war nur auf den Debug-Signaturschlüssel konfiguriert. Dadurch schlug die OneDrive-Anmeldung in ausgelieferten Builds fehl („The redirect URI in the configuration file doesn't match…"), weil Google Play die App mit einem eigenen Signaturschlüssel (Play App Signing) neu signiert und der GitHub-Build mit dem Upload-Key signiert ist. Die `msal_config.json` ist jetzt variantenspezifisch hinterlegt (playstore = Play-App-Signing-Hash, dev = Upload-Key-Hash, Debug-Builds = Debug-Keystore), und der Manifest-Redirect-Host nutzt `${applicationId}` statt eines fest verdrahteten Package-Namens.
+- **Nextcloud/WebDAV-Indexierung brach mit „PROPFIND HTTP 500" ab.** Der WebDAV-Client versuchte die Auflistung zuerst mit `Depth: infinity`; lehnt der Server das ab, fiel die App bisher nur bei HTTP 403/405 auf die rekursive `Depth:1`-Traversierung zurück. Server, die stattdessen mit **500** (oder Timeout) antworten – z. B. manche Nextcloud-Instanzen – führten zum Abbruch. Jetzt wird bei **jedem** Fehlschlag des infinity-Versuchs auf `Depth:1` zurückgefallen. Außerdem wurde ein Parser-Fehler behoben, durch den Verzeichnisse nicht als solche erkannt wurden (keine Rekursion in Unterordner – es wurden gar keine Dateien gefunden). Betrifft alle WebDAV-Anbieter (Nextcloud, ownCloud, MagentaCloud, Strato HiDrive, Yandex Disk).
+- **Ein einzelner nicht lesbarer Ordner brach die gesamte WebDAV-Indexierung ab.** Antwortet ein Unterordner mit einem Fehler (z. B. HTTP 500/Timeout), wird er jetzt übersprungen und die Indexierung läuft mit den übrigen Ordnern weiter.
+- **Datei- und Ordnernamen mit Umlauten/Leerzeichen wurden falsch (URL-kodiert) angezeigt** – z. B. „B%c3%bcro" statt „Büro". Anzeigenamen und Pfade werden jetzt dekodiert. Betrifft die WebDAV-Anbieter (Nextcloud, ownCloud, MagentaCloud, Strato HiDrive, Yandex Disk) sowie OneDrive-Pfade. Dropbox, Google Drive und lokale Ordner liefern bereits dekodierte Namen und waren nicht betroffen.
+- **OneDrive-Indexierung brach mit `ClassCastException` ab.** MSAL leitete die stille Token-Erneuerung über einen auf dem Gerät installierten Broker (Microsoft „Link zu Windows"/Phone Link). Im Hintergrund-Worker ist der Broker-Prozess eingefroren und liefert ein leeres Ergebnis, was MSAL beim Parsen zur `ClassCastException` führte. Über `broker_redirect_uri_registered: false` nutzt die App jetzt ausschließlich den lokalen Token-Cache (für persönliche Microsoft-Konten ist kein Broker nötig). **Hinweis:** Verbundene OneDrive-Konten müssen nach dem Update einmalig neu verbunden werden.
+
+### Wichtig (Server-seitig)
+- Die zugehörigen Redirect-URIs müssen in der Azure-App-Registrierung hinterlegt sein, sonst bleibt die Anmeldung trotz korrektem Build fehlerhaft.
+
 ## [1.3.1] – 2026-06-28
 
 ### Behoben

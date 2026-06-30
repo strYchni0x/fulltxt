@@ -1,5 +1,6 @@
 package me.fulltxt.app.data.cloud.yandex
 
+import android.net.Uri
 import me.fulltxt.app.data.cloud.CloudConnector
 import me.fulltxt.app.data.cloud.SyncChanges
 import me.fulltxt.app.data.cloud.nextcloud.NextcloudWebDavClient
@@ -68,9 +69,9 @@ class YandexConnector @Inject constructor(
 
     private fun WebDavFile.toCloudFile(accountId: String): CloudFile {
         // href: /folder/file.pdf  →  cloudPath: /folder
-        val cloudPath = href
-            .substringBeforeLast('/')
-            .ifEmpty { "/" }
+        val cloudPath = Uri.decode(
+            href.substringBeforeLast('/').ifEmpty { "/" }
+        )
 
         return CloudFile(
             fileId        = href,

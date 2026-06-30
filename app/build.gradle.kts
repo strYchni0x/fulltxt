@@ -20,8 +20,8 @@ android {
         applicationId = "me.fulltxt.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 21
-        versionName = "1.3.1"
+        versionCode = 22
+        versionName = "1.3.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -103,6 +103,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation("androidx.documentfile:documentfile:1.0.1")
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))

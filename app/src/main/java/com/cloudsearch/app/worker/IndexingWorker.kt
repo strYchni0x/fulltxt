@@ -25,6 +25,7 @@ import me.fulltxt.app.data.cloud.owncloud.OwnCloudConnector
 import me.fulltxt.app.data.cloud.strato.StratoConnector
 import me.fulltxt.app.data.cloud.yandex.YandexConnector
 import me.fulltxt.app.data.ocr.OcrQueue
+import me.fulltxt.app.data.preferences.AppPreferences
 import me.fulltxt.app.data.repository.IndexRepository
 import me.fulltxt.app.domain.usecase.IndexFilesUseCase
 import dagger.assisted.Assisted
@@ -50,6 +51,7 @@ class IndexingWorker @AssistedInject constructor(
     private val yandexConnector: YandexConnector,
     private val localFolderConnector: LocalFolderConnector,
     private val ocrQueue: OcrQueue,
+    private val appPreferences: AppPreferences,
     private val indexFilesUseCase: IndexFilesUseCase
 ) : CoroutineWorker(appContext, params) {
 
@@ -59,19 +61,17 @@ class IndexingWorker @AssistedInject constructor(
         const val PROGRESS_CURRENT = "progress_current"
         const val PROGRESS_TOTAL   = "progress_total"
         const val PROGRESS_ERRORS  = "progress_errors"
+        const val PROGRESS_SKIPPED = "progress_skipped"
         /** Human-readable failure reason, set in the worker's output data on Result.failure(). */
         const val KEY_ERROR        = "error_message"
         private const val NOTIFICATION_ID = 1001
         private const val MAX_RETRIES = 3
         private const val AUTH_MESSAGE =
             "Anmeldung fehlgeschlagen – Benutzername, Passwort und Server-URL prüfen."
-
-        /** Files larger than this limit are skipped to avoid OOM. */
-        private const val MAX_FILE_BYTES = 50L * 1024 * 1024  // 50 MB
     }
 
     override suspend fun getForegroundInfo(): ForegroundInfo =
-        buildForegroundInfo(0, 0, 0)
+        buildForegroundInfo(0, 0, 0, 0)
 
     override suspend fun doWork(): Result {
         val accountId = inputData.getString(KEY_ACCOUNT_ID) ?: return Result.failure()
@@ -91,7 +91,7 @@ class IndexingWorker @AssistedInject constructor(
         }
 
         // Run as foreground service — Android must not kill this process.
-        setForeground(buildForegroundInfo(0, 0, 0))
+        setForeground(buildForegroundInfo(0, 0, 0, 0))
 
         return try {
             // Load saved token; null = first full scan.
@@ -101,29 +101,36 @@ class IndexingWorker @AssistedInject constructor(
             val total   = sync.changed.size
             var current = 0
             var errors  = 0
+            var skipped = 0
+            val maxFileBytes = appPreferences.maxFileSizeMb.toLong() * 1024 * 1024
 
-            setForeground(buildForegroundInfo(0, total, 0))
+            setForeground(buildForegroundInfo(0, total, 0, 0))
             setProgressAsync(workDataOf(
                 PROGRESS_CURRENT to 0,
                 PROGRESS_TOTAL   to total,
-                PROGRESS_ERRORS  to 0
+                PROGRESS_ERRORS  to 0,
+                PROGRESS_SKIPPED to 0
             ))
 
             // --- Index new / modified files ---
             for (file in sync.changed) {
-                if (file.fileSizeBytes > MAX_FILE_BYTES) {
-                    errors++
+                if (file.fileSizeBytes > maxFileBytes) {
+                    // Intentionally skipped (too large) — not an error. Recorded with its size so
+                    // it can be re-evaluated against the limit later without a cloud re-list.
+                    runCatching { indexRepository.markSkipped(file) }
+                    skipped++
                 } else {
                     runCatching { indexRepository.indexFile(file, connector) }
                         .onFailure { errors++ }
                 }
                 current++
                 if (current % 10 == 0 || current == total) {
-                    setForeground(buildForegroundInfo(current, total, errors))
+                    setForeground(buildForegroundInfo(current, total, errors, skipped))
                     setProgressAsync(workDataOf(
                         PROGRESS_CURRENT to current,
                         PROGRESS_TOTAL   to total,
-                        PROGRESS_ERRORS  to errors
+                        PROGRESS_ERRORS  to errors,
+                        PROGRESS_SKIPPED to skipped
                     ))
                 }
             }
@@ -131,6 +138,13 @@ class IndexingWorker @AssistedInject constructor(
             // --- Remove deleted files from local index ---
             for (fileId in sync.deletedIds) {
                 runCatching { indexRepository.removeFile(fileId) }
+            }
+
+            // Re-evaluate already-known files against the current size limit (without re-listing the
+            // cloud). Picks up files that now fit a raised limit and drops files over a lowered one —
+            // important for cursor-delta providers that don't revisit unchanged files.
+            runCatching {
+                indexRepository.reEvaluateSkippedAgainstLimit(accountId, connector, maxFileBytes)
             }
 
             // Persist the new change token for the next incremental sync.
@@ -186,8 +200,8 @@ class IndexingWorker @AssistedInject constructor(
         else -> "Indexierung fehlgeschlagen: ${e.message ?: e.javaClass.simpleName}"
     }
 
-    private fun buildForegroundInfo(current: Int, total: Int, errors: Int): ForegroundInfo {
-        val notification = buildNotification(current, total, errors)
+    private fun buildForegroundInfo(current: Int, total: Int, errors: Int, skipped: Int): ForegroundInfo {
+        val notification = buildNotification(current, total, errors, skipped)
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ForegroundInfo(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
         } else {
@@ -195,17 +209,19 @@ class IndexingWorker @AssistedInject constructor(
         }
     }
 
-    private fun buildNotification(current: Int, total: Int, errors: Int): Notification {
+    private fun buildNotification(current: Int, total: Int, errors: Int, skipped: Int): Notification {
         val openIntent = PendingIntent.getActivity(
             appContext, 0,
             Intent(appContext, MainActivity::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val contentText = when {
-            total == 0  -> "Dateiliste wird abgerufen…"
-            errors == 0 -> "$current / $total Dateien"
-            else        -> "$current / $total Dateien · $errors Fehler"
+        val contentText = if (total == 0) {
+            "Dateiliste wird abgerufen…"
+        } else buildString {
+            append("$current / $total Dateien")
+            if (errors > 0) append(" · $errors Fehler")
+            if (skipped > 0) append(" · $skipped übersprungen")
         }
 
         return NotificationCompat.Builder(appContext, CHANNEL_INDEXING)

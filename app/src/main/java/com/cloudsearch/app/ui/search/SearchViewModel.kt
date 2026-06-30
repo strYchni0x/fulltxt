@@ -71,6 +71,14 @@ class SearchViewModel @Inject constructor(
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     init {
+        refreshConnectedProviders()
+    }
+
+    /**
+     * Re-reads which providers/local folders are connected. Called on screen resume so the
+     * empty-state hint disappears right after the user links an account in settings.
+     */
+    fun refreshConnectedProviders() {
         _connectedProviders.value = indexRepository.getConnectedAccounts()
             .map { it.provider }
             .distinct()

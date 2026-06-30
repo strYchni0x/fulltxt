@@ -40,6 +40,13 @@ class IndexRepository @Inject constructor(
     fun markFullyIndexed(accountId: String) =
         syncPrefs.edit().putBoolean("fi_$accountId", true).apply()
 
+    /**
+     * Count of files currently skipped (too large) for an account, for the account card.
+     * Backed by the [skipped][FileMetadataEntity.skipped] flag, so it stays correct across
+     * cursor-delta syncs and re-evaluations of the limit.
+     */
+    suspend fun getSkippedCount(accountId: String): Int = dao.getSkippedCount(accountId)
+
     fun clearSyncState(accountId: String) =
         syncPrefs.edit().remove("ct_$accountId").remove("fi_$accountId").apply()
 
@@ -96,7 +103,10 @@ class IndexRepository @Inject constructor(
      */
     suspend fun indexFile(file: CloudFile, connector: CloudConnector): Boolean {
         val stored = dao.getMetadata(file.fileId)
-        if (stored != null && file.changeToken != null && stored.changeToken == file.changeToken) {
+        // Skip re-download only if unchanged AND not currently skipped. A skipped row must still be
+        // (re-)indexed here when it now fits the limit, even though its changeToken is unchanged.
+        if (stored != null && file.changeToken != null &&
+            stored.changeToken == file.changeToken && !stored.skipped) {
             return false
         }
 
@@ -163,7 +173,30 @@ class IndexRepository @Inject constructor(
 
     suspend fun removeFile(fileId: String) = dao.deleteFile(fileId)
 
-    private fun CloudFile.toMetadataEntity() = FileMetadataEntity(
+    /** Records a too-large file as known-but-skipped (metadata only, no content). */
+    suspend fun markSkipped(file: CloudFile) = dao.markSkipped(file.toMetadataEntity())
+
+    /**
+     * Re-evaluates already-known files against the current size limit, without re-listing the
+     * cloud — so a changed limit takes effect on the next sync even for cursor-delta providers
+     * (Dropbox/OneDrive):
+     *  - skipped files that now fit the limit are downloaded and indexed,
+     *  - indexed files that now exceed it have their content dropped and become skipped.
+     */
+    suspend fun reEvaluateSkippedAgainstLimit(
+        accountId: String,
+        connector: CloudConnector,
+        maxFileBytes: Long
+    ) {
+        dao.getSkippedAtOrBelow(accountId, maxFileBytes).forEach { meta ->
+            runCatching { indexFile(meta.toCloudFile(), connector) }
+        }
+        dao.getIndexedAbove(accountId, maxFileBytes).forEach { meta ->
+            runCatching { dao.markSkipped(meta) }
+        }
+    }
+
+    private fun CloudFile.toMetadataEntity(skipped: Boolean = false) = FileMetadataEntity(
         fileId = fileId,
         fileName = fileName,
         cloudPath = cloudPath,
@@ -176,6 +209,21 @@ class IndexRepository @Inject constructor(
         changeToken = changeToken,
         checksum = null,
         indexedAt = System.currentTimeMillis(),
+        webUrl = webUrl,
+        skipped = skipped
+    )
+
+    private fun FileMetadataEntity.toCloudFile() = CloudFile(
+        fileId = fileId,
+        fileName = fileName,
+        cloudPath = cloudPath,
+        cloudProvider = CloudProvider.valueOf(cloudProvider),
+        accountId = accountId,
+        fileSizeBytes = fileSizeBytes,
+        createdAt = createdAt,
+        modifiedAt = modifiedAt,
+        mimeType = mimeType,
+        changeToken = changeToken,
         webUrl = webUrl
     )
 }

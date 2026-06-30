@@ -1,5 +1,8 @@
 package me.fulltxt.app.data.cloud.nextcloud
 
+import android.content.Context
+import android.net.Uri
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -28,8 +31,13 @@ data class WebDavFile(
 
 @Singleton
 class NextcloudWebDavClient @Inject constructor(
-    private val okHttpClient: OkHttpClient
+    private val okHttpClient: OkHttpClient,
+    @ApplicationContext context: Context
 ) {
+
+    // Remembers per endpoint (server + root path) whether Depth: infinity is unsupported, so we
+    // don't waste a slow, doomed infinity request on every sync. A server property, not per-user.
+    private val infinityPrefs = context.getSharedPreferences("fulltxt_webdav", Context.MODE_PRIVATE)
 
     companion object {
         private const val DAV_NS = "DAV:"
@@ -71,15 +79,28 @@ class NextcloudWebDavClient @Inject constructor(
         rootPath: String = "/remote.php/dav/files/$username/"
     ): List<WebDavFile> = withContext(Dispatchers.IO) {
         val results = mutableListOf<WebDavFile>()
+        val infinityKey = "no_infinity:${serverUrl.trimEnd('/')}$rootPath"
 
-        // Try Depth: infinity first (supported by Nextcloud 20+)
-        val infinityResponse = propfind(serverUrl, authHeader, rootPath, depth = "infinity")
-        if (infinityResponse != null) {
-            results += infinityResponse.filter { !it.isDirectory && it.mimeType in SUPPORTED_MIME_TYPES }
-        } else {
-            // Fall back to recursive Depth:1 traversal
-            collectFilesRecursive(serverUrl, authHeader, rootPath, results)
+        // Try Depth: infinity first (a single request for the whole tree) — unless a previous sync
+        // already found this server doesn't support it. Many servers reject or choke on infinity:
+        // some return 403/405, others (e.g. Nextcloud hitting a PHP timeout while enumerating)
+        // return 500 or time out. On ANY failure we fall back to a recursive Depth:1 traversal
+        // (what official WebDAV clients use) and remember it, so later syncs skip the slow attempt.
+        if (!infinityPrefs.getBoolean(infinityKey, false)) {
+            val infinityResponse = try {
+                propfind(serverUrl, authHeader, rootPath, depth = "infinity")
+            } catch (_: Exception) {
+                null
+            }
+            if (infinityResponse != null) {
+                results += infinityResponse.filter { !it.isDirectory && it.mimeType in SUPPORTED_MIME_TYPES }
+                return@withContext results
+            }
+            infinityPrefs.edit().putBoolean(infinityKey, true).apply()
         }
+
+        // Recursive Depth:1 traversal (server doesn't support / rejected infinity).
+        collectFilesRecursive(serverUrl, authHeader, rootPath, results)
         results
     }
 
@@ -159,20 +180,35 @@ class NextcloudWebDavClient @Inject constructor(
         path: String,
         results: MutableList<WebDavFile>
     ) {
+        // The PROPFIND for this directory is allowed to throw (the initial root call surfaces
+        // genuine auth/connection errors). Errors while descending into individual subfolders are
+        // contained below so one unreadable/erroring folder doesn't abort the whole traversal.
         val entries = propfind(serverUrl, authHeader, path, depth = "1") ?: return
         // Skip the first entry (the directory itself) by filtering on isDirectory + matching path
         entries
             .filter { it.href.trimEnd('/') != path.trimEnd('/') }
             .forEach { entry ->
                 if (entry.isDirectory) {
-                    collectFilesRecursive(serverUrl, authHeader, entry.href, results)
+                    // Skip a subfolder that fails (HTTP 500, timeout, transient) and keep going.
+                    try {
+                        collectFilesRecursive(serverUrl, authHeader, entry.href, results)
+                    } catch (_: Exception) {
+                        // ignore this subtree
+                    }
                 } else if (entry.mimeType in SUPPORTED_MIME_TYPES) {
                     results.add(entry)
                 }
             }
     }
 
-    /** Parses a WebDAV multistatus XML body into a list of WebDavFile entries. */
+    /**
+     * Parses a WebDAV multistatus XML body into a list of WebDavFile entries.
+     *
+     * Uses boolean state flags rather than a numeric nesting depth: reading a text property via
+     * [readText] (XmlPullParser.nextText) consumes that element's END_TAG, which would corrupt a
+     * manual depth counter. Flags are immune to that. Directory detection relies on the nested
+     * `<d:resourcetype><d:collection/>` element, so `<resourcetype>` is tracked explicitly.
+     */
     private fun parseMultiStatus(xml: String): List<WebDavFile> {
         val results = mutableListOf<WebDavFile>()
 
@@ -188,10 +224,9 @@ class NextcloudWebDavClient @Inject constructor(
         var createdAt = 0L
         var modifiedAt = 0L
         var isDirectory = false
-        var depth = 0               // nesting depth so we ignore nested elements
         var inResponse = false
         var inProp = false
-        var propDepth = 0
+        var inResourceType = false
 
         var event = parser.eventType
         while (event != XmlPullParser.END_DOCUMENT) {
@@ -199,55 +234,54 @@ class NextcloudWebDavClient @Inject constructor(
             val name = parser.name ?: ""
 
             when (event) {
-                XmlPullParser.START_TAG -> {
-                    depth++
-                    when {
-                        ns == DAV_NS && name == "response" -> {
-                            // Reset per-response state
-                            href = ""; mimeType = null; sizeBytes = 0L
-                            etag = null; createdAt = 0L; modifiedAt = 0L
-                            isDirectory = false; inResponse = true; inProp = false
-                        }
-                        inResponse && ns == DAV_NS && name == "href" && !inProp -> {
-                            href = readText(parser)
-                        }
-                        inResponse && ns == DAV_NS && name == "prop" -> {
-                            inProp = true
-                            propDepth = depth
-                        }
-                        inProp && depth == propDepth + 1 -> when {
-                            ns == DAV_NS && name == "getcontenttype" ->
-                                mimeType = readText(parser).ifEmpty { null }
-                            ns == DAV_NS && name == "getcontentlength" ->
-                                sizeBytes = readText(parser).toLongOrNull() ?: 0L
-                            ns == DAV_NS && name == "getetag" ->
-                                etag = readText(parser).trim('"').ifEmpty { null }
-                            ns == DAV_NS && name == "creationdate" ->
-                                createdAt = parseDate(readText(parser))
-                            ns == DAV_NS && name == "getlastmodified" ->
-                                modifiedAt = parseDate(readText(parser))
-                            ns == DAV_NS && name == "collection" ->
-                                isDirectory = true
-                        }
+                XmlPullParser.START_TAG -> when {
+                    ns == DAV_NS && name == "response" -> {
+                        // Reset per-response state
+                        href = ""; mimeType = null; sizeBytes = 0L
+                        etag = null; createdAt = 0L; modifiedAt = 0L
+                        isDirectory = false; inResponse = true
+                        inProp = false; inResourceType = false
                     }
+                    inResponse && !inProp && ns == DAV_NS && name == "href" ->
+                        href = readText(parser)
+                    inResponse && ns == DAV_NS && name == "prop" ->
+                        inProp = true
+                    inProp && ns == DAV_NS && name == "resourcetype" ->
+                        inResourceType = true
+                    inResourceType && ns == DAV_NS && name == "collection" ->
+                        isDirectory = true
+                    inProp && ns == DAV_NS && name == "getcontenttype" ->
+                        // Strip any "; charset=…" suffix so it matches SUPPORTED_MIME_TYPES.
+                        mimeType = readText(parser).substringBefore(';').trim().ifEmpty { null }
+                    inProp && ns == DAV_NS && name == "getcontentlength" ->
+                        sizeBytes = readText(parser).toLongOrNull() ?: 0L
+                    inProp && ns == DAV_NS && name == "getetag" ->
+                        etag = readText(parser).trim('"').ifEmpty { null }
+                    inProp && ns == DAV_NS && name == "creationdate" ->
+                        createdAt = parseDate(readText(parser))
+                    inProp && ns == DAV_NS && name == "getlastmodified" ->
+                        modifiedAt = parseDate(readText(parser))
                 }
-                XmlPullParser.END_TAG -> {
-                    if (ns == DAV_NS && name == "response" && inResponse && href.isNotEmpty()) {
-                        results += WebDavFile(
-                            href = href,
-                            name = href.trimEnd('/').substringAfterLast('/'),
-                            mimeType = mimeType,
-                            sizeBytes = sizeBytes,
-                            etag = etag,
-                            createdAt = createdAt,
-                            modifiedAt = modifiedAt,
-                            isDirectory = isDirectory
-                        )
-                        inResponse = false
-                        inProp = false
+                XmlPullParser.END_TAG -> when {
+                    ns == DAV_NS && name == "resourcetype" -> inResourceType = false
+                    ns == DAV_NS && name == "prop" -> inProp = false
+                    ns == DAV_NS && name == "response" -> {
+                        if (inResponse && href.isNotEmpty()) {
+                            results += WebDavFile(
+                                href = href,
+                                // href segments are percent-encoded; decode for a human-readable
+                                // display name (Uri.decode keeps '+' literal, unlike URLDecoder).
+                                name = Uri.decode(href.trimEnd('/').substringAfterLast('/')),
+                                mimeType = mimeType,
+                                sizeBytes = sizeBytes,
+                                etag = etag,
+                                createdAt = createdAt,
+                                modifiedAt = modifiedAt,
+                                isDirectory = isDirectory
+                            )
+                        }
+                        inResponse = false; inProp = false; inResourceType = false
                     }
-                    if (ns == DAV_NS && name == "prop") inProp = false
-                    depth--
                 }
             }
             event = parser.next()

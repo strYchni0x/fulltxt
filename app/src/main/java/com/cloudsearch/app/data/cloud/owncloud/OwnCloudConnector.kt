@@ -1,5 +1,6 @@
 package me.fulltxt.app.data.cloud.owncloud
 
+import android.net.Uri
 import me.fulltxt.app.data.cloud.CloudConnector
 import me.fulltxt.app.data.cloud.SyncChanges
 import me.fulltxt.app.data.cloud.nextcloud.NextcloudWebDavClient
@@ -74,11 +75,12 @@ class OwnCloudConnector @Inject constructor(
         accountId: String,
         serverUrl: String
     ): CloudFile {
-        val cloudPath = href
+        val encodedPath = href
             .substringAfter("/remote.php/dav/files/")
             .substringAfter("/")
             .let { "/$it" }
             .substringBeforeLast('/').ifEmpty { "/" }
+        val cloudPath = Uri.decode(encodedPath)
 
         return CloudFile(
             fileId        = href,
@@ -91,7 +93,7 @@ class OwnCloudConnector @Inject constructor(
             modifiedAt    = modifiedAt,
             mimeType      = mimeType ?: "application/octet-stream",
             changeToken   = etag,
-            webUrl        = "${serverUrl.trimEnd('/')}/apps/files?dir=$cloudPath"
+            webUrl        = "${serverUrl.trimEnd('/')}/apps/files?dir=$encodedPath"
         )
     }
 }
