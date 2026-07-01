@@ -169,6 +169,9 @@ class IndexingWorker @AssistedInject constructor(
             // reschedule itself — don't turn a stop into a user-visible failure.
             throw e
         } catch (e: Exception) {
+            // Surface the real cause: the worker otherwise swallows it (only a generic message
+            // reaches the UI on final failure), which made the OneDrive ClassCastException opaque.
+            android.util.Log.e("IndexingWorker", "doWork failed (provider=$provider, attempt=$runAttemptCount)", e)
             // Wrong credentials/URL will never succeed on retry, so fail fast with a clear message
             // instead of looping (the silent retry loop also got the app flagged as "buggy").
             if (isAuthError(e)) {
