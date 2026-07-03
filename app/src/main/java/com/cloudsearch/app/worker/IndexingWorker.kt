@@ -62,7 +62,7 @@ class IndexingWorker @AssistedInject constructor(
         const val PROGRESS_TOTAL   = "progress_total"
         const val PROGRESS_ERRORS  = "progress_errors"
         const val PROGRESS_SKIPPED = "progress_skipped"
-        /** Human-readable failure reason, set in the worker's output data on Result.failure(). */
+        /** Menschenlesbarer Fehlergrund, wird bei Result.failure() in die Ausgabedaten des Workers geschrieben. */
         const val KEY_ERROR        = "error_message"
         private const val NOTIFICATION_ID = 1001
         private const val MAX_RETRIES = 3
@@ -90,11 +90,11 @@ class IndexingWorker @AssistedInject constructor(
             else             -> return Result.failure()
         }
 
-        // Run as foreground service — Android must not kill this process.
+        // Als Foreground-Service laufen — Android darf diesen Prozess nicht beenden.
         setForeground(buildForegroundInfo(0, 0, 0, 0))
 
         return try {
-            // Load saved token; null = first full scan.
+            // Gespeichertes Token laden; null = erster vollständiger Scan.
             val changeToken = indexRepository.getChangeToken(accountId)
             val sync = connector.getChanges(accountId, changeToken)
 
@@ -112,11 +112,11 @@ class IndexingWorker @AssistedInject constructor(
                 PROGRESS_SKIPPED to 0
             ))
 
-            // --- Index new / modified files ---
+            // --- Neue / geänderte Dateien indexieren ---
             for (file in sync.changed) {
                 if (file.fileSizeBytes > maxFileBytes) {
-                    // Intentionally skipped (too large) — not an error. Recorded with its size so
-                    // it can be re-evaluated against the limit later without a cloud re-list.
+                    // Absichtlich übersprungen (zu groß) — kein Fehler. Mit seiner Größe erfasst, damit
+                    // es später ohne Cloud-Neuauflistung erneut gegen das Limit bewertet werden kann.
                     runCatching { indexRepository.markSkipped(file) }
                     skipped++
                 } else {
@@ -135,27 +135,29 @@ class IndexingWorker @AssistedInject constructor(
                 }
             }
 
-            // --- Remove deleted files from local index ---
+            // --- Gelöschte Dateien aus dem lokalen Index entfernen ---
             for (fileId in sync.deletedIds) {
                 runCatching { indexRepository.removeFile(fileId) }
             }
 
-            // Re-evaluate already-known files against the current size limit (without re-listing the
-            // cloud). Picks up files that now fit a raised limit and drops files over a lowered one —
-            // important for cursor-delta providers that don't revisit unchanged files.
+            // Bereits bekannte Dateien gegen das aktuelle Größenlimit neu bewerten (ohne die Cloud
+            // neu zu listen). Nimmt Dateien auf, die jetzt in ein erhöhtes Limit passen, und verwirft
+            // Dateien über einem gesenkten Limit — wichtig für Cursor-Delta-Anbieter, die unveränderte
+            // Dateien nicht erneut besuchen.
             runCatching {
                 indexRepository.reEvaluateSkippedAgainstLimit(accountId, connector, maxFileBytes)
             }
 
-            // Persist the new change token for the next incremental sync.
+            // Das neue Change-Token für den nächsten inkrementellen Sync speichern.
             if (sync.newChangeToken.isNotEmpty()) {
                 indexRepository.saveChangeToken(accountId, sync.newChangeToken)
             }
 
             indexRepository.markFullyIndexed(accountId)
 
-            // Scanned PDFs found during this pass are OCR'd by a separate, resumable worker so
-            // this (potentially long) OCR work no longer blocks or restarts the main index.
+            // Bei diesem Durchlauf gefundene gescannte PDFs werden von einem separaten, fortsetzbaren
+            // Worker OCR-verarbeitet, damit diese (potenziell lange) OCR-Arbeit den Haupt-Index nicht
+            // mehr blockiert oder neu startet.
             if (ocrQueue.size() > 0) indexFilesUseCase.scheduleOcr()
 
             if (total > 0 && current == errors) {
@@ -165,15 +167,17 @@ class IndexingWorker @AssistedInject constructor(
                 Result.success()
             }
         } catch (e: CancellationException) {
-            // The system stopped the worker (e.g. FGS time limit). Let WorkManager handle the
-            // reschedule itself — don't turn a stop into a user-visible failure.
+            // Das System hat den Worker gestoppt (z. B. FGS-Zeitlimit). WorkManager die Neuplanung
+            // selbst überlassen — einen Stopp nicht in einen für den Benutzer sichtbaren Fehler verwandeln.
             throw e
         } catch (e: Exception) {
-            // Surface the real cause: the worker otherwise swallows it (only a generic message
-            // reaches the UI on final failure), which made the OneDrive ClassCastException opaque.
+            // Die eigentliche Ursache sichtbar machen: Der Worker verschluckt sie sonst (nur eine
+            // generische Meldung erreicht die UI beim finalen Fehler), was die OneDrive-ClassCastException
+            // undurchsichtig machte.
             android.util.Log.e("IndexingWorker", "doWork failed (provider=$provider, attempt=$runAttemptCount)", e)
-            // Wrong credentials/URL will never succeed on retry, so fail fast with a clear message
-            // instead of looping (the silent retry loop also got the app flagged as "buggy").
+            // Falsche Zugangsdaten/URL werden auch bei einem erneuten Versuch nie funktionieren, daher
+            // mit einer klaren Meldung schnell scheitern, statt in einer Schleife zu laufen (die stille
+            // Retry-Schleife hat die App außerdem als "fehlerhaft" markieren lassen).
             if (isAuthError(e)) {
                 Result.failure(workDataOf(KEY_ERROR to AUTH_MESSAGE))
             } else if (runAttemptCount < MAX_RETRIES) {
@@ -184,9 +188,9 @@ class IndexingWorker @AssistedInject constructor(
         }
     }
 
-    /** Auth failures (bad username/password, missing or rejected credentials) — not retryable. */
+    /** Auth-Fehler (falscher Benutzername/Passwort, fehlende oder abgelehnte Zugangsdaten) — nicht wiederholbar. */
     private fun isAuthError(e: Throwable): Boolean {
-        if (e is IllegalStateException) return true   // connectors throw this for missing creds
+        if (e is IllegalStateException) return true   // Connectors werfen dies bei fehlenden Zugangsdaten
         val msg = e.message ?: return false
         return msg.contains("401") || msg.contains("403") ||
             msg.contains("Authentifiz", ignoreCase = true) ||

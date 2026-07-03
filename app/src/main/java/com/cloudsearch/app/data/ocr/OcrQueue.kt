@@ -6,12 +6,13 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Persistent, restart-safe queue of file IDs that still need OCR. Scanned PDFs detected during
- * the fast indexing pass are enqueued here; [me.fulltxt.app.worker.OcrWorker] drains the queue
- * separately and removes each ID as soon as its OCR result is stored. Because progress is banked
- * per file, an interrupted OCR run simply continues from the remaining IDs instead of restarting.
+ * Persistente, neustartsichere Warteschlange von Datei-IDs, die noch OCR benötigen. Gescannte PDFs,
+ * die während des schnellen Indexlaufs erkannt werden, werden hier eingereiht;
+ * [me.fulltxt.app.worker.OcrWorker] arbeitet die Warteschlange separat ab und entfernt jede ID,
+ * sobald ihr OCR-Ergebnis gespeichert ist. Da der Fortschritt pro Datei gesichert wird, setzt ein
+ * unterbrochener OCR-Lauf einfach bei den verbleibenden IDs fort, statt neu zu starten.
  *
- * Backed by SharedPreferences (a String set) to avoid a Room schema migration.
+ * Gestützt auf SharedPreferences (ein String-Set), um eine Room-Schema-Migration zu vermeiden.
  */
 @Singleton
 class OcrQueue @Inject constructor(@ApplicationContext context: Context) {
@@ -39,7 +40,7 @@ class OcrQueue @Inject constructor(@ApplicationContext context: Context) {
     @Synchronized
     fun clear() = prefs.edit().remove(KEY).apply()
 
-    // getStringSet returns a shared instance that must not be mutated, so copy into a new set.
+    // getStringSet gibt eine geteilte Instanz zurück, die nicht verändert werden darf, daher in ein neues Set kopieren.
     private fun read(): MutableSet<String> = HashSet(prefs.getStringSet(KEY, emptySet()) ?: emptySet())
 
     private fun write(set: Set<String>) = prefs.edit().putStringSet(KEY, set).apply()

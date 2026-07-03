@@ -18,7 +18,7 @@ class StratoAuthManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     companion object {
-        /** Strato HiDrive WebDAV server – fixed for all accounts. */
+        /** Strato-HiDrive-WebDAV-Server – für alle Konten fest. */
         const val SERVER_URL = "https://webdav.hidrive.strato.com"
     }
 

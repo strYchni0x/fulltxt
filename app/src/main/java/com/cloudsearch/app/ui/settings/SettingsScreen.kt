@@ -99,8 +99,8 @@ fun SettingsScreen(
     val maxFileSizeMb by viewModel.maxFileSizeMb.collectAsState()
     val dbSizeBytes by viewModel.dbSizeBytes.collectAsState()
 
-    // Passwords are held only in memory (not rememberSaveable) so they are not written to the
-    // saved-instance-state bundle. They are passed to the picker callback, then cleared.
+    // Passwörter werden nur im Speicher gehalten (nicht rememberSaveable), damit sie nicht in das
+    // Saved-Instance-State-Bundle geschrieben werden. Sie werden an den Picker-Callback übergeben und dann gelöscht.
     var pendingExportPassword by remember { mutableStateOf("") }
     var pendingImportPassword by remember { mutableStateOf("") }
 
@@ -183,9 +183,9 @@ fun SettingsScreen(
             onConfirm = { password ->
                 showImportPassword = false
                 pendingImportPassword = password
-                // Single "*/*" (no EXTRA_MIME_TYPES) makes the picker show ALL files. Passing a
-                // specific type alongside "*/*" puts documentsui in category-filter mode, which
-                // hides the .ftxt backup (unknown extension → no matching category).
+                // Ein einzelnes "*/*" (ohne EXTRA_MIME_TYPES) lässt den Picker ALLE Dateien zeigen. Ein
+                // spezifischer Typ neben "*/*" versetzt documentsui in den Kategorie-Filter-Modus, der
+                // das .ftxt-Backup ausblendet (unbekannte Erweiterung → keine passende Kategorie).
                 importLauncher.launch(arrayOf("*/*"))
             }
         )
@@ -517,8 +517,8 @@ private fun BackupPasswordDialog(
         }
     }
 
-    // BasicAlertDialog + decorFitsSystemWindows=false + imePadding() lets the dialog slide
-    // smoothly above the soft keyboard, instead of the window panning up/down on field focus.
+    // BasicAlertDialog + decorFitsSystemWindows=false + imePadding() lässt den Dialog sanft über die
+    // Bildschirmtastatur gleiten, statt dass das Fenster beim Fokussieren eines Felds hoch-/runterschwenkt.
     BasicAlertDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(decorFitsSystemWindows = false)
@@ -722,8 +722,8 @@ fun CloudAccountsScreen(
                     modifier = Modifier.padding(vertical = 8.dp))
             }
 
-            // Google Drive is only offered in the dev edition (drive.readonly). The public
-            // playstore edition omits it — see the flavor comment in app/build.gradle.kts.
+            // Google Drive wird nur in der Dev-Edition angeboten (drive.readonly). Die öffentliche
+            // Playstore-Edition lässt es weg — siehe den Flavor-Kommentar in app/build.gradle.kts.
             if (BuildConfig.DRIVE_ENABLED && CloudProvider.GOOGLE_DRIVE !in connectedProviders) {
                 item {
                     ConnectButton(
@@ -940,7 +940,7 @@ private fun AccountCard(
                     }
                 }
 
-                // Daily delta toggle — only available after first full index
+                // Täglicher-Delta-Schalter — erst nach dem ersten vollständigen Index verfügbar
                 if (state.isFullyIndexed) {
                     Spacer(Modifier.height(8.dp))
                     HorizontalDivider()

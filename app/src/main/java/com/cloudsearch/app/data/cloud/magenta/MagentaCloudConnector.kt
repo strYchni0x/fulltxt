@@ -11,13 +11,13 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * MagentaCloud connector (Deutsche Telekom).
+ * MagentaCloud-Connector (Deutsche Telekom).
  *
- * MagentaCloud runs on a Nextcloud backend and exposes the identical WebDAV endpoint
- * layout (/remote.php/dav/files/<username>/). The [NextcloudWebDavClient] is reused
- * directly – only auth management and the CloudProvider tag differ.
+ * MagentaCloud läuft auf einem Nextcloud-Backend und stellt das identische WebDAV-Endpunkt-Layout
+ * bereit (/remote.php/dav/files/<username>/). Der [NextcloudWebDavClient] wird direkt
+ * weiterverwendet – nur die Auth-Verwaltung und das CloudProvider-Tag unterscheiden sich.
  *
- * Server URL: https://magentacloud.de (pre-filled in UI, editable for custom instances).
+ * Server-URL: https://magentacloud.de (in der UI vorbelegt, für eigene Instanzen editierbar).
  */
 @Singleton
 class MagentaCloudConnector @Inject constructor(

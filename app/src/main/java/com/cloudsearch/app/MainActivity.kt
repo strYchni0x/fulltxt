@@ -55,8 +55,8 @@ class MainActivity : ComponentActivity() {
         googleAuthManager.handleSignInResult(result.resultCode, result.data)
     }
 
-    // Result is intentionally ignored: the indexing foreground service runs either way;
-    // if the user denies, the progress notification is simply not shown.
+    // Das Ergebnis wird bewusst ignoriert: Der Indexierungs-Foreground-Service läuft ohnehin;
+    // verweigert der Benutzer, wird lediglich die Fortschrittsbenachrichtigung nicht angezeigt.
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { /* no-op */ }
@@ -86,10 +86,10 @@ class MainActivity : ComponentActivity() {
                         onConfirm = {
                             appPreferences.batteryOptimizationPromptShown = true
                             showBatteryDialog = false
-                            // Open the system battery-optimization settings list (no special
-                            // permission required). The direct ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-                            // intent needs REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, which Google Play
-                            // restricts to a narrow set of app categories, so we avoid it.
+                            // Die System-Einstellungsliste zur Akku-Optimierung öffnen (keine spezielle
+                            // Berechtigung nötig). Der direkte ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS-
+                            // Intent benötigt REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, das Google Play auf
+                            // wenige App-Kategorien beschränkt, daher vermeiden wir ihn.
                             startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
                         },
                         onDismiss = {
@@ -137,9 +137,9 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * On Android 13+ the foreground-service progress notification is only visible if the
-     * POST_NOTIFICATIONS runtime permission is granted. Request it once on startup; on older
-     * versions the permission is implicit, so nothing happens.
+     * Ab Android 13 ist die Fortschrittsbenachrichtigung des Foreground-Service nur sichtbar, wenn
+     * die Laufzeit-Berechtigung POST_NOTIFICATIONS erteilt ist. Beim Start einmal anfragen; auf
+     * älteren Versionen ist die Berechtigung implizit, es passiert also nichts.
      */
     private fun maybeRequestNotificationPermission() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return

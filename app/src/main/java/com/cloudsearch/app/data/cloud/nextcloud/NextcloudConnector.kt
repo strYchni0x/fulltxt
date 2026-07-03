@@ -23,8 +23,8 @@ class NextcloudConnector @Inject constructor(
     }
 
     /**
-     * fileId for Nextcloud is the WebDAV href path
-     * (e.g. /remote.php/dav/files/user/docs/report.pdf).
+     * Die fileId ist bei Nextcloud der WebDAV-href-Pfad
+     * (z. B. /remote.php/dav/files/user/docs/report.pdf).
      */
     override suspend fun downloadFile(fileId: String, accountId: String): ByteArray {
         val creds = requireCreds(accountId)
@@ -32,11 +32,12 @@ class NextcloudConnector @Inject constructor(
     }
 
     /**
-     * Nextcloud WebDAV has no delta-token API.
-     * We do a full re-list; unchanged files are skipped in IndexRepository via eTag comparison.
-     * The returned "change token" is a timestamp placeholder for future Activity-API integration.
+     * Nextcloud WebDAV hat keine Delta-Token-API.
+     * Wir listen komplett neu; unveränderte Dateien werden im IndexRepository per eTag-Vergleich
+     * übersprungen. Das zurückgegebene "Change-Token" ist ein Zeitstempel-Platzhalter für eine
+     * spätere Anbindung der Activity-API.
      */
-    /** WebDAV has no server-side deletion log; full re-list, unchanged files skipped via eTag. */
+    /** WebDAV hat kein serverseitiges Löschprotokoll; komplette Neuauflistung, unveränderte Dateien per eTag übersprungen. */
     override suspend fun getChanges(
         accountId: String,
         changeToken: String?
@@ -49,7 +50,7 @@ class NextcloudConnector @Inject constructor(
         authManager.isAuthenticated(accountId)
 
     override suspend fun authenticate(accountId: String) {
-        // Credentials are pre-set via the settings dialog; just verify they exist.
+        // Zugangsdaten werden über den Einstellungsdialog vorab gesetzt; hier nur prüfen, dass sie existieren.
         if (!authManager.isAuthenticated(accountId)) {
             throw IllegalStateException("Nextcloud-Zugangsdaten nicht gesetzt")
         }
@@ -59,7 +60,7 @@ class NextcloudConnector @Inject constructor(
         authManager.removeCredentials(accountId)
     }
 
-    // --- Helpers ---
+    // --- Hilfsfunktionen ---
 
     private fun requireCreds(accountId: String): NextcloudCredentials =
         authManager.getCredentials(accountId)
@@ -70,16 +71,16 @@ class NextcloudConnector @Inject constructor(
             ?: throw IllegalStateException("Keine Nextcloud-Zugangsdaten für Account $accountId")
 
     private fun WebDavFile.toCloudFile(accountId: String, serverUrl: String): CloudFile {
-        // Strip the WebDAV prefix to get the cloud path. Keep the percent-encoded form for the
-        // web deep-link URL, and decode a human-readable form for display.
+        // WebDAV-Präfix entfernen, um den Cloud-Pfad zu erhalten. Die prozentcodierte Form für die
+        // Web-Deep-Link-URL beibehalten und eine menschenlesbare Form für die Anzeige dekodieren.
         val encodedPath = href
             .substringAfter("/remote.php/dav/files/")
-            .substringAfter("/")   // remove username segment
+            .substringAfter("/")   // Benutzername-Segment entfernen
             .let { "/$it" }
             .substringBeforeLast('/').ifEmpty { "/" }
         val cloudPath = Uri.decode(encodedPath)
 
-        // Deep-link into Nextcloud web UI
+        // Deep-Link in die Nextcloud-Web-Oberfläche
         val webUrl = "${serverUrl.trimEnd('/')}/apps/files?dir=$encodedPath"
 
         return CloudFile(

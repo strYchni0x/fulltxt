@@ -29,7 +29,7 @@ object NetworkModule {
         OkHttpClient.Builder()
             .addInterceptor(rateLimitMiddleware)
             .apply {
-                // Only log HTTP traffic in debug builds — avoids leaking API URLs in production.
+                // HTTP-Verkehr nur in Debug-Builds loggen — verhindert das Durchsickern von API-URLs in Produktion.
                 if (BuildConfig.DEBUG) {
                     addInterceptor(HttpLoggingInterceptor().apply {
                         level = HttpLoggingInterceptor.Level.BASIC

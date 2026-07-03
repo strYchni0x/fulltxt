@@ -2,7 +2,7 @@ package me.fulltxt.app.data.cloud.dropbox
 
 import com.google.gson.annotations.SerializedName
 
-// ── Request bodies ────────────────────────────────────────────────────────────
+// ── Request-Bodys ─────────────────────────────────────────────────────────────
 
 data class ListFolderRequest(
     @SerializedName("path")             val path: String = "",
@@ -15,7 +15,7 @@ data class ContinueRequest(
     @SerializedName("cursor") val cursor: String
 )
 
-// ── Response bodies ───────────────────────────────────────────────────────────
+// ── Response-Bodys ────────────────────────────────────────────────────────────
 
 data class ListFolderResult(
     @SerializedName("entries")  val entries: List<DropboxEntry>,
@@ -24,8 +24,8 @@ data class ListFolderResult(
 )
 
 /**
- * A single entry returned by /files/list_folder.
- * [tag] is one of "file", "folder", "deleted".
+ * Ein einzelner von /files/list_folder zurückgegebener Eintrag.
+ * [tag] ist einer von "file", "folder", "deleted".
  */
 data class DropboxEntry(
     @SerializedName(".tag")          val tag: String,
@@ -54,7 +54,7 @@ data class DropboxName(
     @SerializedName("display_name") val displayName: String
 )
 
-/** Token response from /oauth2/token */
+/** Token-Antwort von /oauth2/token */
 data class DropboxTokenResponse(
     @SerializedName("access_token")  val accessToken: String,
     @SerializedName("token_type")    val tokenType: String,
@@ -64,7 +64,7 @@ data class DropboxTokenResponse(
     @SerializedName("uid")           val uid: String?
 )
 
-/** Stored per account in EncryptedSharedPreferences */
+/** Pro Konto in EncryptedSharedPreferences gespeichert */
 data class DropboxAccountInfo(
     val accountId:   String,
     val displayName: String,

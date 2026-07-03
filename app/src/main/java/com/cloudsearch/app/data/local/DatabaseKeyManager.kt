@@ -10,12 +10,13 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Holds the passphrase that encrypts the on-device SQLCipher index.
+ * Hält die Passphrase, die den lokalen SQLCipher-Index verschlüsselt.
  *
- * The passphrase is a random 256-bit value, generated once on first launch and stored in
- * [EncryptedSharedPreferences] — i.e. wrapped by a hardware-backed Android Keystore master key.
- * It never leaves the device. (Index *backups* use a separate, user-chosen passphrase so they
- * stay portable across devices; see [me.fulltxt.app.data.backup.BackupCrypto].)
+ * Die Passphrase ist ein zufälliger 256-Bit-Wert, der beim ersten Start einmal erzeugt und in
+ * [EncryptedSharedPreferences] gespeichert wird — d. h. von einem hardwaregestützten
+ * Android-Keystore-Masterkey umschlossen. Sie verlässt das Gerät nie. (Index-*Backups* verwenden
+ * eine separate, vom Benutzer gewählte Passphrase, damit sie geräteübergreifend portabel bleiben;
+ * siehe [me.fulltxt.app.data.backup.BackupCrypto].)
  */
 @Singleton
 class DatabaseKeyManager @Inject constructor(
@@ -35,9 +36,9 @@ class DatabaseKeyManager @Inject constructor(
     }
 
     /**
-     * The SQLCipher passphrase, as an ASCII string (Base64 of 32 random bytes). Generated and
-     * persisted on first call, returned unchanged afterwards. Pure ASCII, so it can be embedded
-     * safely in a SQLCipher `KEY '...'` clause and used as UTF-8 bytes interchangeably.
+     * Die SQLCipher-Passphrase als ASCII-String (Base64 von 32 zufälligen Bytes). Beim ersten Aufruf
+     * erzeugt und persistiert, danach unverändert zurückgegeben. Reines ASCII, sodass sie sicher in
+     * eine SQLCipher-`KEY '...'`-Klausel eingebettet und austauschbar als UTF-8-Bytes verwendet werden kann.
      */
     @Synchronized
     fun passphrase(): String {

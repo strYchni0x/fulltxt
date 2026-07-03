@@ -11,13 +11,13 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Strato HiDrive connector.
+ * Strato-HiDrive-Connector.
  *
- * HiDrive WebDAV endpoint: https://webdav.hidrive.strato.com/users/<username>/
- * Authentication: Basic Auth (Strato username + password).
+ * HiDrive-WebDAV-Endpunkt: https://webdav.hidrive.strato.com/users/<username>/
+ * Authentifizierung: Basic Auth (Strato-Benutzername + Passwort).
  *
- * The path structure differs from Nextcloud, so [NextcloudWebDavClient.listFiles] is called
- * with an explicit [rootPath] of "/users/<username>/".
+ * Die Pfadstruktur unterscheidet sich von Nextcloud, daher wird [NextcloudWebDavClient.listFiles]
+ * mit einem expliziten [rootPath] von "/users/<username>/" aufgerufen.
  */
 @Singleton
 class StratoConnector @Inject constructor(
@@ -34,7 +34,7 @@ class StratoConnector @Inject constructor(
             .map { it.toCloudFile(accountId, creds.username) }
     }
 
-    /** fileId is the full WebDAV href (e.g. /users/username/docs/file.pdf). */
+    /** fileId ist der vollständige WebDAV-href (z. B. /users/username/docs/file.pdf). */
     override suspend fun downloadFile(fileId: String, accountId: String): ByteArray {
         val auth = requireAuth(accountId)
         return webDavClient.downloadFile(StratoAuthManager.SERVER_URL, auth, fileId)
@@ -84,7 +84,7 @@ class StratoConnector @Inject constructor(
             modifiedAt    = modifiedAt,
             mimeType      = mimeType ?: "application/octet-stream",
             changeToken   = etag,
-            webUrl        = null   // HiDrive web UI has no stable deep-link format
+            webUrl        = null   // Die HiDrive-Web-Oberfläche hat kein stabiles Deep-Link-Format
         )
     }
 }

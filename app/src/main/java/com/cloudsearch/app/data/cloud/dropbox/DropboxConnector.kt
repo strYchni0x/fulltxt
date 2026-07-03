@@ -64,7 +64,7 @@ class DropboxConnector @Inject constructor(
     override suspend fun downloadFile(fileId: String, accountId: String): ByteArray =
         withContext(Dispatchers.IO) {
             val auth = authManager.getBearerHeader(accountId)
-            // fileId is the Dropbox item ID (id:…); pass it as path in the API arg header
+            // fileId ist die Dropbox-Element-ID (id:…); als path im API-Arg-Header übergeben
             val apiArg = """{"path":"$fileId"}"""
 
             val request = Request.Builder()
@@ -83,9 +83,9 @@ class DropboxConnector @Inject constructor(
         }
 
     /**
-     * Delta sync using Dropbox's cursor mechanism.
-     * First call (changeToken == null): fetch all files + save cursor.
-     * Subsequent calls: fetch only changed entries since the stored cursor.
+     * Delta-Sync über den Cursor-Mechanismus von Dropbox.
+     * Erster Aufruf (changeToken == null): alle Dateien holen + Cursor speichern.
+     * Folgeaufrufe: nur die seit dem gespeicherten Cursor geänderten Einträge holen.
      */
     override suspend fun getChanges(
         accountId: String,
@@ -94,15 +94,15 @@ class DropboxConnector @Inject constructor(
         val auth = authManager.getBearerHeader(accountId)
 
         if (changeToken == null) {
-            // First run: full list + grab the latest cursor for future incremental syncs.
+            // Erster Lauf: vollständige Liste + den neuesten Cursor für künftige inkrementelle Syncs holen.
             val files  = listFiles(accountId)
             val cursor = apiService.getLatestCursor(auth, ListFolderRequest()).cursor
             return@withContext SyncChanges(files, emptyList(), cursor)
         }
 
-        // Incremental: walk all pages since the stored cursor.
-        // Note: Dropbox deleted entries don't include the file ID, only the path.
-        // Deletion tracking is skipped here; stale entries are handled by re-index skip logic.
+        // Inkrementell: alle Seiten seit dem gespeicherten Cursor durchlaufen.
+        // Hinweis: Dropbox-Lösch-Einträge enthalten nicht die Datei-ID, nur den Pfad.
+        // Löschverfolgung wird hier übersprungen; veraltete Einträge behandelt die Re-Index-Skip-Logik.
         val changed = mutableListOf<CloudFile>()
         var cursor: String = changeToken
         var hasMore = true
@@ -121,9 +121,9 @@ class DropboxConnector @Inject constructor(
     }
 
     /**
-     * Returns a short-lived (4 h) HTTPS URL that directly serves the file content.
-     * Useful for opening files in a local viewer without requiring the Dropbox app.
-     * [fileId] should be the Dropbox item ID ("id:…").
+     * Gibt eine kurzlebige (4 h) HTTPS-URL zurück, die den Dateiinhalt direkt ausliefert.
+     * Nützlich, um Dateien in einem lokalen Viewer zu öffnen, ohne die Dropbox-App zu benötigen.
+     * [fileId] sollte die Dropbox-Element-ID ("id:…") sein.
      */
     suspend fun getTemporaryLink(fileId: String, accountId: String): String =
         withContext(Dispatchers.IO) {
@@ -142,7 +142,7 @@ class DropboxConnector @Inject constructor(
         authManager.signOut(accountId)
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // ── Hilfsfunktionen ───────────────────────────────────────────────────────
 
     private fun DropboxEntry.toCloudFile(accountId: String): CloudFile? {
         val entryId   = id   ?: return null

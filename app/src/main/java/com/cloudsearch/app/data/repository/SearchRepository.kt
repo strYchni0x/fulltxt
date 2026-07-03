@@ -19,8 +19,8 @@ class SearchRepository @Inject constructor(
     private val dao: FileIndexDao
 ) {
     companion object {
-        // Delimiters wrapping matched terms in snippets, e.g. "foo [[bar]] baz".
-        // Parsed by SnippetText in the UI layer to render matches in bold.
+        // Begrenzer, die gefundene Begriffe in Snippets umschließen, z. B. "foo [[bar]] baz".
+        // Werden von SnippetText in der UI-Schicht geparst, um Treffer fett darzustellen.
         const val SNIPPET_START = "[["
         const val SNIPPET_END = "]]"
 
@@ -43,9 +43,9 @@ class SearchRepository @Inject constructor(
                 SimpleSQLiteQuery(
                     "SELECT fileId," +
                     // FTS4 snippet(table, start, end, ellipsis, column, tokens).
-                    // column = -1 lets FTS pick the column that actually contains the match
-                    // (e.g. a hit in the file name, not just the content), and a negative
-                    // token count centers the fragment on the match instead of the column start.
+                    // column = -1 lässt FTS die Spalte wählen, die den Treffer tatsächlich enthält
+                    // (z. B. einen Treffer im Dateinamen, nicht nur im Inhalt), und eine negative
+                    // Token-Anzahl zentriert das Fragment auf dem Treffer statt am Spaltenanfang.
                     " snippet(file_content_fts, '[[', ']]', ' … ', -1, -20) AS snippet" +
                     " FROM file_content_fts WHERE file_content_fts MATCH ? LIMIT ?",
                     arrayOf(sanitized, limit)
@@ -83,11 +83,11 @@ class SearchRepository @Inject constructor(
             results = results.filter { it.file.modifiedAt >= cutoff }
         }
 
-        // Duplicate detection: find files with the same name + size across multiple providers/accounts.
+        // Duplikaterkennung: Dateien mit gleichem Namen + gleicher Größe über mehrere Anbieter/Konten finden.
         val allFileNames = results.map { it.file.fileName }.distinct()
         val candidates = dao.getByFileNames(allFileNames)
 
-        // Group by (fileName, fileSizeBytes). Only groups with >1 distinct accountId are real duplicates.
+        // Nach (fileName, fileSizeBytes) gruppieren. Nur Gruppen mit >1 unterschiedlichen accountId sind echte Duplikate.
         val dupeProviders: Map<Pair<String, Long>, List<CloudProvider>> = candidates
             .groupBy { it.fileName to it.fileSizeBytes }
             .filter { (_, group) -> group.map { it.accountId }.distinct().size > 1 }

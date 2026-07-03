@@ -3,12 +3,12 @@ package me.fulltxt.app.data.cloud
 import me.fulltxt.app.domain.model.CloudFile
 
 /**
- * Result of an incremental sync (or a first full scan when changeToken was null).
+ * Ergebnis eines inkrementellen Syncs (oder eines ersten vollständigen Scans, wenn changeToken null war).
  *
- * @param changed      Files that were added or modified since the last sync.
- * @param deletedIds   File IDs that were deleted since the last sync.
- *                     Empty for providers without a server-side deletion log (WebDAV, Dropbox).
- * @param newChangeToken Token / delta-link / cursor to pass into the next [CloudConnector.getChanges] call.
+ * @param changed      Dateien, die seit dem letzten Sync hinzugefügt oder geändert wurden.
+ * @param deletedIds   Datei-IDs, die seit dem letzten Sync gelöscht wurden.
+ *                     Leer bei Anbietern ohne serverseitiges Löschprotokoll (WebDAV, Dropbox).
+ * @param newChangeToken Token / Delta-Link / Cursor für den nächsten [CloudConnector.getChanges]-Aufruf.
  */
 data class SyncChanges(
     val changed: List<CloudFile>,

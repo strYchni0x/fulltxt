@@ -112,8 +112,8 @@ fun SearchScreen(
         }
     }
 
-    // Re-check connected accounts on resume so the empty-state hint disappears right after
-    // the user links an account or local folder in settings.
+    // Verbundene Konten beim Fortsetzen erneut prüfen, damit der Leerzustand-Hinweis direkt
+    // verschwindet, nachdem der Benutzer in den Einstellungen ein Konto oder einen lokalen Ordner verknüpft hat.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         viewModel.refreshConnectedProviders()
     }
@@ -434,9 +434,9 @@ private fun SearchResultItem(result: SearchResult, coloredIcon: Boolean, onClick
         },
         supportingContent = {
             Column {
-                // Google Drive's cloudPath is built from opaque folder IDs (e.g. "/1-h577…/name"),
-                // which has no value for the user, so we hide it for that provider. Other providers
-                // expose a readable path worth showing.
+                // Der cloudPath von Google Drive besteht aus opaken Ordner-IDs (z. B. "/1-h577…/name"),
+                // die für den Benutzer keinen Wert haben, daher blenden wir ihn für diesen Anbieter aus.
+                // Andere Anbieter liefern einen lesbaren Pfad, den es sich zu zeigen lohnt.
                 val showPath = result.file.cloudProvider != CloudProvider.GOOGLE_DRIVE &&
                     result.file.cloudPath.isNotBlank()
                 if (showPath) {
@@ -506,9 +506,10 @@ private fun buildSnippetAnnotated(raw: String, highlightColor: Color): Annotated
 }
 
 /**
- * FTS' snippet() often places the matched term at the end of the fragment, with a lot of
- * leading context. Since the snippet is truncated to two lines, that pushes the highlighted
- * match out of view. Move the first match near the start by trimming excess leading context.
+ * Das snippet() von FTS platziert den Treffer oft am Ende des Fragments, mit viel vorangehendem
+ * Kontext. Da das Snippet auf zwei Zeilen gekürzt wird, drängt das den hervorgehobenen Treffer aus
+ * dem Sichtbereich. Den ersten Treffer näher an den Anfang rücken, indem überschüssiger
+ * vorangehender Kontext gekürzt wird.
  */
 private fun reframeSnippet(raw: String): String {
     val maxLead = 24
@@ -522,7 +523,7 @@ private fun reframeSnippet(raw: String): String {
 
 private data class FileVisual(val icon: ImageVector, val color: Color)
 
-/** Maps a file name's extension to a colored type icon for search results. */
+/** Bildet die Erweiterung eines Dateinamens auf ein farbiges Typ-Symbol für Suchergebnisse ab. */
 @Composable
 private fun fileTypeVisual(fileName: String): FileVisual =
     when (fileName.substringAfterLast('.', "").lowercase()) {

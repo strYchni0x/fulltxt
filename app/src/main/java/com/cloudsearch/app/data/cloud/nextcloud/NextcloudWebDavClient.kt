@@ -18,7 +18,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 data class WebDavFile(
-    /** Absolute URL path, e.g. /remote.php/dav/files/user/docs/report.pdf */
+    /** Absoluter URL-Pfad, z. B. /remote.php/dav/files/user/docs/report.pdf */
     val href: String,
     val name: String,
     val mimeType: String?,
@@ -35,8 +35,9 @@ class NextcloudWebDavClient @Inject constructor(
     @ApplicationContext context: Context
 ) {
 
-    // Remembers per endpoint (server + root path) whether Depth: infinity is unsupported, so we
-    // don't waste a slow, doomed infinity request on every sync. A server property, not per-user.
+    // Merkt sich pro Endpunkt (Server + Root-Pfad), ob Depth: infinity nicht unterstützt wird, damit
+    // wir nicht bei jedem Sync eine langsame, aussichtslose infinity-Anfrage verschwenden. Eine
+    // Server-Eigenschaft, nicht pro Benutzer.
     private val infinityPrefs = context.getSharedPreferences("fulltxt_webdav", Context.MODE_PRIVATE)
 
     companion object {
@@ -65,12 +66,13 @@ class NextcloudWebDavClient @Inject constructor(
     }
 
     /**
-     * Lists all supported files under the user's root using a single PROPFIND with Depth: infinity.
-     * Falls back to recursive Depth:1 traversal if the server rejects infinity (HTTP 403/405).
+     * Listet alle unterstützten Dateien unter dem Benutzer-Root mit einem einzigen PROPFIND
+     * (Depth: infinity). Fällt auf eine rekursive Depth:1-Traversierung zurück, wenn der Server
+     * infinity ablehnt (HTTP 403/405).
      *
-     * @param rootPath WebDAV root path for the provider. Defaults to the Nextcloud/ownCloud/
-     *   MagentaCloud layout. Pass a custom value for providers with different structures
-     *   (e.g. Strato HiDrive uses "/users/<username>/").
+     * @param rootPath WebDAV-Root-Pfad des Anbieters. Standard ist das Nextcloud/ownCloud/
+     *   MagentaCloud-Layout. Für Anbieter mit anderer Struktur einen eigenen Wert übergeben
+     *   (z. B. Strato HiDrive nutzt "/users/<username>/").
      */
     suspend fun listFiles(
         serverUrl: String,
@@ -81,11 +83,12 @@ class NextcloudWebDavClient @Inject constructor(
         val results = mutableListOf<WebDavFile>()
         val infinityKey = "no_infinity:${serverUrl.trimEnd('/')}$rootPath"
 
-        // Try Depth: infinity first (a single request for the whole tree) — unless a previous sync
-        // already found this server doesn't support it. Many servers reject or choke on infinity:
-        // some return 403/405, others (e.g. Nextcloud hitting a PHP timeout while enumerating)
-        // return 500 or time out. On ANY failure we fall back to a recursive Depth:1 traversal
-        // (what official WebDAV clients use) and remember it, so later syncs skip the slow attempt.
+        // Zuerst Depth: infinity versuchen (eine Anfrage für den ganzen Baum) — außer ein früherer
+        // Sync hat bereits festgestellt, dass dieser Server es nicht unterstützt. Viele Server lehnen
+        // infinity ab oder verschlucken sich daran: manche liefern 403/405, andere (z. B. Nextcloud
+        // bei einem PHP-Timeout während der Auflistung) liefern 500 oder laufen in einen Timeout. Bei
+        // JEDEM Fehler fallen wir auf eine rekursive Depth:1-Traversierung zurück (wie es offizielle
+        // WebDAV-Clients tun) und merken uns das, damit spätere Syncs den langsamen Versuch überspringen.
         if (!infinityPrefs.getBoolean(infinityKey, false)) {
             val infinityResponse = try {
                 propfind(serverUrl, authHeader, rootPath, depth = "infinity")
@@ -99,12 +102,12 @@ class NextcloudWebDavClient @Inject constructor(
             infinityPrefs.edit().putBoolean(infinityKey, true).apply()
         }
 
-        // Recursive Depth:1 traversal (server doesn't support / rejected infinity).
+        // Rekursive Depth:1-Traversierung (Server unterstützt infinity nicht / hat es abgelehnt).
         collectFilesRecursive(serverUrl, authHeader, rootPath, results)
         results
     }
 
-    /** Downloads a file identified by its WebDAV href path. */
+    /** Lädt eine Datei anhand ihres WebDAV-href-Pfads herunter. */
     suspend fun downloadFile(
         serverUrl: String,
         authHeader: String,
@@ -124,10 +127,10 @@ class NextcloudWebDavClient @Inject constructor(
     }
 
     /**
-     * Performs a test PROPFIND (Depth:0) against the user root.
-     * Throws if credentials are wrong or the server is unreachable.
+     * Führt ein Test-PROPFIND (Depth:0) gegen den Benutzer-Root aus.
+     * Wirft eine Exception, wenn die Zugangsdaten falsch sind oder der Server nicht erreichbar ist.
      *
-     * @param rootPath see [listFiles]
+     * @param rootPath siehe [listFiles]
      */
     suspend fun testConnection(
         serverUrl: String,
@@ -139,12 +142,12 @@ class NextcloudWebDavClient @Inject constructor(
             ?: throw Exception("Verbindungstest fehlgeschlagen")
     }
 
-    // --- Private helpers ---
+    // --- Private Hilfsfunktionen ---
 
     /**
-     * Issues a PROPFIND and parses the response.
-     * Returns null if the server responds with 403/405 (infinity not allowed).
-     * Throws for other non-2xx responses.
+     * Setzt ein PROPFIND ab und parst die Antwort.
+     * Gibt null zurück, wenn der Server mit 403/405 antwortet (infinity nicht erlaubt).
+     * Wirft bei anderen Nicht-2xx-Antworten.
      */
     private fun propfind(
         serverUrl: String,
@@ -168,7 +171,7 @@ class NextcloudWebDavClient @Inject constructor(
 
         return when (code) {
             207 -> xml?.let { parseMultiStatus(it) } ?: emptyList()
-            403, 405 -> null   // infinity not allowed – caller will fall back
+            403, 405 -> null   // infinity nicht erlaubt – Aufrufer greift auf den Fallback zurück
             401 -> throw Exception("Authentifizierung fehlgeschlagen (401)")
             else -> throw Exception("WebDAV PROPFIND fehlgeschlagen: HTTP $code")
         }
@@ -180,20 +183,21 @@ class NextcloudWebDavClient @Inject constructor(
         path: String,
         results: MutableList<WebDavFile>
     ) {
-        // The PROPFIND for this directory is allowed to throw (the initial root call surfaces
-        // genuine auth/connection errors). Errors while descending into individual subfolders are
-        // contained below so one unreadable/erroring folder doesn't abort the whole traversal.
+        // Das PROPFIND für dieses Verzeichnis darf werfen (der initiale Root-Aufruf bringt echte
+        // Auth-/Verbindungsfehler an die Oberfläche). Fehler beim Absteigen in einzelne Unterordner
+        // werden unten aufgefangen, damit ein nicht lesbarer/fehlerhafter Ordner nicht die ganze
+        // Traversierung abbricht.
         val entries = propfind(serverUrl, authHeader, path, depth = "1") ?: return
-        // Skip the first entry (the directory itself) by filtering on isDirectory + matching path
+        // Den ersten Eintrag (das Verzeichnis selbst) überspringen, indem auf isDirectory + passenden Pfad gefiltert wird
         entries
             .filter { it.href.trimEnd('/') != path.trimEnd('/') }
             .forEach { entry ->
                 if (entry.isDirectory) {
-                    // Skip a subfolder that fails (HTTP 500, timeout, transient) and keep going.
+                    // Einen Unterordner, der scheitert (HTTP 500, Timeout, vorübergehend), überspringen und weitermachen.
                     try {
                         collectFilesRecursive(serverUrl, authHeader, entry.href, results)
                     } catch (_: Exception) {
-                        // ignore this subtree
+                        // diesen Teilbaum ignorieren
                     }
                 } else if (entry.mimeType in SUPPORTED_MIME_TYPES) {
                     results.add(entry)
@@ -202,12 +206,13 @@ class NextcloudWebDavClient @Inject constructor(
     }
 
     /**
-     * Parses a WebDAV multistatus XML body into a list of WebDavFile entries.
+     * Parst einen WebDAV-Multistatus-XML-Body in eine Liste von WebDavFile-Einträgen.
      *
-     * Uses boolean state flags rather than a numeric nesting depth: reading a text property via
-     * [readText] (XmlPullParser.nextText) consumes that element's END_TAG, which would corrupt a
-     * manual depth counter. Flags are immune to that. Directory detection relies on the nested
-     * `<d:resourcetype><d:collection/>` element, so `<resourcetype>` is tracked explicitly.
+     * Nutzt boolesche Zustandsflags statt eines numerischen Verschachtelungszählers: Das Lesen einer
+     * Text-Property über [readText] (XmlPullParser.nextText) konsumiert das END_TAG dieses Elements,
+     * was einen manuellen Tiefenzähler verfälschen würde. Flags sind dagegen immun. Die
+     * Verzeichniserkennung stützt sich auf das verschachtelte `<d:resourcetype><d:collection/>`,
+     * daher wird `<resourcetype>` explizit verfolgt.
      */
     private fun parseMultiStatus(xml: String): List<WebDavFile> {
         val results = mutableListOf<WebDavFile>()
@@ -216,7 +221,7 @@ class NextcloudWebDavClient @Inject constructor(
         val parser: XmlPullParser = factory.newPullParser()
         parser.setInput(StringReader(xml))
 
-        // State machine per <d:response>
+        // Zustandsautomat pro <d:response>
         var href = ""
         var mimeType: String? = null
         var sizeBytes = 0L
@@ -236,7 +241,7 @@ class NextcloudWebDavClient @Inject constructor(
             when (event) {
                 XmlPullParser.START_TAG -> when {
                     ns == DAV_NS && name == "response" -> {
-                        // Reset per-response state
+                        // Zustand pro Response zurücksetzen
                         href = ""; mimeType = null; sizeBytes = 0L
                         etag = null; createdAt = 0L; modifiedAt = 0L
                         isDirectory = false; inResponse = true
@@ -251,7 +256,7 @@ class NextcloudWebDavClient @Inject constructor(
                     inResourceType && ns == DAV_NS && name == "collection" ->
                         isDirectory = true
                     inProp && ns == DAV_NS && name == "getcontenttype" ->
-                        // Strip any "; charset=…" suffix so it matches SUPPORTED_MIME_TYPES.
+                        // Ein etwaiges "; charset=…"-Suffix entfernen, damit es zu SUPPORTED_MIME_TYPES passt.
                         mimeType = readText(parser).substringBefore(';').trim().ifEmpty { null }
                     inProp && ns == DAV_NS && name == "getcontentlength" ->
                         sizeBytes = readText(parser).toLongOrNull() ?: 0L
@@ -269,8 +274,8 @@ class NextcloudWebDavClient @Inject constructor(
                         if (inResponse && href.isNotEmpty()) {
                             results += WebDavFile(
                                 href = href,
-                                // href segments are percent-encoded; decode for a human-readable
-                                // display name (Uri.decode keeps '+' literal, unlike URLDecoder).
+                                // href-Segmente sind prozentcodiert; für einen menschenlesbaren
+                                // Anzeigenamen dekodieren (Uri.decode lässt '+' literal, anders als URLDecoder).
                                 name = Uri.decode(href.trimEnd('/').substringAfterLast('/')),
                                 mimeType = mimeType,
                                 sizeBytes = sizeBytes,
@@ -290,8 +295,8 @@ class NextcloudWebDavClient @Inject constructor(
     }
 
     /**
-     * Reads the text content of the current START_TAG element.
-     * Advances the parser past the element's END_TAG.
+     * Liest den Textinhalt des aktuellen START_TAG-Elements.
+     * Bewegt den Parser über das END_TAG des Elements hinaus.
      */
     private fun readText(parser: XmlPullParser): String {
         return try {

@@ -12,20 +12,22 @@ import java.io.File
 import kotlin.math.max
 
 /**
- * On-device OCR for scanned (image-only) PDFs. Each page is rendered to a bitmap with the
- * platform [PdfRenderer] and run through ML Kit's bundled Latin text recognizer — no network,
- * no Google Play Services download. This is deliberately expensive (CPU/battery/time) and is
- * only invoked when OCR is enabled in settings AND the PDF has no usable embedded text layer.
+ * On-Device-OCR für gescannte (reine Bild-)PDFs. Jede Seite wird mit dem Plattform-[PdfRenderer]
+ * zu einer Bitmap gerendert und durch ML Kits mitgelieferten lateinischen Texterkenner geschickt —
+ * ohne Netzwerk, ohne Google-Play-Services-Download. Das ist bewusst teuer (CPU/Akku/Zeit) und wird
+ * nur aufgerufen, wenn OCR in den Einstellungen aktiviert ist UND das PDF keine nutzbare eingebettete
+ * Textebene hat.
  *
- * Android-only by design (PdfRenderer + ML Kit). A future desktop port would replace this file.
+ * Absichtlich nur für Android (PdfRenderer + ML Kit). Eine künftige Desktop-Portierung würde diese
+ * Datei ersetzen.
  */
 object PdfOcr {
 
-    /** Render target resolution. ~200 DPI gives ML Kit enough detail without huge bitmaps. */
+    /** Ziel-Renderauflösung. ~200 DPI geben ML Kit genug Details ohne riesige Bitmaps. */
     private const val TARGET_DPI = 200f
     private const val POINTS_PER_INCH = 72f
 
-    /** Hard cap on the longer bitmap edge to bound memory on large/poster-sized pages. */
+    /** Harte Obergrenze für die längere Bitmap-Kante, um den Speicher bei großen/posterartigen Seiten zu begrenzen. */
     private const val MAX_EDGE_PX = 2400
 
     fun extract(file: File): String {
@@ -35,7 +37,7 @@ object PdfOcr {
                 PdfRenderer(pfd).use { renderer ->
                     return buildString {
                         for (i in 0 until renderer.pageCount) {
-                            // A single corrupt/oversized page must not abort the whole document.
+                            // Eine einzelne beschädigte/übergroße Seite darf nicht das ganze Dokument abbrechen.
                             val pageText = runCatching { ocrPage(renderer, i, recognizer) }
                                 .getOrDefault("")
                             if (pageText.isNotEmpty()) appendLine(pageText)
@@ -66,11 +68,11 @@ object PdfOcr {
 
             val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             try {
-                // PDFs are transparent where nothing is drawn; paint white so text stays black-on-white.
+                // PDFs sind dort transparent, wo nichts gezeichnet ist; weiß füllen, damit Text schwarz-auf-weiß bleibt.
                 bitmap.eraseColor(Color.WHITE)
                 page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
                 val image = InputImage.fromBitmap(bitmap, 0)
-                // Blocking await is fine: extraction already runs on a background indexing thread.
+                // Blockierendes await ist in Ordnung: Die Extraktion läuft bereits auf einem Hintergrund-Index-Thread.
                 return Tasks.await(recognizer.process(image)).text.trim()
             } finally {
                 bitmap.recycle()

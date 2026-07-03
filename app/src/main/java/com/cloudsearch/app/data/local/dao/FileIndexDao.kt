@@ -33,20 +33,20 @@ interface FileIndexDao {
     @Query("SELECT * FROM file_metadata WHERE fileId IN (:fileIds)")
     suspend fun getMetadataByIds(fileIds: List<String>): List<FileMetadataEntity>
 
-    /** Returns all metadata rows whose fileName matches any entry in [fileNames].
-     *  Used for cross-provider duplicate detection after a search query. */
+    /** Gibt alle Metadaten-Zeilen zurück, deren fileName zu einem Eintrag in [fileNames] passt.
+     *  Wird zur anbieterübergreifenden Duplikaterkennung nach einer Suchanfrage verwendet. */
     @Query("SELECT * FROM file_metadata WHERE fileName IN (:fileNames)")
     suspend fun getByFileNames(fileNames: List<String>): List<FileMetadataEntity>
 
-    // Uses @RawQuery to call FTS4's snippet() auxiliary function,
-    // which Room's compile-time validator does not recognise.
+    // Nutzt @RawQuery, um die snippet()-Hilfsfunktion von FTS4 aufzurufen,
+    // die Rooms Compile-Zeit-Validator nicht kennt.
     @RawQuery
     suspend fun searchSnippets(query: SupportSQLiteQuery): List<SnippetResult>
 
     @Query("SELECT * FROM file_metadata WHERE cloudProvider = :provider AND accountId = :accountId")
     suspend fun getAllByAccount(provider: String, accountId: String): List<FileMetadataEntity>
 
-    // Content must be deleted before metadata (subquery references metadata table)
+    // Inhalt muss vor den Metadaten gelöscht werden (Unterabfrage referenziert die Metadaten-Tabelle)
     @Query("DELETE FROM file_content_fts WHERE fileId IN (SELECT fileId FROM file_metadata WHERE accountId = :accountId)")
     suspend fun deleteContentByAccount(accountId: String)
 
@@ -62,19 +62,19 @@ interface FileIndexDao {
     @Query("SELECT COUNT(*) FROM file_metadata WHERE accountId = :accountId AND skipped = 0")
     suspend fun getIndexedFileCount(accountId: String): Int
 
-    /** Count of files marked skipped (too large) for an account. */
+    /** Anzahl der als übersprungen (zu groß) markierten Dateien eines Kontos. */
     @Query("SELECT COUNT(*) FROM file_metadata WHERE accountId = :accountId AND skipped = 1")
     suspend fun getSkippedCount(accountId: String): Int
 
-    /** Skipped files now at or below the current limit — candidates to index. */
+    /** Übersprungene Dateien, die jetzt auf oder unter dem aktuellen Limit liegen — Kandidaten zum Indexieren. */
     @Query("SELECT * FROM file_metadata WHERE accountId = :accountId AND skipped = 1 AND fileSizeBytes <= :maxBytes")
     suspend fun getSkippedAtOrBelow(accountId: String, maxBytes: Long): List<FileMetadataEntity>
 
-    /** Indexed files now above the current limit — must drop content and become skipped. */
+    /** Indexierte Dateien, die jetzt über dem aktuellen Limit liegen — müssen Inhalt verwerfen und übersprungen werden. */
     @Query("SELECT * FROM file_metadata WHERE accountId = :accountId AND skipped = 0 AND fileSizeBytes > :maxBytes")
     suspend fun getIndexedAbove(accountId: String, maxBytes: Long): List<FileMetadataEntity>
 
-    /** Records a known-but-not-indexed (too large) file: metadata only, no FTS content row. */
+    /** Erfasst eine bekannte-aber-nicht-indexierte (zu große) Datei: nur Metadaten, keine FTS-Inhaltszeile. */
     @Transaction
     suspend fun markSkipped(metadata: FileMetadataEntity) {
         upsertMetadata(metadata.copy(skipped = true))
@@ -86,6 +86,25 @@ interface FileIndexDao {
         upsertMetadata(metadata)
         deleteContent(metadata.fileId)
         upsertContent(content)
+    }
+
+    @Query("UPDATE file_metadata SET fileName = :fileName, cloudPath = :cloudPath, webUrl = :webUrl WHERE fileId = :fileId")
+    suspend fun updateDisplayMetadata(fileId: String, fileName: String, cloudPath: String, webUrl: String?)
+
+    @Query("UPDATE file_content_fts SET fileName = :fileName WHERE fileId = :fileId")
+    suspend fun updateContentFileName(fileId: String, fileName: String)
+
+    /**
+     * Frischt die reinen Anzeige-Felder einer bereits indexierten Datei (Name/Pfad/Web-Link) auf,
+     * ohne ihren Inhalt erneut herunterzuladen. Wird verwendet, wenn die Auflistung bessere Werte
+     * liefert als ein früherer Indexlauf gespeichert hat — z. B. WebDAV-Namen/-Pfade, die jetzt
+     * prozentdekodiert sind. Aktualisiert außerdem den gespiegelten fileName in der FTS-Zeile,
+     * damit die Suche nach Namen konsistent bleibt.
+     */
+    @Transaction
+    suspend fun refreshDisplayMetadata(fileId: String, fileName: String, cloudPath: String, webUrl: String?) {
+        updateDisplayMetadata(fileId, fileName, cloudPath, webUrl)
+        updateContentFileName(fileId, fileName)
     }
 
     @Transaction

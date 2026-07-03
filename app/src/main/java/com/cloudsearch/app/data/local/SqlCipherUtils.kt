@@ -5,16 +5,17 @@ import java.io.File
 import java.io.IOException
 
 /**
- * Low-level helpers around the SQLCipher-encrypted index file.
+ * Low-Level-Hilfsfunktionen rund um die SQLCipher-verschlüsselte Index-Datei.
  *
- * The live index ([provideDatabase][me.fulltxt.app.di.DatabaseModule]) is encrypted with the
- * device-bound [DatabaseKeyManager] passphrase. Backups, however, must be portable, so they are
- * stored as *plaintext* SQLite (then wrapped with a user passphrase by `BackupCrypto`). These
- * helpers bridge the two representations via SQLCipher's `sqlcipher_export()`.
+ * Der laufende Index ([provideDatabase][me.fulltxt.app.di.DatabaseModule]) ist mit der
+ * gerätegebundenen [DatabaseKeyManager]-Passphrase verschlüsselt. Backups müssen jedoch portabel
+ * sein und werden daher als *Klartext*-SQLite gespeichert (und danach von `BackupCrypto` mit einer
+ * Benutzer-Passphrase umschlossen). Diese Helfer überbrücken die beiden Repräsentationen über
+ * SQLCiphers `sqlcipher_export()`.
  */
 object SqlCipherUtils {
 
-    /** True if [file] exists and is an unencrypted SQLite database (begins with the SQLite magic). */
+    /** True, wenn [file] existiert und eine unverschlüsselte SQLite-Datenbank ist (beginnt mit der SQLite-Signatur). */
     fun isPlaintext(file: File): Boolean {
         if (!file.exists() || file.length() < 16) return false
         val header = file.inputStream().use { val b = ByteArray(16); it.read(b); b }
@@ -22,8 +23,9 @@ object SqlCipherUtils {
     }
 
     /**
-     * Reads a plaintext SQLite database from [plaintextFile] and writes an encrypted copy to
-     * [encryptedOut] (overwriting it). Used when importing a decrypted backup into the live index.
+     * Liest eine Klartext-SQLite-Datenbank aus [plaintextFile] und schreibt eine verschlüsselte Kopie
+     * nach [encryptedOut] (überschreibt sie). Wird beim Importieren eines entschlüsselten Backups in
+     * den laufenden Index verwendet.
      */
     fun encryptFromPlaintext(
         plaintextFile: File,
@@ -32,7 +34,7 @@ object SqlCipherUtils {
     ) {
         System.loadLibrary("sqlcipher")
         encryptedOut.delete()
-        // Empty password opens the source as plaintext; the encrypted copy is created via ATTACH.
+        // Leeres Passwort öffnet die Quelle als Klartext; die verschlüsselte Kopie wird per ATTACH erstellt.
         val db = SQLiteDatabase.openOrCreateDatabase(plaintextFile, "", null, null)
         try {
             db.rawExecSQL("ATTACH DATABASE '${escape(encryptedOut.path)}' AS encrypted KEY '${escape(passphrase)}';")
@@ -44,6 +46,6 @@ object SqlCipherUtils {
         if (!encryptedOut.exists()) throw IOException("Encryption produced no output file")
     }
 
-    /** Escapes a value for embedding inside a single-quoted SQL string literal. */
+    /** Escapt einen Wert zum Einbetten in ein einfach-quotiertes SQL-String-Literal. */
     private fun escape(value: String): String = value.replace("'", "''")
 }

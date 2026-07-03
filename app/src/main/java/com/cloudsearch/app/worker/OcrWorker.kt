@@ -32,10 +32,10 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 
 /**
- * Processes the [OcrQueue] of scanned PDFs separately from the main indexing pass. Each file's
- * OCR result is stored and the file removed from the queue immediately, so if the system stops
- * this foreground worker (e.g. the Android 14+ dataSync time limit) the next run resumes from the
- * remaining IDs rather than restarting the whole index.
+ * Verarbeitet die [OcrQueue] gescannter PDFs getrennt vom Haupt-Indexlauf. Das OCR-Ergebnis jeder
+ * Datei wird gespeichert und die Datei sofort aus der Warteschlange entfernt, sodass der nächste
+ * Lauf bei einem Stopp dieses Foreground-Workers durch das System (z. B. das dataSync-Zeitlimit ab
+ * Android 14) bei den verbleibenden IDs fortsetzt, statt den gesamten Index neu zu starten.
  */
 @HiltWorker
 class OcrWorker @AssistedInject constructor(
@@ -57,8 +57,8 @@ class OcrWorker @AssistedInject constructor(
 
     companion object {
         private const val NOTIFICATION_ID = 1002
-        // Keep resuming across interruptions/transient errors, but give up eventually so a
-        // permanently failing file cannot loop forever.
+        // Über Unterbrechungen/vorübergehende Fehler hinweg fortsetzen, aber irgendwann aufgeben,
+        // damit eine dauerhaft fehlschlagende Datei nicht ewig in einer Schleife läuft.
         private const val MAX_ATTEMPTS = 25
     }
 
@@ -78,7 +78,7 @@ class OcrWorker @AssistedInject constructor(
     override suspend fun getForegroundInfo(): ForegroundInfo = buildForegroundInfo(0, 0)
 
     override suspend fun doWork(): Result {
-        // Respect a mid-run toggle: if OCR was turned off, drop the backlog.
+        // Ein Umschalten während des Laufs berücksichtigen: Wenn OCR abgeschaltet wurde, den Rückstau verwerfen.
         if (!appPreferences.ocrEnabled) {
             ocrQueue.clear()
             return Result.success()
@@ -100,8 +100,8 @@ class OcrWorker @AssistedInject constructor(
                     setForeground(buildForegroundInfo(current, pending.size))
                 }
             }
-            // Files added while this run was in flight, or left behind by the system stopping us,
-            // are picked up by a follow-up run as long as we keep making progress.
+            // Dateien, die während dieses Laufs hinzukamen oder durch einen System-Stopp zurückblieben,
+            // werden von einem Folgelauf aufgegriffen, solange wir Fortschritt machen.
             if (ocrQueue.size() > 0 && succeeded > 0) Result.retry() else Result.success()
         } catch (e: Exception) {
             if (runAttemptCount < MAX_ATTEMPTS) Result.retry() else Result.failure()

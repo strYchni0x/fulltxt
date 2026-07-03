@@ -44,7 +44,7 @@ class SearchViewModel @Inject constructor(
         MutableStateFlow(appPreferences.recentSearches.take(appPreferences.recentSearchLimit))
     val recentSearches: StateFlow<List<String>> = _recentSearches.asStateFlow()
 
-    /** Whether search results show a colored per-file-type icon (toggled in settings). */
+    /** Ob Suchergebnisse ein farbiges Symbol pro Dateityp anzeigen (in den Einstellungen umschaltbar). */
     val fileTypeIcons: StateFlow<Boolean> = appPreferences.fileTypeIconsFlow
 
     private val _connectedProviders = MutableStateFlow<List<CloudProvider>>(emptyList())
@@ -75,8 +75,9 @@ class SearchViewModel @Inject constructor(
     }
 
     /**
-     * Re-reads which providers/local folders are connected. Called on screen resume so the
-     * empty-state hint disappears right after the user links an account in settings.
+     * Liest neu ein, welche Anbieter/lokalen Ordner verbunden sind. Wird beim Fortsetzen des
+     * Bildschirms aufgerufen, damit der Leerzustand-Hinweis direkt verschwindet, nachdem der Benutzer
+     * in den Einstellungen ein Konto verknüpft hat.
      */
     fun refreshConnectedProviders() {
         _connectedProviders.value = indexRepository.getConnectedAccounts()

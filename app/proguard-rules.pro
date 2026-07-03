@@ -12,12 +12,12 @@
 -keep class com.microsoft.identity.** { *; }
 -dontwarn com.microsoft.identity.**
 
-# Gson + OneDrive Graph models (Retrofit/Gson deserialization)
-# Without -keepattributes Signature, Gson loses the generic type of
-# DriveItemPage.items (List<GraphDriveItem>) and deserializes each entry as a
-# LinkedTreeMap, causing a ClassCastException while iterating in getChanges().
-# The model fields (id/name/size/... have no @SerializedName) must also survive
-# obfuscation, or Gson can't map them to the JSON keys.
+# Gson + OneDrive-Graph-Modelle (Retrofit/Gson-Deserialisierung)
+# Ohne -keepattributes Signature verliert Gson den generischen Typ von
+# DriveItemPage.items (List<GraphDriveItem>) und deserialisiert jeden Eintrag als
+# LinkedTreeMap, was beim Iterieren in getChanges() eine ClassCastException auslöst.
+# Die Modell-Felder (id/name/size/... haben kein @SerializedName) müssen ebenfalls die
+# Obfuskierung überstehen, sonst kann Gson sie nicht auf die JSON-Schlüssel abbilden.
 -keepattributes Signature
 -keepattributes *Annotation*
 -keep class me.fulltxt.app.data.cloud.onedrive.DriveItemPage { *; }

@@ -21,13 +21,13 @@ class BackupManager @Inject constructor(
     private val keyManager: DatabaseKeyManager
 ) {
     /**
-     * Exports the index as a portable, user-passphrase-encrypted backup.
+     * Exportiert den Index als portables, mit Benutzer-Passphrase verschlüsseltes Backup.
      *
-     * The live index is SQLCipher-encrypted with a device-bound key, so its raw bytes could never
-     * be restored on another device. We therefore export a *plaintext* snapshot (via
-     * `sqlcipher_export` on the existing Room connection) and re-encrypt it with the user's
-     * [passphrase] through [BackupCrypto]. The plaintext snapshot lives only in app-private
-     * storage and is deleted immediately afterwards.
+     * Der laufende Index ist mit SQLCipher und einem gerätegebundenen Schlüssel verschlüsselt, sodass
+     * seine Rohbytes nie auf einem anderen Gerät wiederhergestellt werden könnten. Wir exportieren
+     * daher einen *Klartext*-Snapshot (über `sqlcipher_export` auf der bestehenden Room-Verbindung)
+     * und verschlüsseln ihn mit der [passphrase] des Benutzers über [BackupCrypto] neu. Der
+     * Klartext-Snapshot liegt nur im app-privaten Speicher und wird unmittelbar danach gelöscht.
      */
     suspend fun exportTo(uri: Uri, passphrase: CharArray) = withContext(Dispatchers.IO) {
         val dbFile = context.getDatabasePath("fulltxt.db")
@@ -35,12 +35,12 @@ class BackupManager @Inject constructor(
         try {
             tmpPlain.delete()
             val sdb = db.openHelper.writableDatabase
-            // Merge any WAL pages into the main DB so the export is a consistent snapshot.
+            // Etwaige WAL-Seiten in die Haupt-DB einbringen, damit der Export ein konsistenter Snapshot ist.
             sdb.query(SimpleSQLiteQuery("PRAGMA wal_checkpoint(FULL)")).close()
             sdb.execSQL("ATTACH DATABASE ? AS plaintext KEY ''", arrayOf<Any?>(tmpPlain.absolutePath))
             try {
-                // The cursor MUST be stepped — sqlcipher_export() only runs when the row is
-                // fetched. Closing without moveToFirst() leaves the plaintext copy empty.
+                // Der Cursor MUSS weitergeschaltet werden — sqlcipher_export() läuft nur, wenn die Zeile
+                // abgerufen wird. Ein Schließen ohne moveToFirst() lässt die Klartext-Kopie leer.
                 sdb.query(SimpleSQLiteQuery("SELECT sqlcipher_export('plaintext')")).use { it.moveToFirst() }
             } finally {
                 sdb.execSQL("DETACH DATABASE plaintext")
@@ -54,10 +54,11 @@ class BackupManager @Inject constructor(
     }
 
     /**
-     * Restores a backup created by [exportTo]. The backup is decrypted with the user [passphrase]
-     * to a plaintext temp file, validated, then re-encrypted with this device's index key before
-     * it replaces the live database. A wrong passphrase or corrupt file fails during decryption —
-     * before the existing index is touched — so the current index is never lost.
+     * Stellt ein von [exportTo] erstelltes Backup wieder her. Das Backup wird mit der [passphrase] des
+     * Benutzers in eine Klartext-Temp-Datei entschlüsselt, validiert und dann mit dem Index-Schlüssel
+     * dieses Geräts neu verschlüsselt, bevor es die laufende Datenbank ersetzt. Ein falsches Passwort
+     * oder eine beschädigte Datei schlägt während der Entschlüsselung fehl — bevor der bestehende Index
+     * angetastet wird — sodass der aktuelle Index nie verloren geht.
      */
     suspend fun importFrom(uri: Uri, passphrase: CharArray) = withContext(Dispatchers.IO) {
         val dbFile = context.getDatabasePath("fulltxt.db")
@@ -65,20 +66,20 @@ class BackupManager @Inject constructor(
         val tmpEnc = File(dbFile.parentFile, "fulltxt_import_enc.tmp")
 
         try {
-            // 1. Decrypt the backup to a plaintext temp file (throws on wrong passphrase/corruption).
+            // 1. Das Backup in eine Klartext-Temp-Datei entschlüsseln (wirft bei falscher Passphrase/Beschädigung).
             context.contentResolver.openInputStream(uri)?.use { input ->
                 tmpPlain.outputStream().use { out -> BackupCrypto.decrypt(input, out, passphrase) }
             } ?: throw IOException("Cannot read backup file")
 
-            // 2. Validate the decrypted payload is actually a SQLite database.
+            // 2. Prüfen, dass die entschlüsselten Daten tatsächlich eine SQLite-Datenbank sind.
             if (!SqlCipherUtils.isPlaintext(tmpPlain)) {
                 throw IllegalArgumentException("Keine gültige FullTXT-Backup-Datei.")
             }
 
-            // 3. Re-encrypt with this device's index key.
+            // 3. Mit dem Index-Schlüssel dieses Geräts neu verschlüsseln.
             SqlCipherUtils.encryptFromPlaintext(tmpPlain, keyManager.passphrase(), tmpEnc)
 
-            // 4. Swap the encrypted copy into place.
+            // 4. Die verschlüsselte Kopie an ihren Platz tauschen.
             db.close()
             File("${dbFile.path}-wal").delete()
             File("${dbFile.path}-shm").delete()

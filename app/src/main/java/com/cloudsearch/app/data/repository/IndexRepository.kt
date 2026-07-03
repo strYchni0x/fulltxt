@@ -26,7 +26,7 @@ class IndexRepository @Inject constructor(
 ) {
     private val syncPrefs = context.getSharedPreferences("fulltxt_sync", Context.MODE_PRIVATE)
 
-    // --- Sync state ---
+    // --- Sync-Zustand ---
 
     fun getChangeToken(accountId: String): String? =
         syncPrefs.getString("ct_$accountId", null)
@@ -41,16 +41,16 @@ class IndexRepository @Inject constructor(
         syncPrefs.edit().putBoolean("fi_$accountId", true).apply()
 
     /**
-     * Count of files currently skipped (too large) for an account, for the account card.
-     * Backed by the [skipped][FileMetadataEntity.skipped] flag, so it stays correct across
-     * cursor-delta syncs and re-evaluations of the limit.
+     * Anzahl der aktuell übersprungenen (zu großen) Dateien eines Kontos, für die Konto-Karte.
+     * Gestützt auf das [skipped][FileMetadataEntity.skipped]-Flag, sodass sie über Cursor-Delta-Syncs
+     * und Neubewertungen des Limits hinweg korrekt bleibt.
      */
     suspend fun getSkippedCount(accountId: String): Int = dao.getSkippedCount(accountId)
 
     fun clearSyncState(accountId: String) =
         syncPrefs.edit().remove("ct_$accountId").remove("fi_$accountId").apply()
 
-    // --- Account persistence ---
+    // --- Konto-Persistenz ---
 
     fun getConnectedAccounts(): List<CloudAccount> {
         val ids = syncPrefs.getStringSet("acct_ids", emptySet()) ?: emptySet()
@@ -89,7 +89,7 @@ class IndexRepository @Inject constructor(
         )
     }
 
-    // --- Index operations ---
+    // --- Index-Operationen ---
 
     suspend fun getIndexedFileCount(accountId: String): Int =
         dao.getIndexedFileCount(accountId)
@@ -98,21 +98,33 @@ class IndexRepository @Inject constructor(
         dao.getAllByAccount(provider, accountId).map { it.fileId }
 
     /**
-     * Downloads, extracts and stores a single file.
-     * Returns false if the file was skipped because its changeToken matches the stored one.
+     * Lädt eine einzelne Datei herunter, extrahiert sie und speichert sie.
+     * Gibt false zurück, wenn die Datei übersprungen wurde, weil ihr changeToken dem gespeicherten
+     * entspricht.
      */
     suspend fun indexFile(file: CloudFile, connector: CloudConnector): Boolean {
         val stored = dao.getMetadata(file.fileId)
-        // Skip re-download only if unchanged AND not currently skipped. A skipped row must still be
-        // (re-)indexed here when it now fits the limit, even though its changeToken is unchanged.
+        // Erneuten Download nur überspringen, wenn unverändert UND aktuell nicht übersprungen. Eine
+        // übersprungene Zeile muss hier trotzdem (neu) indexiert werden, wenn sie jetzt ins Limit passt,
+        // auch wenn ihr changeToken unverändert ist.
         if (stored != null && file.changeToken != null &&
             stored.changeToken == file.changeToken && !stored.skipped) {
+            // Der Inhalt ist unverändert, daher kein erneuter Download. Die Anzeige-Metadaten werden
+            // aber aus der Auflistung abgeleitet und können sich zwischen App-Versionen verbessern
+            // (z. B. WebDAV-Namen/-Pfade sind jetzt prozentdekodiert). Deshalb an Ort und Stelle
+            // auffrischen — sonst bleiben ältere Zeilen mit veralteten Werten wie "Favorite%20Gifts.md"
+            // eingefroren, weil sich das eTag nie ändert.
+            if (stored.fileName != file.fileName ||
+                stored.cloudPath != file.cloudPath ||
+                stored.webUrl != file.webUrl) {
+                dao.refreshDisplayMetadata(file.fileId, file.fileName, file.cloudPath, file.webUrl)
+            }
             return false
         }
 
-        // Use createTempFile so the OS generates a safe, unique filename.
-        // Avoids path-traversal: file IDs from some providers (e.g. Dropbox) contain '/'
-        // which would make File(cacheDir, fileId) resolve to an absolute path outside cacheDir.
+        // createTempFile nutzen, damit das OS einen sicheren, eindeutigen Dateinamen erzeugt.
+        // Verhindert Path-Traversal: Datei-IDs mancher Anbieter (z. B. Dropbox) enthalten '/',
+        // wodurch File(cacheDir, fileId) zu einem absoluten Pfad außerhalb von cacheDir würde.
         val tempFile = File.createTempFile("idx_", ".tmp", context.cacheDir)
         try {
             tempFile.writeBytes(connector.downloadFile(file.fileId, file.accountId))
@@ -125,8 +137,8 @@ class IndexRepository @Inject constructor(
                     content = text
                 )
             )
-            // Scanned PDFs (no text layer) are queued for a separate, resumable OCR pass instead
-            // of being OCR'd inline here — that keeps the main indexing pass fast.
+            // Gescannte PDFs (ohne Textebene) werden für einen separaten, fortsetzbaren OCR-Durchlauf
+            // eingereiht, statt sie hier inline zu OCR-en — das hält den Haupt-Indexlauf schnell.
             if (appPreferences.ocrEnabled && TextExtractor.pdfNeedsOcr(file.mimeType, text)) {
                 ocrQueue.add(file.fileId)
             } else {
@@ -139,10 +151,11 @@ class IndexRepository @Inject constructor(
     }
 
     /**
-     * Downloads a single queued file, runs OCR on it and replaces its stored content.
-     * [connectorFor] resolves a [CloudConnector] for the file's provider (the worker owns the
-     * connector instances). Returns false if the file is gone or its provider is unavailable;
-     * the file is removed from the OCR queue on success so the pass can resume after interruption.
+     * Lädt eine einzelne in der Warteschlange stehende Datei herunter, führt OCR darauf aus und
+     * ersetzt ihren gespeicherten Inhalt. [connectorFor] löst einen [CloudConnector] für den Anbieter
+     * der Datei auf (der Worker hält die Connector-Instanzen). Gibt false zurück, wenn die Datei nicht
+     * mehr existiert oder ihr Anbieter nicht verfügbar ist; die Datei wird bei Erfolg aus der
+     * OCR-Warteschlange entfernt, damit der Durchlauf nach einer Unterbrechung fortgesetzt werden kann.
      */
     suspend fun ocrPendingFile(fileId: String, connectorFor: (String) -> CloudConnector?): Boolean {
         val meta = dao.getMetadata(fileId)
@@ -173,15 +186,15 @@ class IndexRepository @Inject constructor(
 
     suspend fun removeFile(fileId: String) = dao.deleteFile(fileId)
 
-    /** Records a too-large file as known-but-skipped (metadata only, no content). */
+    /** Erfasst eine zu große Datei als bekannt-aber-übersprungen (nur Metadaten, kein Inhalt). */
     suspend fun markSkipped(file: CloudFile) = dao.markSkipped(file.toMetadataEntity())
 
     /**
-     * Re-evaluates already-known files against the current size limit, without re-listing the
-     * cloud — so a changed limit takes effect on the next sync even for cursor-delta providers
+     * Bewertet bereits bekannte Dateien gegen das aktuelle Größenlimit neu, ohne die Cloud neu zu
+     * listen — damit ein geändertes Limit beim nächsten Sync auch für Cursor-Delta-Anbieter greift
      * (Dropbox/OneDrive):
-     *  - skipped files that now fit the limit are downloaded and indexed,
-     *  - indexed files that now exceed it have their content dropped and become skipped.
+     *  - übersprungene Dateien, die jetzt ins Limit passen, werden heruntergeladen und indexiert,
+     *  - indexierte Dateien, die es jetzt überschreiten, verlieren ihren Inhalt und werden übersprungen.
      */
     suspend fun reEvaluateSkippedAgainstLimit(
         accountId: String,

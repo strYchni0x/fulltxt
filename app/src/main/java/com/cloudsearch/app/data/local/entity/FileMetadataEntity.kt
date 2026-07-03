@@ -19,10 +19,11 @@ data class FileMetadataEntity(
     val indexedAt: Long,
     val webUrl: String? = null,
     /**
-     * True for a file that is known but intentionally not indexed because it exceeds the
-     * configured max file size. Stored (with its [fileSizeBytes]) so it can be re-evaluated
-     * against the limit on later syncs without a full cloud re-list. Skipped rows have no
-     * file_content_fts row and so never appear in search results.
+     * True für eine Datei, die bekannt ist, aber absichtlich nicht indexiert wird, weil sie die
+     * konfigurierte maximale Dateigröße überschreitet. Wird (mit ihrer [fileSizeBytes]) gespeichert,
+     * damit sie bei späteren Syncs ohne komplette Cloud-Neuauflistung erneut gegen das Limit bewertet
+     * werden kann. Übersprungene Zeilen haben keine file_content_fts-Zeile und erscheinen daher nie
+     * in Suchergebnissen.
      */
     val skipped: Boolean = false
 )

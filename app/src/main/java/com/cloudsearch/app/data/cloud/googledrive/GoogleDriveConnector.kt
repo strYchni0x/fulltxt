@@ -62,7 +62,7 @@ class GoogleDriveConnector @Inject constructor(
         val drive = buildService(accountId)
 
         if (changeToken == null) {
-            // First run: full list + grab the start page token for future incremental syncs.
+            // Erster Lauf: vollständige Liste + Start-Page-Token für künftige inkrementelle Syncs holen.
             val files = listFilesInternal(drive, accountId)
             val token = drive.changes().getStartPageToken().execute().startPageToken
             return@withContext SyncChanges(files, emptyList(), token)

@@ -18,7 +18,7 @@ import java.util.zip.ZipFile
 
 object TextExtractor {
 
-    /** A PDF with fewer than this many non-whitespace characters is treated as having no text layer. */
+    /** Ein PDF mit weniger als so vielen Nicht-Leerraum-Zeichen gilt als ohne Textebene. */
     private const val OCR_TEXT_LAYER_THRESHOLD = 16
 
     fun extract(file: File, mimeType: String): String = runCatching {
@@ -48,9 +48,10 @@ object TextExtractor {
         PDDocument.load(file).use { PDFTextStripper().getText(it) }
 
     /**
-     * True for a scanned/image-only PDF: the file is a PDF but [extractedText] (from [extract])
-     * has essentially no embedded text layer. Such files are queued for OCR instead of being
-     * OCR'd inline, so the main indexing pass stays fast and the OCR pass can run separately.
+     * True für ein gescanntes/reines Bild-PDF: Die Datei ist ein PDF, aber [extractedText] (aus
+     * [extract]) hat praktisch keine eingebettete Textebene. Solche Dateien werden für OCR
+     * eingereiht, statt inline OCR-verarbeitet zu werden, damit der Haupt-Indexlauf schnell bleibt
+     * und der OCR-Durchlauf separat laufen kann.
      */
     fun pdfNeedsOcr(mimeType: String, extractedText: String): Boolean =
         isPdf(mimeType) && extractedText.count { !it.isWhitespace() } < OCR_TEXT_LAYER_THRESHOLD
@@ -58,7 +59,7 @@ object TextExtractor {
     private fun extractDocx(file: File): String =
         XWPFDocument(file.inputStream()).use { doc ->
             buildString {
-                // Iterate body elements in document order to preserve paragraph/table sequence
+                // Body-Elemente in Dokumentreihenfolge durchlaufen, um die Absatz-/Tabellen-Reihenfolge zu erhalten
                 doc.bodyElements.forEach { element ->
                     when (element) {
                         is XWPFParagraph -> {
@@ -97,8 +98,8 @@ object TextExtractor {
     }
 
     /**
-     * Extracts text from OpenDocument formats (.odt, .ods, .odp).
-     * ODF files are ZIP archives; text lives in <text:p> / <text:h> elements in content.xml.
+     * Extrahiert Text aus OpenDocument-Formaten (.odt, .ods, .odp).
+     * ODF-Dateien sind ZIP-Archive; der Text steckt in <text:p>- / <text:h>-Elementen in content.xml.
      */
     private fun extractOdf(file: File): String {
         val xml = ZipFile(file).use { zip ->

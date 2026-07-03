@@ -5,11 +5,11 @@ import android.os.Bundle
 import android.util.Log
 
 /**
- * Transparent trampoline activity that receives the Dropbox OAuth redirect
- * (fulltxt://dropbox-auth?code=…) and forwards the auth code to [DropboxAuthManager].
+ * Transparente Trampolin-Activity, die den Dropbox-OAuth-Redirect
+ * (fulltxt://dropbox-auth?code=…) empfängt und den Auth-Code an [DropboxAuthManager] weiterleitet.
  *
- * Declared with launchMode="singleTop" in the manifest so re-launches reuse the
- * same instance instead of stacking a new one.
+ * Im Manifest mit launchMode="singleTop" deklariert, sodass erneute Starts dieselbe Instanz
+ * wiederverwenden, statt eine neue zu stapeln.
  */
 class DropboxCallbackActivity : Activity() {
 

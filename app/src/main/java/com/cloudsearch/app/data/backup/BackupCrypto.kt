@@ -13,26 +13,28 @@ import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 
-/** Thrown when a backup file cannot be decrypted (wrong password or corrupted/truncated). */
+/** Wird geworfen, wenn eine Backup-Datei nicht entschlüsselt werden kann (falsches Passwort oder beschädigt/abgeschnitten). */
 class BackupDecryptException(message: String, cause: Throwable? = null) : IOException(message, cause)
 
 /**
- * Streaming authenticated encryption for FullTXT index backups.
+ * Streaming-basierte authentifizierte Verschlüsselung für FullTXT-Index-Backups.
  *
- * The index is the most sensitive artefact in the app — it holds the extracted plain text of
- * every indexed document. A raw `.db` export would leave that text unprotected wherever the
- * backup file lands (Downloads folder, cloud storage, ...). This wraps the export in
- * AES-256-GCM with a key derived from a user passphrase (PBKDF2), so the backup stays portable
- * (restorable on any device, unlike a hardware-Keystore key) while being unreadable at rest.
+ * Der Index ist das sensibelste Artefakt der App — er enthält den extrahierten Klartext jedes
+ * indexierten Dokuments. Ein roher `.db`-Export würde diesen Text überall ungeschützt lassen, wo die
+ * Backup-Datei landet (Downloads-Ordner, Cloud-Speicher, ...). Dies umschließt den Export mit
+ * AES-256-GCM und einem aus einer Benutzer-Passphrase abgeleiteten Schlüssel (PBKDF2), sodass das
+ * Backup portabel bleibt (auf jedem Gerät wiederherstellbar, anders als ein Hardware-Keystore-
+ * Schlüssel) und im Ruhezustand unlesbar ist.
  *
- * Format (all integers big-endian):
+ * Format (alle Ganzzahlen big-endian):
  *
- *   header: "FTXTBK01" (8 B) | iterations (4 B) | salt (16 B) | nonce prefix (8 B)
- *   chunk*: ciphertext length (4 B) | ciphertext + GCM tag
+ *   Header: "FTXTBK01" (8 B) | Iterationen (4 B) | Salt (16 B) | Nonce-Präfix (8 B)
+ *   Chunk*: Ciphertext-Länge (4 B) | Ciphertext + GCM-Tag
  *
- * Each plaintext chunk (max [CHUNK_SIZE]) is encrypted under its own 12-byte nonce
- * (8-byte random prefix ‖ 4-byte counter). The most significant counter bit flags the final
- * chunk, so dropping or appending chunks fails authentication — i.e. truncation is detected.
+ * Jeder Klartext-Chunk (max. [CHUNK_SIZE]) wird unter seiner eigenen 12-Byte-Nonce verschlüsselt
+ * (8-Byte-Zufallspräfix ‖ 4-Byte-Zähler). Das höchstwertige Zählerbit markiert den letzten Chunk,
+ * sodass das Weglassen oder Anhängen von Chunks die Authentifizierung fehlschlagen lässt — d. h. ein
+ * Abschneiden wird erkannt.
  */
 object BackupCrypto {
 
@@ -61,7 +63,7 @@ object BackupCrypto {
             .put(noncePrefix)
         output.write(header.array())
 
-        // Read one chunk ahead so we know which chunk is the final one.
+        // Einen Chunk vorausschauend lesen, damit wir wissen, welcher Chunk der letzte ist.
         val current = ByteArray(CHUNK_SIZE)
         var currentLen = readChunk(input, current).coerceAtLeast(0)
         var counter = 0
@@ -108,7 +110,7 @@ object BackupCrypto {
             val ct = readExactly(input, ctLen)
                 ?: throw BackupDecryptException("Backup-Datei ist unvollständig.")
 
-            // Another length header means more chunks follow; EOF means this is the final chunk.
+            // Ein weiterer Längen-Header bedeutet, dass weitere Chunks folgen; EOF bedeutet, dies ist der letzte Chunk.
             val nextLenBytes = readExactly(input, 4)
             val isFinal = nextLenBytes == null
 
@@ -155,7 +157,7 @@ object BackupCrypto {
         output.write(ByteBuffer.allocate(4).putInt(value).array())
     }
 
-    /** Fills [buf] as far as possible. Returns the byte count, or -1 at immediate EOF. */
+    /** Füllt [buf] so weit wie möglich. Gibt die Byte-Anzahl zurück oder -1 bei sofortigem EOF. */
     private fun readChunk(input: InputStream, buf: ByteArray): Int {
         var total = 0
         while (total < buf.size) {
@@ -166,7 +168,7 @@ object BackupCrypto {
         return if (total == 0) -1 else total
     }
 
-    /** Reads exactly [n] bytes. Returns null at a clean EOF; throws on a partial (corrupt) read. */
+    /** Liest genau [n] Bytes. Gibt null bei sauberem EOF zurück; wirft bei einem partiellen (beschädigten) Lesen. */
     private fun readExactly(input: InputStream, n: Int): ByteArray? {
         val buf = ByteArray(n)
         var total = 0

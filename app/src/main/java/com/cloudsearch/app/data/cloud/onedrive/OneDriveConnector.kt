@@ -89,8 +89,8 @@ class OneDriveConnector @Inject constructor(
 
     private fun GraphDriveItem.toCloudFile(accountId: String): CloudFile? {
         val mimeType = file?.mimeType ?: return null
-        // Microsoft Graph returns parentReference.path percent-encoded (e.g. ".../B%C3%BCro"),
-        // so decode it for a human-readable cloud path.
+        // Microsoft Graph liefert parentReference.path prozentcodiert (z. B. ".../B%C3%BCro"),
+        // daher dekodieren wir ihn für einen menschenlesbaren Cloud-Pfad.
         val path = parentReference?.path
             ?.removePrefix("/drive/root:")
             ?.let { Uri.decode(it) }

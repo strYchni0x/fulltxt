@@ -58,7 +58,7 @@ class NextcloudAuthManager @Inject constructor(
     fun isAuthenticated(accountId: String): Boolean =
         getCredentials(accountId) != null
 
-    /** Returns a "Basic …" header value for use in HTTP requests. */
+    /** Gibt einen "Basic …"-Header-Wert für die Verwendung in HTTP-Anfragen zurück. */
     fun getBasicAuthHeader(accountId: String): String? {
         val creds = getCredentials(accountId) ?: return null
         val raw = "${creds.username}:${creds.appPassword}"

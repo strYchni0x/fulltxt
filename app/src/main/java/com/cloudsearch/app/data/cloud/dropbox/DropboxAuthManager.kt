@@ -33,10 +33,10 @@ class DropboxAuthManager @Inject constructor(
         private const val TOKEN_URL    = "https://api.dropbox.com/oauth2/token"
         private const val ACCOUNT_URL  = "https://api.dropboxapi.com/2/users/get_current_account"
 
-        /** Static channel for DropboxCallbackActivity → DropboxAuthManager communication. */
+        /** Statischer Kanal für die Kommunikation DropboxCallbackActivity → DropboxAuthManager. */
         @Volatile private var pendingCallback: CompletableDeferred<String>? = null
 
-        /** Called by DropboxCallbackActivity when the OAuth redirect arrives. */
+        /** Wird von DropboxCallbackActivity aufgerufen, wenn der OAuth-Redirect eintrifft. */
         @JvmStatic
         fun deliverCode(code: String?) {
             Log.d("DropboxAuth", "deliverCode: code=${code?.take(8)}… pendingCallback=$pendingCallback")
@@ -50,7 +50,7 @@ class DropboxAuthManager @Inject constructor(
         }
     }
 
-    // ── Persisted state ───────────────────────────────────────────────────────
+    // ── Persistierter Zustand ─────────────────────────────────────────────────
 
     private val prefs by lazy {
         val masterKey = MasterKey.Builder(context)
@@ -65,7 +65,7 @@ class DropboxAuthManager @Inject constructor(
         )
     }
 
-    /** Temporary prefs for the PKCE code verifier (survives process death during browser flow). */
+    /** Temporäre Prefs für den PKCE-Code-Verifier (übersteht ein Prozess-Ende während des Browser-Flows). */
     private val tempPrefs by lazy {
         context.getSharedPreferences("dropbox_auth_temp", Context.MODE_PRIVATE)
     }
@@ -75,11 +75,11 @@ class DropboxAuthManager @Inject constructor(
     var lastSignedInAccount: DropboxAccountInfo? = null
         private set
 
-    // ── Public API ────────────────────────────────────────────────────────────
+    // ── Öffentliche API ───────────────────────────────────────────────────────
 
     /**
-     * Returns a "Bearer <token>" string for [accountId], refreshing if expired.
-     * Throws if no tokens are stored.
+     * Gibt einen "Bearer <token>"-String für [accountId] zurück und erneuert ihn bei Ablauf.
+     * Wirft, wenn keine Tokens gespeichert sind.
      */
     suspend fun getBearerHeader(accountId: String): String =
         "Bearer ${getValidAccessToken(accountId)}"
@@ -88,12 +88,12 @@ class DropboxAuthManager @Inject constructor(
         prefs.getString("${accountId}_refresh", null) != null
 
     /**
-     * Full sign-in flow.
+     * Vollständiger Anmelde-Flow.
      *
-     * - If [accountId] is non-empty and valid tokens exist → return cached info.
-     * - Otherwise → PKCE browser flow.
+     * - Wenn [accountId] nicht leer ist und gültige Tokens existieren → gecachte Infos zurückgeben.
+     * - Andernfalls → PKCE-Browser-Flow.
      *
-     * After completion, [lastSignedInAccount] is populated.
+     * Nach Abschluss ist [lastSignedInAccount] gesetzt.
      */
     suspend fun authenticate(accountId: String): DropboxAccountInfo {
         if (accountId.isNotEmpty() && isAuthenticated(accountId)) {
@@ -117,14 +117,14 @@ class DropboxAuthManager @Inject constructor(
         if (lastSignedInAccount?.accountId == accountId) lastSignedInAccount = null
     }
 
-    // ── PKCE browser flow ─────────────────────────────────────────────────────
+    // ── PKCE-Browser-Flow ─────────────────────────────────────────────────────
 
     private suspend fun startBrowserFlow(): DropboxAccountInfo {
         val verifier  = generateCodeVerifier()
         val challenge = generateCodeChallenge(verifier)
         val appKey    = context.getString(R.string.dropbox_app_key)
 
-        // Persist verifier in case Android kills the app while the browser is open
+        // Verifier persistieren, falls Android die App beendet, während der Browser offen ist
         tempPrefs.edit().putString("code_verifier", verifier).apply()
 
         val authUrl = Uri.parse("https://www.dropbox.com/oauth2/authorize").buildUpon()
@@ -140,7 +140,7 @@ class DropboxAuthManager @Inject constructor(
         val deferred = CompletableDeferred<String>()
         pendingCallback = deferred
 
-        // Open browser
+        // Browser öffnen
         context.startActivity(
             Intent(Intent.ACTION_VIEW, authUrl)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -167,11 +167,11 @@ class DropboxAuthManager @Inject constructor(
         return info
     }
 
-    // ── Token lifecycle ───────────────────────────────────────────────────────
+    // ── Token-Lebenszyklus ────────────────────────────────────────────────────
 
     private suspend fun getValidAccessToken(accountId: String): String {
         val expiry = prefs.getLong("${accountId}_expiry", 0L)
-        // Refresh 60 s before expiry
+        // 60 s vor Ablauf erneuern
         if (System.currentTimeMillis() < expiry - 60_000L) {
             return prefs.getString("${accountId}_access", null)
                 ?: refreshAccessToken(accountId)
@@ -246,11 +246,11 @@ class DropboxAuthManager @Inject constructor(
         }
     }
 
-    // ── Account info ──────────────────────────────────────────────────────────
+    // ── Konto-Infos ───────────────────────────────────────────────────────────
 
     private suspend fun fetchCurrentAccount(accessToken: String): DropboxAccountInfo =
         withContext(Dispatchers.IO) {
-            // Dropbox RPC endpoints with no arguments require a literal JSON "null" body.
+            // Dropbox-RPC-Endpunkte ohne Argumente benötigen einen literalen JSON-"null"-Body.
             val request = Request.Builder()
                 .url(ACCOUNT_URL)
                 .post("null".toRequestBody("application/json; charset=utf-8".toMediaType()))
@@ -284,7 +284,7 @@ class DropboxAuthManager @Inject constructor(
         return DropboxAccountInfo(accountId, name, email)
     }
 
-    // ── PKCE helpers ──────────────────────────────────────────────────────────
+    // ── PKCE-Hilfsfunktionen ──────────────────────────────────────────────────
 
     private fun generateCodeVerifier(): String {
         val bytes = ByteArray(32).also { SecureRandom().nextBytes(it) }

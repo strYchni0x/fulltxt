@@ -10,16 +10,16 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * ownCloud connector.
+ * ownCloud-Connector.
  *
- * ownCloud 10+ uses the same WebDAV endpoint layout as Nextcloud
- * (/remote.php/dav/files/<username>/), so we reuse [NextcloudWebDavClient] directly.
- * Only credentials management and the CloudProvider tag differ.
+ * ownCloud 10+ nutzt dasselbe WebDAV-Endpunkt-Layout wie Nextcloud
+ * (/remote.php/dav/files/<username>/), daher verwenden wir [NextcloudWebDavClient] direkt weiter.
+ * Nur die Verwaltung der Zugangsdaten und das CloudProvider-Tag unterscheiden sich.
  */
 @Singleton
 class OwnCloudConnector @Inject constructor(
     private val authManager: OwnCloudAuthManager,
-    private val webDavClient: NextcloudWebDavClient   // shared with Nextcloud
+    private val webDavClient: NextcloudWebDavClient   // gemeinsam mit Nextcloud genutzt
 ) : CloudConnector {
 
     override suspend fun listFiles(accountId: String): List<CloudFile> {
@@ -30,15 +30,15 @@ class OwnCloudConnector @Inject constructor(
             .map { it.toCloudFile(accountId, creds.serverUrl) }
     }
 
-    /** fileId is the WebDAV href path. */
+    /** fileId ist der WebDAV-href-Pfad. */
     override suspend fun downloadFile(fileId: String, accountId: String): ByteArray {
         val creds = requireCreds(accountId)
         return webDavClient.downloadFile(creds.serverUrl, requireAuth(accountId), fileId)
     }
 
     /**
-     * ownCloud WebDAV has no delta-token API.
-     * Full re-list is performed; unchanged files are skipped via eTag in IndexRepository.
+     * ownCloud WebDAV hat keine Delta-Token-API.
+     * Es wird komplett neu gelistet; unveränderte Dateien werden im IndexRepository per eTag übersprungen.
      */
     override suspend fun getChanges(
         accountId: String,
@@ -61,7 +61,7 @@ class OwnCloudConnector @Inject constructor(
         authManager.removeCredentials(accountId)
     }
 
-    // --- Helpers ---
+    // --- Hilfsfunktionen ---
 
     private fun requireCreds(accountId: String): OwnCloudCredentials =
         authManager.getCredentials(accountId)

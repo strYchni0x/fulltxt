@@ -29,9 +29,9 @@ class IndexFilesUseCase @Inject constructor(
     }
 
     /**
-     * Schedules the resumable OCR pass that drains the OcrQueue. Unique + KEEP so a single OCR
-     * worker runs at a time; it reschedules itself while files remain. Requires network because
-     * queued files are re-downloaded for rendering.
+     * Plant den fortsetzbaren OCR-Durchlauf, der die OcrQueue abarbeitet. Unique + KEEP, damit immer
+     * nur ein OCR-Worker gleichzeitig läuft; er plant sich selbst neu, solange Dateien verbleiben.
+     * Benötigt Netzwerk, da eingereihte Dateien zum Rendern erneut heruntergeladen werden.
      */
     fun scheduleOcr() {
         val networkType = if (appPreferences.allowMeteredIndexing) NetworkType.CONNECTED
@@ -75,9 +75,9 @@ class IndexFilesUseCase @Inject constructor(
     }
 
     /**
-     * Schedules (or replaces) a periodic delta sync that runs once every 24 hours.
-     * The job respects the global metered-network preference at the time it is scheduled;
-     * toggling the metered setting afterwards requires calling this function again.
+     * Plant (oder ersetzt) einen periodischen Delta-Sync, der einmal alle 24 Stunden läuft.
+     * Der Job berücksichtigt die globale Einstellung für getaktete Netzwerke zum Zeitpunkt der Planung;
+     * ein späteres Umschalten der Einstellung erfordert einen erneuten Aufruf dieser Funktion.
      */
     fun scheduleDailyDelta(accountId: String, provider: CloudProvider) {
         val networkType = when {
@@ -106,7 +106,7 @@ class IndexFilesUseCase @Inject constructor(
         )
     }
 
-    /** Cancels the periodic daily delta sync for the given account. */
+    /** Bricht den periodischen täglichen Delta-Sync für das angegebene Konto ab. */
     fun cancelDailyDelta(accountId: String) {
         WorkManager.getInstance(context).cancelUniqueWork(dailyTag(accountId))
     }

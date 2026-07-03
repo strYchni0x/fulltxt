@@ -66,8 +66,9 @@ class MsalAuthManager @Inject constructor(
     }
 
     /**
-     * Reads all accounts from MSAL's encrypted token cache and marks them as authenticated.
-     * Call once on app start so isAuthenticated() returns correct results after a restart.
+     * Liest alle Konten aus dem verschlüsselten Token-Cache von MSAL und markiert sie als
+     * authentifiziert. Beim App-Start einmal aufrufen, damit isAuthenticated() auch nach einem
+     * Neustart korrekte Ergebnisse liefert.
      */
     suspend fun loadCachedAccounts() {
         runCatching {
@@ -102,13 +103,14 @@ class MsalAuthManager @Inject constructor(
 
     private suspend fun getApp(): IMultipleAccountPublicClientApplication {
         msalApp?.let { return it }
-        // MSAL 5.x createMultipleAccountPublicClientApplication requires a File; extract from raw resource once.
-        // Always overwrite so a config change in raw/msal_config.json is picked up immediately.
+        // MSAL 5.x createMultipleAccountPublicClientApplication benötigt eine File; einmalig aus der
+        // Raw-Ressource extrahieren. Immer überschreiben, damit eine Änderung in
+        // raw/msal_config.json sofort übernommen wird.
         val configFile = File(context.cacheDir, "msal_config.json").also { file ->
             context.resources.openRawResource(R.raw.msal_config)
                 .use { input -> file.outputStream().use { input.copyTo(it) } }
         }
-        // Config file read intentionally NOT logged — contains client_id and redirect URI.
+        // Der Inhalt der Config-Datei wird bewusst NICHT geloggt — er enthält client_id und Redirect-URI.
         return suspendCancellableCoroutine { cont ->
             PublicClientApplication.createMultipleAccountPublicClientApplication(
                 context,

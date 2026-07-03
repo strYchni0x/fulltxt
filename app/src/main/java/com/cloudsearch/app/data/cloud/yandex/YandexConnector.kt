@@ -11,13 +11,13 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Yandex Disk connector.
+ * Yandex-Disk-Connector.
  *
- * WebDAV endpoint: https://webdav.yandex.com/ (files live directly under "/").
- * Authentication: Basic Auth (Yandex login + password, or an app password when 2FA is on).
+ * WebDAV-Endpunkt: https://webdav.yandex.com/ (Dateien liegen direkt unter "/").
+ * Authentifizierung: Basic Auth (Yandex-Login + Passwort oder ein App-Passwort bei aktiver 2FA).
  *
- * Yandex does not support Depth: infinity, so [NextcloudWebDavClient.listFiles] transparently
- * falls back to recursive Depth:1 traversal.
+ * Yandex unterstützt kein Depth: infinity, daher fällt [NextcloudWebDavClient.listFiles]
+ * transparent auf eine rekursive Depth:1-Traversierung zurück.
  */
 @Singleton
 class YandexConnector @Inject constructor(
@@ -33,7 +33,7 @@ class YandexConnector @Inject constructor(
             .map { it.toCloudFile(accountId) }
     }
 
-    /** fileId is the full WebDAV href (e.g. /Documents/report.pdf). */
+    /** fileId ist der vollständige WebDAV-href (z. B. /Documents/report.pdf). */
     override suspend fun downloadFile(fileId: String, accountId: String): ByteArray {
         val auth = requireAuth(accountId)
         return webDavClient.downloadFile(YandexAuthManager.SERVER_URL, auth, fileId)
@@ -53,7 +53,7 @@ class YandexConnector @Inject constructor(
     override suspend fun authenticate(accountId: String) {
         val creds = requireCreds(accountId)
         val auth  = requireAuth(accountId)
-        // Validate credentials against the server with a Depth:0 PROPFIND.
+        // Zugangsdaten mit einem Depth:0-PROPFIND gegen den Server prüfen.
         webDavClient.testConnection(YandexAuthManager.SERVER_URL, creds.username, auth, rootPath = "/")
     }
 
@@ -84,7 +84,7 @@ class YandexConnector @Inject constructor(
             modifiedAt    = modifiedAt,
             mimeType      = mimeType ?: "application/octet-stream",
             changeToken   = etag,
-            webUrl        = null   // Yandex Disk web UI has no stable deep-link format
+            webUrl        = null   // Die Yandex-Disk-Web-Oberfläche hat kein stabiles Deep-Link-Format
         )
     }
 }

@@ -13,8 +13,8 @@ import javax.inject.Singleton
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
 /**
- * Thin wrapper around SharedPreferences for app-wide settings that are
- * not tied to a specific cloud account.
+ * Dünner Wrapper um SharedPreferences für app-weite Einstellungen, die nicht
+ * an ein bestimmtes Cloud-Konto gebunden sind.
  */
 @Singleton
 class AppPreferences @Inject constructor(
@@ -29,7 +29,7 @@ class AppPreferences @Inject constructor(
 
     private val _themeMode = MutableStateFlow(readThemeMode())
 
-    /** Reactive theme selection so the Compose root can re-theme on change. */
+    /** Reaktive Theme-Auswahl, damit der Compose-Root bei Änderung neu themen kann. */
     val themeModeFlow: StateFlow<ThemeMode> = _themeMode.asStateFlow()
 
     var themeMode: ThemeMode
@@ -41,10 +41,10 @@ class AppPreferences @Inject constructor(
 
     private val _fileTypeIcons = MutableStateFlow(prefs.getBoolean(KEY_FILE_TYPE_ICONS, true))
 
-    /** Reactive flag so the search screen updates live when toggled in settings. */
+    /** Reaktives Flag, damit der Suchbildschirm live aktualisiert, wenn es in den Einstellungen umgeschaltet wird. */
     val fileTypeIconsFlow: StateFlow<Boolean> = _fileTypeIcons.asStateFlow()
 
-    /** When true, search results show a colored icon per file type instead of a generic one. */
+    /** Wenn true, zeigen Suchergebnisse ein farbiges Symbol pro Dateityp statt eines generischen. */
     var fileTypeIcons: Boolean
         get() = _fileTypeIcons.value
         set(value) {
@@ -58,7 +58,7 @@ class AppPreferences @Inject constructor(
         }
     )
 
-    /** Reactive max number of search results; search re-runs when this changes. */
+    /** Reaktive maximale Anzahl an Suchergebnissen; die Suche läuft bei Änderung erneut. */
     val searchResultLimitFlow: StateFlow<Int> = _searchResultLimit.asStateFlow()
 
     var searchResultLimit: Int
@@ -70,8 +70,8 @@ class AppPreferences @Inject constructor(
         }
 
     /**
-     * When true, the indexing WorkManager job runs on any network (including mobile data).
-     * When false (default), the job is restricted to unmetered networks (WiFi / Ethernet).
+     * Wenn true, läuft der Indexierungs-WorkManager-Job in jedem Netzwerk (auch mobile Daten).
+     * Wenn false (Standard), ist der Job auf ungetaktete Netzwerke beschränkt (WLAN / Ethernet).
      */
     var allowMeteredIndexing: Boolean
         get() = prefs.getBoolean(KEY_ALLOW_METERED, false)
@@ -79,12 +79,12 @@ class AppPreferences @Inject constructor(
 
     private val _ocrEnabled = MutableStateFlow(prefs.getBoolean(KEY_OCR_ENABLED, false))
 
-    /** Reactive flag so settings reflects the OCR toggle live. */
+    /** Reaktives Flag, damit die Einstellungen den OCR-Schalter live widerspiegeln. */
     val ocrEnabledFlow: StateFlow<Boolean> = _ocrEnabled.asStateFlow()
 
     /**
-     * When true, scanned/image-only PDFs are run through on-device OCR during indexing.
-     * Off by default: OCR is significantly slower and more battery-intensive.
+     * Wenn true, werden gescannte/reine Bild-PDFs während der Indexierung durch On-Device-OCR
+     * verarbeitet. Standardmäßig aus: OCR ist deutlich langsamer und akkuintensiver.
      */
     var ocrEnabled: Boolean
         get() = _ocrEnabled.value
@@ -99,12 +99,13 @@ class AppPreferences @Inject constructor(
         }
     )
 
-    /** Reactive max file size (in MB) for indexing; larger files are skipped. */
+    /** Reaktive maximale Dateigröße (in MB) für die Indexierung; größere Dateien werden übersprungen. */
     val maxFileSizeMbFlow: StateFlow<Int> = _maxFileSizeMb.asStateFlow()
 
     /**
-     * Files larger than this (in MB) are skipped during indexing to avoid loading huge files
-     * into memory. User-configurable; higher values use more RAM during indexing.
+     * Dateien größer als dies (in MB) werden bei der Indexierung übersprungen, um zu vermeiden, dass
+     * riesige Dateien in den Speicher geladen werden. Konfigurierbar; höhere Werte brauchen mehr RAM
+     * während der Indexierung.
      */
     var maxFileSizeMb: Int
         get() = _maxFileSizeMb.value
@@ -114,11 +115,11 @@ class AppPreferences @Inject constructor(
             _maxFileSizeMb.value = applied
         }
 
-    /** Returns true if the daily automatic delta sync is enabled for the given account. */
+    /** Gibt true zurück, wenn der tägliche automatische Delta-Sync für das angegebene Konto aktiviert ist. */
     fun isDailyDeltaEnabled(accountId: String): Boolean =
         prefs.getBoolean(dailyDeltaKey(accountId), false)
 
-    /** Persists the daily delta sync preference for the given account. */
+    /** Persistiert die Einstellung für den täglichen Delta-Sync des angegebenen Kontos. */
     fun setDailyDeltaEnabled(accountId: String, enabled: Boolean) =
         prefs.edit { putBoolean(dailyDeltaKey(accountId), enabled) }
 
@@ -133,7 +134,7 @@ class AppPreferences @Inject constructor(
             ?: emptyList()
         set(value) = prefs.edit { putString(KEY_RECENT_SEARCHES, value.joinToString("\n")) }
 
-    /** How many recent searches to remember and show. Clamped to [MIN_RECENT, MAX_RECENT]. */
+    /** Wie viele letzte Suchanfragen gemerkt und angezeigt werden. Begrenzt auf [MIN_RECENT, MAX_RECENT]. */
     var recentSearchLimit: Int
         get() = prefs.getInt(KEY_RECENT_LIMIT, DEFAULT_RECENT_LIMIT)
             .coerceIn(MIN_RECENT_LIMIT, MAX_RECENT_LIMIT)

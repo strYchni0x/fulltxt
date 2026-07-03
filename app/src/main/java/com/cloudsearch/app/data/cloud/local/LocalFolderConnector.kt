@@ -51,7 +51,7 @@ class LocalFolderConnector @Inject constructor(
         authManager.isPermissionGranted(accountId)
 
     override suspend fun authenticate(accountId: String) {
-        // Auth happens via ACTION_OPEN_DOCUMENT_TREE in the UI layer.
+        // Die Authentifizierung erfolgt über ACTION_OPEN_DOCUMENT_TREE in der UI-Schicht.
     }
 
     override fun signOut(accountId: String) {

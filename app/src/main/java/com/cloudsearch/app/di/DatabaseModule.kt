@@ -30,9 +30,10 @@ object DatabaseModule {
         System.loadLibrary("sqlcipher")
 
         val dbFile = context.getDatabasePath("fulltxt.db")
-        // One-time transition to an encrypted index: a pre-existing *plaintext* index cannot be
-        // opened with SQLCipher, so it is discarded and re-created encrypted. The user re-indexes
-        // once. (No in-place sqlcipher_export migration — the index is reproducible from the cloud.)
+        // Einmaliger Übergang zu einem verschlüsselten Index: Ein bereits vorhandener *Klartext*-Index
+        // kann nicht mit SQLCipher geöffnet werden, daher wird er verworfen und verschlüsselt neu
+        // erstellt. Der Benutzer indexiert einmal neu. (Keine In-place-sqlcipher_export-Migration — der
+        // Index ist aus der Cloud reproduzierbar.)
         if (SqlCipherUtils.isPlaintext(dbFile)) {
             dbFile.delete()
             File("${dbFile.path}-wal").delete()

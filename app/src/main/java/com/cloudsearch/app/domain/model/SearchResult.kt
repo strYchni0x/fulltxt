@@ -4,6 +4,6 @@ data class SearchResult(
     val file: CloudFile,
     val snippet: String,
     val score: Double,
-    /** Non-empty when the same file (fileName + fileSizeBytes) exists on multiple providers/accounts. */
+    /** Nicht leer, wenn dieselbe Datei (fileName + fileSizeBytes) bei mehreren Anbietern/Konten existiert. */
     val duplicateProviders: List<CloudProvider> = emptyList()
 )
