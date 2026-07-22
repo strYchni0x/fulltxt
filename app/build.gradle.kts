@@ -14,14 +14,14 @@ val keystoreProps = Properties().also { props ->
 
 android {
     namespace = "me.fulltxt.app"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "me.fulltxt.app"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 25
-        versionName = "1.3.5"
+        targetSdk = 36
+        versionCode = 26
+        versionName = "1.3.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
