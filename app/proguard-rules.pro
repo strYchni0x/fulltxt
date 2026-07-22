@@ -31,6 +31,16 @@
 -keep class com.google.apis.** { *; }
 -dontwarn com.google.api.**
 
+# Room — die generierten *_Impl-Klassen (Datenbank + DAOs) werden zur Laufzeit
+# per Reflection (Class.forName) geladen. Ohne Keep-Regel entfernt/umbenennt R8
+# sie im minifizierten Release-Build → sofortiger Absturz beim Start:
+# "Cannot find implementation for ... FulltxtDatabase_Impl.". Trat ab dem
+# compileSdk-36-Wechsel (1.3.6) auf; frühere R8-Läufe hatten die Klasse zufällig
+# behalten. FulltxtDatabase + FileIndexDao liegen unter me.fulltxt.app.data.local(.dao).
+-keep class * extends androidx.room.RoomDatabase { *; }
+-keep class me.fulltxt.app.**_Impl { *; }
+-dontwarn androidx.room.**
+
 # SQLCipher (loads native methods via JNI)
 -keep class net.zetetic.** { *; }
 -keep class net.zetetic.database.** { *; }
