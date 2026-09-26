@@ -144,6 +144,21 @@
     .footer-links a { color: var(--muted); text-decoration: none; transition: color .15s; }
     .footer-links a:hover { color: var(--primary); }
 
+    /* DESKTOP-DOWNLOADS */
+    .dl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+    .dl-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 28px; display: flex; flex-direction: column; gap: 12px; transition: border-color .2s;
+    }
+    .dl-card:hover { border-color: rgba(34,197,94,.4); }
+    .dl-card h3 { font-size: 1.15rem; font-weight: 700; }
+    .dl-card p { font-size: .9rem; color: var(--muted); line-height: 1.55; }
+    .dl-meta { font-size: .8rem; color: var(--muted); }
+    .dl-card .btn-primary { align-self: flex-start; margin-top: 4px; }
+    .dl-note { margin-top: 24px; font-size: .85rem; color: var(--muted); max-width: 720px; }
+    .dl-note a { color: var(--primary); text-decoration: none; }
+    .dl-note a:hover { text-decoration: underline; }
+
     /* LANG */
     [data-lang] { display: none !important; }
     body.lang-de [data-lang="de"] { display: block !important; }
@@ -154,6 +169,7 @@
     body.lang-en .lang-inline[data-lang="en"] { display: inline !important; }
 
     @media (max-width: 600px) {
+      .nav-desktop { display: none; }
       .privacy-highlight { padding: 28px; }
       section { padding: 60px 20px; }
     }
@@ -168,6 +184,9 @@
       <button class="lang-btn active" id="btn-de" onclick="setLang('de')">DE</button>
       <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
     </div>
+    <a class="nav-dl nav-desktop" href="#desktop">
+      <span class="lang-inline" data-lang="de">Windows &amp; Linux</span><span class="lang-inline" data-lang="en">Windows &amp; Linux</span>
+    </a>
     <a class="nav-dl" href="https://play.google.com/store/apps/details?id=me.fulltxt.app">
       <span class="lang-inline" data-lang="de">Google Play</span>
       <span class="lang-inline" data-lang="en">Google Play</span>
@@ -179,7 +198,7 @@
 <section class="hero">
   <div style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:24px;">
     <img src="assets/icon-512.png" alt="FullTXT Icon" style="width:96px;height:96px;border-radius:22px;box-shadow:0 8px 32px rgba(0,0,0,.5);">
-    <div class="hero-badge">Android App</div>
+    <div class="hero-badge">Android · Windows · Linux</div>
   </div>
   <h1>
     <span data-lang="de">Volltextsuche für<br><span>deine Cloud.</span></span>
@@ -199,9 +218,46 @@
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 2.4v19.2c0 .4.4.6.7.4l16.4-9.6c.3-.2.3-.6 0-.8L3.7 2C3.4 1.8 3 2 3 2.4z"/></svg>
       <span class="lang-inline" data-lang="de">Bei Google Play</span><span class="lang-inline" data-lang="en">Get it on Google Play</span>
     </a>
+    <a class="btn-secondary" href="#desktop">
+      <span class="lang-inline" data-lang="de">Für Windows &amp; Linux</span><span class="lang-inline" data-lang="en">For Windows &amp; Linux</span>
+    </a>
     <a class="btn-secondary" href="https://github.com/strYchni0x/fulltxt">
       <span class="lang-inline" data-lang="de">Quellcode auf GitHub</span><span class="lang-inline" data-lang="en">Source on GitHub</span>
     </a>
+  </div>
+</section>
+
+<!-- DESKTOP -->
+<section id="desktop" style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="section-inner">
+    <div class="section-label" data-lang="de">Für den Desktop</div>
+    <div class="section-label" data-lang="en">For the desktop</div>
+    <h2 class="section-title" data-lang="de">FullTXT für Windows und Linux.</h2>
+    <h2 class="section-title" data-lang="en">FullTXT for Windows and Linux.</h2>
+    <p class="section-sub" data-lang="de">Dieselbe private Volltextsuche für lokale Ordner und Cloud-Konten. Cloud-Dateien werden nur einmal zum Indexieren gelesen – später lädst du nur die Datei herunter, die du wirklich brauchst, oder öffnest sie per Link im Browser. Ideal für kleine Festplatten.</p>
+    <p class="section-sub" data-lang="en">The same private full-text search for local folders and cloud accounts. Cloud files are read only once for indexing – later you download just the file you actually need, or open it via link in your browser. Ideal for small disks.</p>
+    <div class="dl-grid">
+      <div class="dl-card">
+        <h3>Windows</h3>
+        <p data-lang="de">Windows 10 und 11, 64 Bit. ZIP entpacken und starten – keine Installation, keine .NET-Runtime nötig.</p>
+        <p data-lang="en">Windows 10 and 11, 64-bit. Unzip and run – no installation, no .NET runtime required.</p>
+        <a class="btn-primary" href="https://github.com/strYchni0x/fulltxt_desktop/releases/download/v1.0.0/FullTXT-Windows-1.0.0-win-x64.zip">
+          <span class="lang-inline" data-lang="de">Windows-Download</span><span class="lang-inline" data-lang="en">Download for Windows</span>
+        </a>
+        <div class="dl-meta">Version 1.0.0 · ZIP · 68 MB</div>
+      </div>
+      <div class="dl-card">
+        <h3>Linux</h3>
+        <p data-lang="de">Linux x86_64 mit Desktop. Archiv entpacken und <code>./install.sh</code> ausführen. Der Index-Schlüssel liegt im Schlüsselbund deines Systems.</p>
+        <p data-lang="en">Linux x86_64 with a desktop environment. Extract the archive and run <code>./install.sh</code>. The index key is kept in your system keyring.</p>
+        <a class="btn-primary" href="https://github.com/strYchni0x/fulltxt_desktop/releases/download/v1.0.0/fulltxt-linux-x64-1.0.0.tar.gz">
+          <span class="lang-inline" data-lang="de">Linux-Download</span><span class="lang-inline" data-lang="en">Download for Linux</span>
+        </a>
+        <div class="dl-meta">Version 1.0.0 · tar.gz · 43 MB</div>
+      </div>
+    </div>
+    <p class="dl-note" data-lang="de">Die Programme sind nicht signiert – Windows zeigt beim ersten Start eine SmartScreen-Warnung („Weitere Informationen“ → „Trotzdem ausführen“). Die Linux-Version ist neu und noch wenig getestet. Prüfsummen, Anleitung und alle Versionen: <a href="https://github.com/strYchni0x/fulltxt_desktop/releases">GitHub-Releases</a> · <a href="https://github.com/strYchni0x/fulltxt_desktop/blob/main/INSTALL.md">Installationsanleitung</a>.</p>
+    <p class="dl-note" data-lang="en">The programs are not code-signed – Windows shows a SmartScreen warning on first start (“More info” → “Run anyway”). The Linux version is new and not yet widely tested. Checksums, instructions and all versions: <a href="https://github.com/strYchni0x/fulltxt_desktop/releases">GitHub releases</a> · <a href="https://github.com/strYchni0x/fulltxt_desktop/blob/main/INSTALL.md">Installation guide</a>.</p>
   </div>
 </section>
 
