@@ -47,10 +47,10 @@
 <!-- DEUTSCH -->
 <div data-lang="de">
   <h1>Datenschutzerklärung</h1>
-  <p class="meta">Stand: Mai 2026 &nbsp;·&nbsp; Verantwortlicher: Florian Willnat &nbsp;·&nbsp; <a href="mailto:info@fulltxt.me">info@fulltxt.me</a></p>
+  <p class="meta">Stand: September 2026 &nbsp;·&nbsp; Verantwortlicher: Florian Willnat &nbsp;·&nbsp; <a href="mailto:info@fulltxt.me">info@fulltxt.me</a></p>
 
   <h2>1. Überblick</h2>
-  <p>FULLTXT ist eine Android-App zur Volltext-Suche in Cloud-Speicherdiensten. Diese Datenschutzerklärung erläutert, welche Daten die App verarbeitet, wie sie gespeichert werden und welche Rechte dir als Nutzer zustehen.</p>
+  <p>FULLTXT ist eine Android-App zur Volltext-Suche in Cloud-Speicherdiensten, außerdem gibt es ein Programm für Windows und Linux (Abschnitt 10). Diese Datenschutzerklärung erläutert, welche Daten die App verarbeitet, wie sie gespeichert werden und welche Rechte dir als Nutzer zustehen.</p>
   <p><strong>Kernprinzip:</strong> FULLTXT verarbeitet alle Daten ausschließlich lokal auf deinem Gerät. Es gibt keinen eigenen Backend-Server; es werden keine Nutzungsdaten, Analysedaten oder Dateiinhalte an den App-Entwickler übertragen.</p>
 
   <h2>2. Verarbeitete Daten</h2>
@@ -122,17 +122,44 @@
   <h2>9. Kinder</h2>
   <p>Die App richtet sich nicht an Kinder unter 16 Jahren.</p>
 
-  <h2>10. Kontakt</h2>
+  <h2>10. Desktop-Version (Windows und Linux)</h2>
+  <p>FULLTXT gibt es auch als Programm für Windows und Linux. Es gilt dasselbe Kernprinzip: <strong>Alle Daten werden ausschließlich lokal auf deinem Computer verarbeitet.</strong> Es gibt keinen eigenen Server, keine Telemetrie, keine Nutzungs- oder Absturzberichte und keine Übertragung von Dateiinhalten oder Zugangsdaten an den Entwickler. Die Abschnitte 2 bis 6 beschreiben die Android-App; für die Desktop-Version gilt dieser Abschnitt.</p>
+  <p><strong>10.1 Verarbeitete Daten</strong></p>
+  <ul>
+    <li><strong>Lokale Ordner:</strong> Nur die Ordner, die du ausdrücklich hinzufügst. Indexiert werden Dateiname, Pfad, Größe, Änderungsdatum und der Textinhalt unterstützter Dateien (Text- und Code-Dateien, Word, Excel, PowerPoint, PDF mit Textebene).</li>
+    <li><strong>Cloud-Konten:</strong> Anbieter, Anzeigename, Benutzername und gegebenenfalls Server-Adresse sowie das App-Passwort bzw. das OAuth-Token. Unterstützt werden Microsoft OneDrive, Dropbox, Nextcloud, ownCloud, MagentaCloud, Strato HiDrive und Yandex Disk.</li>
+    <li><strong>Cloud-Dateien:</strong> Werden zum Indexieren einmalig gelesen und dabei nur im Arbeitsspeicher verarbeitet. Es entstehen keine Kopien auf der Festplatte; gespeichert wird nur der extrahierte Text im verschlüsselten Index. Eine Datei wird nur dann heruntergeladen, wenn du in der App auf „Herunterladen“ klickst (Ablage im Ordner „Downloads“). „Im Browser öffnen“ ruft die Seite deines Cloud-Anbieters auf.</li>
+    <li><strong>Einstellungen:</strong> Die gewählte Darstellung (System, Hell, Dunkel).</li>
+  </ul>
+  <p><strong>10.2 Speicherort und Verschlüsselung</strong></p>
+  <table>
+    <tr><th>Datum</th><th>Speicherort</th><th>Schutz</th></tr>
+    <tr><td>Suchindex und Konten</td><td>Windows: <code>%LOCALAPPDATA%\Fulltxt\index.db</code><br>Linux: <code>~/.local/share/Fulltxt/index.db</code></td><td>SQLCipher (AES-256)</td></tr>
+    <tr><td>Passwörter und OAuth-Token</td><td>Im Index (<code>index.db</code>)</td><td>Zusätzlich einzeln verschlüsselt (siehe unten)</td></tr>
+    <tr><td>Index-Schlüssel</td><td>Datei <code>index.key</code> im selben Ordner</td><td>Windows: DPAPI, an dein Benutzerkonto gebunden<br>Linux: AES-256-GCM, Hauptschlüssel im Schlüsselbund deines Systems (Secret Service, z. B. GNOME Keyring, KDE Wallet)</td></tr>
+    <tr><td>Darstellung</td><td><code>settings.json</code> im selben Ordner</td><td>unverschlüsselt (enthält nur die Theme-Wahl)</td></tr>
+  </table>
+  <p>Ohne den Login deines Benutzerkontos (Windows) bzw. den entsperrten Schlüsselbund (Linux) lässt sich der Index nicht lesen, zum Beispiel bei einer gestohlenen Festplatte.</p>
+  <p><strong>10.3 Netzwerkverbindungen</strong><br>Die App verbindet sich ausschließlich mit den Cloud-Anbietern, die du hinzugefügt hast, und nur zum Indexieren, Herunterladen oder für die Anmeldung. Bei OneDrive und Dropbox erfolgt die Anmeldung im Standardbrowser bei deinem Anbieter; dein Passwort erfährt FULLTXT nicht. Die Rückleitung nach der Anmeldung geht an eine lokale Adresse auf deinem Computer (<code>localhost</code>, Port 53682) und verlässt ihn nicht. Klartext-<code>http://</code> akzeptiert die App für Passwort-Anmeldungen nur im lokalen Netzwerk. Für die Datenverarbeitung bei den Anbietern gelten deren Datenschutzbestimmungen (siehe Abschnitt 3). Der Download der Programmdatei erfolgt über GitHub; dafür gelten die Datenschutzbestimmungen von GitHub.</p>
+  <p><strong>10.4 Berechtigungen</strong><br>Die Desktop-Version liest nur die Ordner, die du hinzufügst. Zusätzliche Systemberechtigungen sind nicht nötig. Unter Linux greift sie auf den Schlüsselbund zu (über das Programm <code>secret-tool</code>) und öffnet Dateien und Links mit den Standardprogrammen (<code>xdg-open</code>).</p>
+  <p><strong>10.5 Löschung</strong></p>
+  <ul>
+    <li><strong>Quelle entfernen:</strong> Löscht den Index dieser Quelle und die gespeicherten Zugangsdaten sofort.</li>
+    <li><strong>Alle Daten entfernen:</strong> Programm löschen und den Datenordner löschen (Windows: <code>%LOCALAPPDATA%\Fulltxt</code>, Linux: <code>~/.local/share/Fulltxt</code>). Unter Linux kann zusätzlich der Schlüsselbund-Eintrag „FullTXT Index-Schlüssel“ entfernt werden.</li>
+    <li>Heruntergeladene Dateien im Ordner „Downloads“ löschst du selbst.</li>
+  </ul>
+  <p>Rechtsgrundlage (Abschnitt 7) und deine Rechte (Abschnitt 8) gelten entsprechend; alle Daten befinden sich auf deinem Computer und können dort eingesehen und gelöscht werden.</p>
+  <h2>11. Kontakt</h2>
   <p>Florian Willnat &nbsp;·&nbsp; <a href="mailto:info@fulltxt.me">info@fulltxt.me</a></p>
 </div>
 
 <!-- ENGLISH -->
 <div data-lang="en">
   <h1>Privacy Policy</h1>
-  <p class="meta">Last updated: May 2026 &nbsp;·&nbsp; Controller: Florian Willnat &nbsp;·&nbsp; <a href="mailto:info@fulltxt.me">info@fulltxt.me</a></p>
+  <p class="meta">Last updated: September 2026 &nbsp;·&nbsp; Controller: Florian Willnat &nbsp;·&nbsp; <a href="mailto:info@fulltxt.me">info@fulltxt.me</a></p>
 
   <h2>1. Overview</h2>
-  <p>FULLTXT is an Android app for full-text search across cloud storage services. This Privacy Policy explains what data the app processes, how it is stored, and what rights you have as a user.</p>
+  <p>FULLTXT is an Android app for full-text search across cloud storage services; there is also a program for Windows and Linux (Section 10). This Privacy Policy explains what data the app processes, how it is stored, and what rights you have as a user.</p>
   <p><strong>Core principle:</strong> FULLTXT processes all data exclusively on your device. There is no proprietary back-end server; no usage data, analytics, or file contents are transmitted to the app developer.</p>
 
   <h2>2. Data Processed</h2>
@@ -204,7 +231,34 @@
   <h2>9. Children</h2>
   <p>The app is not directed at children under the age of 16.</p>
 
-  <h2>10. Contact</h2>
+  <h2>10. Desktop Version (Windows and Linux)</h2>
+  <p>FULLTXT is also available as a program for Windows and Linux. The same core principle applies: <strong>all data is processed exclusively on your computer.</strong> There is no proprietary server, no telemetry, no usage or crash reporting, and no transmission of file contents or credentials to the developer. Sections 2 to 6 describe the Android app; this section applies to the desktop version.</p>
+  <p><strong>10.1 Data Processed</strong></p>
+  <ul>
+    <li><strong>Local folders:</strong> Only the folders you explicitly add. File name, path, size, modification date and the text content of supported files (text and code files, Word, Excel, PowerPoint, PDFs with a text layer) are indexed.</li>
+    <li><strong>Cloud accounts:</strong> Provider, display name, username and, where applicable, server address, plus the app password or OAuth token. Supported providers: Microsoft OneDrive, Dropbox, Nextcloud, ownCloud, MagentaCloud, Strato HiDrive and Yandex Disk.</li>
+    <li><strong>Cloud files:</strong> Read once for indexing and processed in memory only. No copies are written to disk; only the extracted text is stored in the encrypted index. A file is downloaded only when you click “Download” in the app (saved to your “Downloads” folder). “Open in browser” opens your cloud provider’s website.</li>
+    <li><strong>Settings:</strong> Your chosen appearance (System, Light, Dark).</li>
+  </ul>
+  <p><strong>10.2 Storage Location and Encryption</strong></p>
+  <table>
+    <tr><th>Data</th><th>Location</th><th>Protection</th></tr>
+    <tr><td>Search index and accounts</td><td>Windows: <code>%LOCALAPPDATA%\Fulltxt\index.db</code><br>Linux: <code>~/.local/share/Fulltxt/index.db</code></td><td>SQLCipher (AES-256)</td></tr>
+    <tr><td>Passwords and OAuth tokens</td><td>In the index (<code>index.db</code>)</td><td>Additionally encrypted individually (see below)</td></tr>
+    <tr><td>Index key</td><td>File <code>index.key</code> in the same folder</td><td>Windows: DPAPI, bound to your user account<br>Linux: AES-256-GCM, master key kept in your system keyring (Secret Service, e.g. GNOME Keyring, KDE Wallet)</td></tr>
+    <tr><td>Appearance</td><td><code>settings.json</code> in the same folder</td><td>unencrypted (contains only the theme choice)</td></tr>
+  </table>
+  <p>Without your user account login (Windows) or the unlocked keyring (Linux), the index cannot be read, for example if the disk is stolen.</p>
+  <p><strong>10.3 Network Connections</strong><br>The app connects only to the cloud providers you have added, and only for indexing, downloading or signing in. For OneDrive and Dropbox, sign-in takes place in your default browser at your provider; FULLTXT never sees your password. The redirect after sign-in goes to a local address on your computer (<code>localhost</code>, port 53682) and does not leave it. For password sign-ins the app accepts plain <code>http://</code> only on the local network. The providers’ own privacy policies apply to their data processing (see Section 3). The program file is downloaded via GitHub, whose privacy policy applies to that download.</p>
+  <p><strong>10.4 Permissions</strong><br>The desktop version reads only the folders you add. No additional system permissions are required. On Linux it accesses the keyring (via the <code>secret-tool</code> program) and opens files and links with your default applications (<code>xdg-open</code>).</p>
+  <p><strong>10.5 Deletion</strong></p>
+  <ul>
+    <li><strong>Remove a source:</strong> Immediately deletes that source’s index and stored credentials.</li>
+    <li><strong>Remove all data:</strong> Delete the program and the data folder (Windows: <code>%LOCALAPPDATA%\Fulltxt</code>, Linux: <code>~/.local/share/Fulltxt</code>). On Linux you can additionally remove the keyring entry “FullTXT Index-Schlüssel”.</li>
+    <li>Files downloaded to your “Downloads” folder are deleted by you.</li>
+  </ul>
+  <p>The legal basis (Section 7) and your rights (Section 8) apply accordingly; all data resides on your computer, where you can view and delete it.</p>
+  <h2>11. Contact</h2>
   <p>Florian Willnat &nbsp;·&nbsp; <a href="mailto:info@fulltxt.me">info@fulltxt.me</a></p>
 </div>
 
