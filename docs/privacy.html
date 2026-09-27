@@ -129,7 +129,7 @@
     <li><strong>Lokale Ordner:</strong> Nur die Ordner, die du ausdrücklich hinzufügst. Indexiert werden Dateiname, Pfad, Größe, Änderungsdatum und der Textinhalt unterstützter Dateien (Text- und Code-Dateien, Word, Excel, PowerPoint, PDF mit Textebene).</li>
     <li><strong>Cloud-Konten:</strong> Anbieter, Anzeigename, Benutzername und gegebenenfalls Server-Adresse sowie das App-Passwort bzw. das OAuth-Token. Unterstützt werden Microsoft OneDrive, Dropbox, Nextcloud, ownCloud, MagentaCloud, Strato HiDrive und Yandex Disk.</li>
     <li><strong>Cloud-Dateien:</strong> Werden zum Indexieren einmalig gelesen und dabei nur im Arbeitsspeicher verarbeitet. Es entstehen keine Kopien auf der Festplatte; gespeichert wird nur der extrahierte Text im verschlüsselten Index. Eine Datei wird nur dann heruntergeladen, wenn du in der App auf „Herunterladen“ klickst (Ablage im Ordner „Downloads“). „Im Browser öffnen“ ruft die Seite deines Cloud-Anbieters auf.</li>
-    <li><strong>Einstellungen:</strong> Die gewählte Darstellung (System, Hell, Dunkel).</li>
+    <li><strong>Einstellungen:</strong> Die gewählte Darstellung (System, Hell, Dunkel) und die maximale Anzahl angezeigter Suchergebnisse.</li>
   </ul>
   <p><strong>10.2 Speicherort und Verschlüsselung</strong></p>
   <table>
@@ -137,7 +137,7 @@
     <tr><td>Suchindex und Konten</td><td>Windows: <code>%LOCALAPPDATA%\Fulltxt\index.db</code><br>Linux: <code>~/.local/share/Fulltxt/index.db</code></td><td>SQLCipher (AES-256)</td></tr>
     <tr><td>Passwörter und OAuth-Token</td><td>Im Index (<code>index.db</code>)</td><td>Zusätzlich einzeln verschlüsselt (siehe unten)</td></tr>
     <tr><td>Index-Schlüssel</td><td>Datei <code>index.key</code> im selben Ordner</td><td>Windows: DPAPI, an dein Benutzerkonto gebunden<br>Linux: AES-256-GCM, Hauptschlüssel im Schlüsselbund deines Systems (Secret Service, z. B. GNOME Keyring, KDE Wallet)</td></tr>
-    <tr><td>Darstellung</td><td><code>settings.json</code> im selben Ordner</td><td>unverschlüsselt (enthält nur die Theme-Wahl)</td></tr>
+    <tr><td>Darstellung</td><td><code>settings.json</code> im selben Ordner</td><td>unverschlüsselt (enthält nur Darstellung und Trefferlimit)</td></tr>
   </table>
   <p>Ohne den Login deines Benutzerkontos (Windows) bzw. den entsperrten Schlüsselbund (Linux) lässt sich der Index nicht lesen, zum Beispiel bei einer gestohlenen Festplatte.</p>
   <p><strong>10.3 Netzwerkverbindungen</strong><br>Die App verbindet sich ausschließlich mit den Cloud-Anbietern, die du hinzugefügt hast, und nur zum Indexieren, Herunterladen oder für die Anmeldung. Bei OneDrive und Dropbox erfolgt die Anmeldung im Standardbrowser bei deinem Anbieter; dein Passwort erfährt FULLTXT nicht. Die Rückleitung nach der Anmeldung geht an eine lokale Adresse auf deinem Computer (<code>localhost</code>, Port 53682) und verlässt ihn nicht. Klartext-<code>http://</code> akzeptiert die App für Passwort-Anmeldungen nur im lokalen Netzwerk. Für die Datenverarbeitung bei den Anbietern gelten deren Datenschutzbestimmungen (siehe Abschnitt 3). Der Download der Programmdatei erfolgt über GitHub; dafür gelten die Datenschutzbestimmungen von GitHub.</p>
@@ -238,7 +238,7 @@
     <li><strong>Local folders:</strong> Only the folders you explicitly add. File name, path, size, modification date and the text content of supported files (text and code files, Word, Excel, PowerPoint, PDFs with a text layer) are indexed.</li>
     <li><strong>Cloud accounts:</strong> Provider, display name, username and, where applicable, server address, plus the app password or OAuth token. Supported providers: Microsoft OneDrive, Dropbox, Nextcloud, ownCloud, MagentaCloud, Strato HiDrive and Yandex Disk.</li>
     <li><strong>Cloud files:</strong> Read once for indexing and processed in memory only. No copies are written to disk; only the extracted text is stored in the encrypted index. A file is downloaded only when you click “Download” in the app (saved to your “Downloads” folder). “Open in browser” opens your cloud provider’s website.</li>
-    <li><strong>Settings:</strong> Your chosen appearance (System, Light, Dark).</li>
+    <li><strong>Settings:</strong> Your chosen appearance (System, Light, Dark) and the maximum number of search results shown.</li>
   </ul>
   <p><strong>10.2 Storage Location and Encryption</strong></p>
   <table>
@@ -246,7 +246,7 @@
     <tr><td>Search index and accounts</td><td>Windows: <code>%LOCALAPPDATA%\Fulltxt\index.db</code><br>Linux: <code>~/.local/share/Fulltxt/index.db</code></td><td>SQLCipher (AES-256)</td></tr>
     <tr><td>Passwords and OAuth tokens</td><td>In the index (<code>index.db</code>)</td><td>Additionally encrypted individually (see below)</td></tr>
     <tr><td>Index key</td><td>File <code>index.key</code> in the same folder</td><td>Windows: DPAPI, bound to your user account<br>Linux: AES-256-GCM, master key kept in your system keyring (Secret Service, e.g. GNOME Keyring, KDE Wallet)</td></tr>
-    <tr><td>Appearance</td><td><code>settings.json</code> in the same folder</td><td>unencrypted (contains only the theme choice)</td></tr>
+    <tr><td>Appearance</td><td><code>settings.json</code> in the same folder</td><td>unencrypted (contains only appearance and result limit)</td></tr>
   </table>
   <p>Without your user account login (Windows) or the unlocked keyring (Linux), the index cannot be read, for example if the disk is stolen.</p>
   <p><strong>10.3 Network Connections</strong><br>The app connects only to the cloud providers you have added, and only for indexing, downloading or signing in. For OneDrive and Dropbox, sign-in takes place in your default browser at your provider; FULLTXT never sees your password. The redirect after sign-in goes to a local address on your computer (<code>localhost</code>, port 53682) and does not leave it. For password sign-ins the app accepts plain <code>http://</code> only on the local network. The providers’ own privacy policies apply to their data processing (see Section 3). The program file is downloaded via GitHub, whose privacy policy applies to that download.</p>
