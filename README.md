@@ -274,4 +274,15 @@ Connected accounts and the per-provider connect buttons live on their own page, 
 
 ## License
 
-TBD
+Copyright © 2026 Florian Willnat
+
+This program is free software: you can redistribute it and/or modify it under the terms of the
+[GNU General Public License](LICENSE) as published by the Free Software Foundation, either
+version 3 of the License, or (at your option) any later version. This program is distributed
+WITHOUT ANY WARRANTY; see the GNU General Public License for more details.
+
+**Additional permission under GNU GPL version 3 section 7:** If you modify this Program, or any
+covered work, by linking or combining it with Google Play services, Google ML Kit or the Google
+API Client Libraries (or modified versions of those libraries), containing parts covered by the
+terms of their respective proprietary licenses, the licensors of this Program grant you additional
+permission to convey the resulting work.
